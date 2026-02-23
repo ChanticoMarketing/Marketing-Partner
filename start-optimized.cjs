@@ -1,31 +1,19 @@
-// REPLIT DEPLOYMENT OPTIMIZED START
-// Implementa fixes de docs.replit.com/deployments
+﻿#!/usr/bin/env node
 
-console.log('🚀 COHETE WORKFLOW - REPLIT DEPLOYMENT');
-console.log('=====================================');
+const { spawn } = require("node:child_process");
 
-// CRÍTICO: Configurar ENV inmediatamente para health checks rápidos
-process.env.NODE_ENV = 'production';
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Port:', process.env.PORT || 'using default');
-console.log('Replit ID:', process.env.REPL_ID || 'unknown');
-
-// Health check instantáneo en root
-const express = require('express');
-const app = express();
-
-// PRIORIDAD: Health checks ANTES que todo para timing óptimo
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+const child = spawn(process.execPath, ["dist/index.js"], {
+  stdio: "inherit",
+  env: process.env,
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+child.on("error", (error) => {
+  console.error("[start] Failed to launch dist/index.js:", error && error.message ? error.message : String(error));
+  process.exit(1);
 });
 
-// Importar servidor principal después de health checks
-console.log('⚡ Loading main server...');
-require('./server/index.js');
-
-console.log('✅ Cohete Workflow ready for Replit deployment');
+child.on("exit", (code) => {
+  process.exit(code === null ? 1 : code);
+});

@@ -1,37 +1,18 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
+import { spawn } from "node:child_process";
 
-/**
- * Start script optimizado para Replit Deployment
- * Resuelve los 3 errores específicos del deployment
- */
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
-// Configurar ambiente de producción
-process.env.NODE_ENV = 'production';
+const child = spawn(process.execPath, ["dist/index.js"], {
+  stdio: "inherit",
+  env: process.env,
+});
 
-// CRÍTICO: Usar el puerto que Replit proporciona
-const PORT = process.env.PORT || 3000;
-process.env.PORT = PORT.toString();
-
-console.log('====================================');
-console.log('🚀 Cohete Workflow - Replit Production');
-console.log('🔧 Port:', PORT);
-console.log('🌍 Environment:', process.env.NODE_ENV);
-console.log('📍 Replit:', process.env.REPL_SLUG || 'local');
-console.log('====================================');
-
-// Importar tsx para ejecutar TypeScript directamente
-import('tsx').then(tsx => {
-  // Registrar tsx para manejar archivos TypeScript
-  tsx.register();
-  
-  // Importar y ejecutar el servidor
-  import('./server/index.js').then(() => {
-    console.log('✅ Server started successfully');
-  }).catch(error => {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  });
-}).catch(error => {
-  console.error('❌ Failed to load tsx:', error);
+child.on("error", (error) => {
+  console.error("[start] Failed to launch dist/index.js:", error instanceof Error ? error.message : error);
   process.exit(1);
+});
+
+child.on("exit", (code) => {
+  process.exit(code === null ? 1 : code);
 });

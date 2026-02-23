@@ -6,9 +6,9 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 channel = "stable-24_05"
 
 [deployment]
-build = ["sh", "-c", "npm install && node production-deploy.cjs"]
-run = ["sh", "-c", "cd dist && npm install && npm start"]
-publicDir = "client/dist"
+build = ["sh", "-c", "npm install && npm run build"]
+run = ["sh", "-c", "npm run start"]
+publicDir = "dist/public"
 
 [[deployment.rewrites]]
 from = "/*"
@@ -45,7 +45,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node production-deploy.cjs"
+args = "npm run build"
 
 [[workflows.workflow]]
 name = "Start App"

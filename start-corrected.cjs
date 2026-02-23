@@ -1,24 +1,19 @@
-// REPLIT DEPLOYMENT - CORRECTED STARTUP
-// Fixes specific deployment errors reported by user
+﻿#!/usr/bin/env node
 
-console.log('🚀 COHETE WORKFLOW - REPLIT DEPLOYMENT CORRECTED');
-console.log('===============================================');
+const { spawn } = require("node:child_process");
 
-// CRITICAL FIX: Set NODE_ENV immediately for deployment detection
-process.env.NODE_ENV = 'production';
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
-console.log('✅ Environment variables:');
-console.log('   NODE_ENV:', process.env.NODE_ENV);
-console.log('   PORT:', process.env.PORT || 'not set by Replit');
-console.log('   REPL_ID:', process.env.REPL_ID || 'unknown');
+const child = spawn(process.execPath, ["dist/index.js"], {
+  stdio: "inherit",
+  env: process.env,
+});
 
-// CRITICAL: Import server AFTER setting environment
-console.log('⚡ Loading corrected server...');
-try {
-  require('./server/index.js');
-  console.log('✅ Server loaded successfully with fixes applied');
-} catch (error) {
-  console.error('❌ Server failed to start:', error);
-  console.error('Stack:', error.stack);
+child.on("error", (error) => {
+  console.error("[start] Failed to launch dist/index.js:", error && error.message ? error.message : String(error));
   process.exit(1);
-}
+});
+
+child.on("exit", (code) => {
+  process.exit(code === null ? 1 : code);
+});

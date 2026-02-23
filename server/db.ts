@@ -1,8 +1,11 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { isOfflineModeAllowed } from "./runtime-config";
 
 const connectionString = process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === "production";
+const allowOfflineMode = isOfflineModeAllowed();
 
 const isLocalHost = connectionString?.includes("localhost") || connectionString?.includes("127.0.0.1") || false;
 const disableSSL = process.env.SUPABASE_USE_SSL === "false" || isLocalHost;
@@ -19,9 +22,7 @@ if (!disableSSL) {
   };
 }
 
-// Configurar conexión con pooling y soporte SSL para Supabase
-// Configurar conexión con pooling y soporte SSL para Supabase
-// Flag indicating if we are running in offline mode
+// Flag indicating if we are running in offline mode.
 export let isOffline = false;
 
 let sql: any;
@@ -29,30 +30,46 @@ let db: any;
 
 try {
   if (!connectionString) {
-    console.warn("⚠️ DATABASE_URL is not set. Starting in offline mode.");
+    if (isProduction) {
+      throw new Error("DATABASE_URL is required in production.");
+    }
+
+    if (!allowOfflineMode) {
+      throw new Error("DATABASE_URL is required. To bypass for local-only troubleshooting, set ALLOW_OFFLINE_MODE=true.");
+    }
+
+    console.warn("DATABASE_URL is not set. Starting in offline mode.");
     isOffline = true;
   } else {
     sql = postgres(connectionString, postgresOptions);
     db = drizzle(sql, {
       schema,
-      logger: process.env.NODE_ENV === 'development'
+      logger: process.env.NODE_ENV === "development",
     });
-    // Verify connection immediately to trigger fallback if auth fails
+
+    // Verify connection immediately to fail fast on invalid credentials.
     await sql`SELECT 1`;
-    console.log("✅ Database connection initialized and verified");
+    console.log("Database connection initialized and verified");
   }
 } catch (error) {
-  console.error("❌ Failed to initialize database connection:", error);
-  console.warn("⚠️ Starting server with mock database to allow UI verification.");
+  console.error("Failed to initialize database connection:", error);
+
+  if (isProduction || !allowOfflineMode) {
+    throw new Error("Database initialization failed. Offline fallback is disabled unless ALLOW_OFFLINE_MODE=true in non-production.");
+  }
+
+  console.warn("Starting server with mock database to allow offline development.");
   isOffline = true;
 }
 
-// Export mock DB if initialization failed
 if (!db || isOffline) {
+  if (isProduction || !allowOfflineMode) {
+    throw new Error("Offline database fallback is disabled unless ALLOW_OFFLINE_MODE=true in non-production.");
+  }
+
   const params = {
-    // Mock chainable query builder
-    get: function (target: any, prop: string): any {
-      if (prop === 'then') {
+    get: function (_target: any, prop: string): any {
+      if (prop === "then") {
         return (resolve: any) => resolve([]);
       }
       return () => new Proxy({}, params);
@@ -60,10 +77,10 @@ if (!db || isOffline) {
   };
 
   const mockHandler = {
-    get: function (target: any, prop: string) {
-      if (prop === 'then') return undefined; // Handle promises correctly
-      return (...args: any[]) => {
-        console.warn(`⚠️ Database operation '${prop}' called in offline mode.`);
+    get: function (_target: any, prop: string) {
+      if (prop === "then") return undefined;
+      return (..._args: any[]) => {
+        console.warn(`Database operation '${prop}' called in offline mode.`);
         return new Proxy({}, params);
       };
     }
@@ -73,7 +90,7 @@ if (!db || isOffline) {
 
 export { db };
 
-// Función helper para manejar reintentos de conexión
+// Helper function to retry operations on transient connection errors.
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
@@ -85,13 +102,13 @@ export async function withRetry<T>(
     } catch (error: any) {
       if (i === maxRetries - 1) throw error;
 
-      if (error.message?.includes('Too many database connection attempts') ||
-        error.message?.includes('Control plane request failed')) {
+      if (error.message?.includes("Too many database connection attempts") ||
+        error.message?.includes("Control plane request failed")) {
         await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
         continue;
       }
       throw error;
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }

@@ -9,6 +9,7 @@ import { DatabaseStorage } from "./storage";
 import { User as SchemaUser, InsertUser, loginSchema, insertUserSchema } from "../shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { getSessionSecret } from "./runtime-config";
 
 // This will be set in routes.ts
 declare global {
@@ -48,6 +49,7 @@ export async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  const sessionSecret = getSessionSecret();
   const PgSession = connectPgSimple(session);
   const sessionStore = new PgSession({
     conObject: {
@@ -58,7 +60,7 @@ export function setupAuth(app: Express) {
 
   const sessionSettings: session.SessionOptions = {
     store: sessionStore,
-    secret: process.env.SESSION_SECRET || 'cohete-workflow-secret',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -3,6 +3,8 @@
 import { format, parseISO, addDays } from "date-fns";
 // Servicio de integración con Gemini AI
 import { geminiService } from "./gemini-integration";
+import { logger, sanitizePrompt, sanitizeResponse } from "./logger";
+import { sanitizeUserInput, filterOutputLeakage } from "./ai-sanitizer";
 
 // ===== CONFIGURACIÓN DE IA =====
 // Integración exclusiva con Gemini para todas las funcionalidades de IA
@@ -57,8 +59,8 @@ export async function generateSchedule(
   previousContent: string[] = [],
   additionalInstructions?: string
 ): Promise<ContentSchedule> {
-  console.log(`[CALENDAR] !! Iniciando generación de calendario para proyecto "${projectName}"`);
-  console.log(`[CALENDAR] Parámetros: startDate=${startDate}, durationDays=${durationDays}, prevContent.length=${previousContent.length}`);
+  logger.info("[CALENDAR]", `Iniciando generación de calendario para proyecto "${projectName}"`);
+  logger.info("[CALENDAR]", `Parámetros: startDate=${startDate}, durationDays=${durationDays}, prevContent.length=${previousContent.length}`);
 
   try {
     const safeParseArray = (value: unknown): any[] => {
@@ -571,7 +573,7 @@ export async function generateSchedule(
       De ${formattedDate} a ${endDate} (${durationDays} días)
 
       **ESPECIFICACIONES DEL CLIENTE:** 
-      ${specifications || "Ninguna especificación adicional proporcionada."}
+      ${sanitizeUserInput(specifications || '') || "Ninguna especificación adicional proporcionada."}
 
       **ESTRATEGIA DE REDES SOCIALES:**
       ${socialNetworksSection || "Sugiere 2-3 redes sociales estratégicamente seleccionadas para el público objetivo de este proyecto."}
@@ -580,7 +582,7 @@ export async function generateSchedule(
       ${previousContentSection || "Sin historial de contenido previo disponible."}
 
       **INSTRUCCIONES ADICIONALES:**
-      ${additionalInstructions || "Ninguna instrucción adicional."}
+      ${sanitizeUserInput(additionalInstructions || '') || "Ninguna instrucción adicional."}
 
       **DIRECTRICES CRÍTICAS PARA LA CREACIÓN DE CONTENIDO:**
       1. COHERENCIA CON EL PROYECTO: Cada publicación debe reflejar los valores, objetivos y personalidad definidos arriba.
@@ -742,12 +744,13 @@ export async function generateSchedule(
     // Incorporar instrucciones adicionales si existen
     let finalPrompt = enhancedPrompt;
     if (additionalInstructions) {
-      finalPrompt = `${enhancedPrompt}\n\n⚠️ **INSTRUCCIONES OBLIGATORIAS DEL USUARIO - PRIORIDAD MÁXIMA:**\n${additionalInstructions}\n\n⚠️ ESTAS INSTRUCCIONES SON CRÍTICAS Y DEBEN APLICARSE EXACTAMENTE. NO LAS IGNORES.\n⚠️ GENERA MÍNIMO 7 ENTRADAS COMPLETAS - NO MENOS.\n⚠️ SI SE ESPECIFICAN ÁREAS CONCRETAS, MODIFICA SOLO ESAS ÁREAS.\n⚠️ RESPETA CADA INSTRUCCIÓN ESPECÍFICA AL PIE DE LA LETRA.`;
-      console.log(`[CALENDAR] Se añadieron instrucciones críticas del usuario: "${additionalInstructions.substring(0, 200)}${additionalInstructions.length > 200 ? '...' : ''}"`);
+      const sanitizedInstructions = sanitizeUserInput(additionalInstructions);
+      finalPrompt = `${enhancedPrompt}\n\n⚠️ **INSTRUCCIONES OBLIGATORIAS DEL USUARIO - PRIORIDAD MÁXIMA:**\n${sanitizedInstructions}\n\n⚠️ ESTAS INSTRUCCIONES SON CRÍTICAS Y DEBEN APLICARSE EXACTAMENTE. NO LAS IGNORES.\n⚠️ GENERA MÍNIMO 7 ENTRADAS COMPLETAS - NO MENOS.\n⚠️ SI SE ESPECIFICAN ÁREAS CONCRETAS, MODIFICA SOLO ESAS ÁREAS.\n⚠️ RESPETA CADA INSTRUCCIÓN ESPECÍFICA AL PIE DE LA LETRA.`;
+      logger.debug("[CALENDAR]", `Instrucciones del usuario sanitizadas (${sanitizedInstructions.length} chars)`);
     }
 
     // Usamos Gemini con configuración optimizada para generación consistente
-    const scheduleText = await geminiService.generateText(finalPrompt, {
+    const rawScheduleText = await geminiService.generateText(finalPrompt, {
       // Reducimos temperatura para respuestas más consistentes y estructuradas
       temperature: 0.8,
       // Incrementamos tokens para permitir respuestas completas
@@ -758,19 +761,21 @@ export async function generateSchedule(
       model: 'gemini-3-pro-preview'
     });
 
-    // Registramos una versión truncada para debug
-    console.log(`[CALENDAR] Respuesta de Gemini recibida. Longitud: ${scheduleText.length} caracteres`);
-    console.log(`[CALENDAR] Primeros 200 caracteres de la respuesta: "${scheduleText.substring(0, 200)}... [truncado]"`);
-    console.log(`[CALENDAR] Últimos 200 caracteres de la respuesta: "...${scheduleText.substring(Math.max(0, scheduleText.length - 200))}"`)
+    const {
+      content: scheduleText,
+      leakageDetected: scheduleLeakageDetected,
+      flags: scheduleLeakageFlags
+    } = filterOutputLeakage(rawScheduleText);
 
-    // Escribir respuesta completa en el log para diagnóstico
-    console.log(`[CALENDAR] RESPUESTA COMPLETA DE GEMINI (inicio):`);
-    // Dividir respuesta en chunks de 1000 caracteres para evitar truncamiento en logs
-    const chunkSize = 1000;
-    for (let i = 0; i < scheduleText.length; i += chunkSize) {
-      console.log(scheduleText.substring(i, i + chunkSize));
+    if (scheduleLeakageDetected) {
+      logger.warn("[CALENDAR]", `Output leakage detectado en respuesta de calendario: ${scheduleLeakageFlags.join(", ")}`);
     }
-    console.log(`[CALENDAR] RESPUESTA COMPLETA DE GEMINI (fin)`);
+
+    // Registramos una versión truncada para debug
+    logger.info("[CALENDAR]", `Respuesta de Gemini recibida. Longitud: ${scheduleText.length} caracteres`);
+    // Full response only visible in development (debug level)
+    logger.debug("[CALENDAR]", `Primeros 200 caracteres: "${scheduleText.substring(0, 200)}..."`);
+    logger.debug("[CALENDAR]", `Respuesta completa de Gemini:`, sanitizeResponse(scheduleText));
 
     try {
       console.log(`[CALENDAR] Iniciando procesamiento de la respuesta (Estrategia 1: JSON directo)`);

@@ -6,6 +6,7 @@ import connectPg from "connect-pg-simple";
 import { db } from "./db";
 import { users } from "../shared/schema";
 import { eq } from "drizzle-orm";
+import { getSessionSecret, isProductionEnv } from "./runtime-config";
 
 function getPgConnectionOptions() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -32,6 +33,7 @@ function getPgConnectionOptions() {
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionSecret = getSessionSecret();
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conObject: getPgConnectionOptions(),
@@ -40,7 +42,7 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET || 'default-session-secret',
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -54,7 +56,10 @@ export function getSession() {
 
 export async function setupSimpleGoogleAuth(app: Express) {
   app.set("trust proxy", 1);
-  // Configure session middleware with fallback
+  const sessionSecret = getSessionSecret();
+  const isProduction = isProductionEnv();
+
+  // Configure session middleware with controlled fallback
   try {
     const PgSession = connectPg(session);
 
@@ -64,7 +69,7 @@ export async function setupSimpleGoogleAuth(app: Express) {
         conObject: getPgConnectionOptions(),
         errorLog: () => { } // Suppress error logs
       }),
-      secret: process.env.SESSION_SECRET || 'fallback-secret-please-change',
+      secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -75,9 +80,13 @@ export async function setupSimpleGoogleAuth(app: Express) {
       }
     }));
   } catch (error) {
-    console.warn('PostgreSQL session store failed, using memory store as fallback');
+    if (isProduction) {
+      throw new Error("PostgreSQL session store initialization failed in production.");
+    }
+
+    console.warn('PostgreSQL session store failed, using memory store fallback in development.');
     app.use(session({
-      secret: process.env.SESSION_SECRET || 'fallback-secret-please-change',
+      secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
       cookie: {

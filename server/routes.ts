@@ -19,6 +19,8 @@ import express from "express";
 import bcrypt from "bcryptjs";
 // Middleware para manejo de archivos subidos
 import multer from "multer";
+import { logger } from "./logger";
+import { filterOutputLeakage } from "./ai-sanitizer";
 
 // Helper function for password hashing
 const hashPassword = async (password: string): Promise<string> => {
@@ -44,6 +46,21 @@ const isPrimaryUser = (req: any, res: Response, next: NextFunction) => {
     return res.status(403).json({ message: "Acceso denegado. Solo usuarios primarios." });
   }
   next();
+};
+
+const ensureProjectAccess = async (req: any, res: Response, projectId: number): Promise<boolean> => {
+  if (!req.user?.id) {
+    res.status(401).json({ message: "Usuario no autenticado" });
+    return false;
+  }
+
+  const hasAccess = await global.storage.checkUserProjectAccess(req.user.id, projectId);
+  if (!hasAccess) {
+    res.status(403).json({ message: "You don't have access to this project" });
+    return false;
+  }
+
+  return true;
 };
 import fs from "fs";
 import path from "path";
@@ -201,6 +218,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Google OAuth authentication
   await setupSimpleGoogleAuth(app);
 
+  // Prevent ambiguous behavior by keeping only the first registration per method+path.
+  const routeMethods = ["get", "post", "put", "patch", "delete"] as const;
+  const registeredRouteSignatures = new Set<string>();
+
+  for (const method of routeMethods) {
+    const originalMethod = (app as any)[method].bind(app);
+
+    (app as any)[method] = (routePath: any, ...handlers: any[]) => {
+      const normalizedPath =
+        typeof routePath === "string"
+          ? routePath
+          : Array.isArray(routePath)
+            ? routePath.map((pathPart: any) => String(pathPart)).join("|")
+            : String(routePath);
+
+      const signature = `${method.toUpperCase()} ${normalizedPath}`;
+      if (registeredRouteSignatures.has(signature)) {
+        logger.warn("[ROUTES]", `Skipping duplicate route registration: ${signature}`);
+        return app;
+      }
+
+      registeredRouteSignatures.add(signature);
+      return originalMethod(routePath, ...handlers);
+    };
+  }
+
+  // Enforce project-level authorization across every /api/projects/:projectId/* endpoint.
+  app.use("/api/projects/:projectId", isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+    const projectId = Number.parseInt(req.params.projectId, 10);
+    if (!Number.isInteger(projectId) || projectId <= 0) {
+      return res.status(400).json({ message: "Invalid project ID" });
+    }
+
+    if (!await ensureProjectAccess(req, res, projectId)) {
+      return;
+    }
+
+    next();
+  });
+
   // Serve static files for privacy policy
   app.use('/static', express.static(path.join(currentDirPath, 'public')));
 
@@ -223,10 +280,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Management API
 
   // Endpoint para la ruta secreta de creación de cuenta de administrador principal
-  const PRIMARY_ACCOUNT_SECRET = process.env.PRIMARY_ACCOUNT_SECRET || 'cohete-workflow-secret';
+  const PRIMARY_ACCOUNT_SECRET = process.env.PRIMARY_ACCOUNT_SECRET?.trim();
 
   app.post("/api/create-primary-account", async (req: Request, res: Response) => {
     try {
+      if (!PRIMARY_ACCOUNT_SECRET) {
+        return res.status(503).json({
+          message: "PRIMARY_ACCOUNT_SECRET no está configurado. Endpoint deshabilitado por seguridad."
+        });
+      }
+
       console.log("Creating primary account request:", {
         body: { ...req.body, password: '[REDACTED]', secretKey: '[REDACTED]' }
       });
@@ -548,8 +611,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const updateData = req.body;
 
-      console.log("Datos recibidos para actualizar perfil:", updateData);
-      console.log("User ID:", userId);
+      logger.debug("[PROFILE]", "Datos recibidos para actualizar perfil", { fields: Object.keys(updateData) });
+      logger.debug("[PROFILE]", `User ID: ${userId}`);
 
       // Actualizar el perfil del usuario usando Drizzle
       const [updatedUser] = await db.update(schema.users)
@@ -820,7 +883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to project
       const hasAccess = await global.storage.checkUserProjectAccess(req.user.id, projectId);
 
-      console.log(`User ${req.user.id} access to project ${projectId}: ${hasAccess}`);
+      logger.debug("[ACCESS]", `User ${req.user.id} access to project ${projectId}: ${hasAccess}`);
 
       if (!hasAccess) {
         return res.status(403).json({ message: "No tienes acceso a este proyecto" });
@@ -1119,6 +1182,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid ID format" });
       }
 
+      if (!await ensureProjectAccess(req, res, projectId)) {
+        return;
+      }
+
       // Get document
       const document = await global.storage.getDocument(documentId);
       if (!document || document.projectId !== projectId) {
@@ -1158,6 +1225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = parseInt(req.params.projectId);
       if (isNaN(projectId)) {
         return res.status(400).json({ message: "Invalid project ID" });
+      }
+
+      if (!await ensureProjectAccess(req, res, projectId)) {
+        return;
       }
 
       const { amount, additionalInstructions } = req.body;
@@ -1295,10 +1366,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           await global.storage.createContentHistory({
             projectId,
+            scheduleEntryId: savedEntry.id,
             content: entry.content,
-            contentType: "schedule",
-            title: entry.title,
-            platform: entry.platform
+            changeDescription: "Initial content generation",
+            changedBy: req.user.id
           });
         } catch (historyError) {
           console.error(`Error saving content history for entry ${savedEntry.id}:`, historyError);
@@ -1535,10 +1606,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID de cronograma inválido" });
       }
 
-      console.log("[REGENERATE] Iniciando regeneración con áreas específicas:", scheduleId);
-      console.log("[REGENERATE] Instrucciones generales:", newInstructions || "Ninguna");
-      console.log("[REGENERATE] Áreas seleccionadas:", selectedAreas || "Todas");
-      console.log("[REGENERATE] Instrucciones específicas:", specificInstructions || "Ninguna");
+      logger.info("[REGENERATE]", `Iniciando regeneración para schedule: ${scheduleId}`);
+      logger.debug("[REGENERATE]", `Instrucciones generales: ${newInstructions || "Ninguna"}`);
+      logger.debug("[REGENERATE]", `Áreas seleccionadas: ${selectedAreas || "Todas"}`);
+      logger.debug("[REGENERATE]", `Instrucciones específicas: ${specificInstructions || "Ninguna"}`);
 
       // Obtener el cronograma actual con sus entradas
       const schedule = await global.storage.getScheduleWithEntries(scheduleId);
@@ -1676,13 +1747,23 @@ IMPORTANTE: Si un área NO está seleccionada para modificación, mantén el val
             model: 'gemini-1.5-pro'
           });
 
-          console.log(`[REGENERATE] Respuesta de edición para entrada ${i + 1}:`, editedContentText.substring(0, 200));
+          const {
+            content: filteredEditedContentText,
+            leakageDetected: regenerateLeakageDetected,
+            flags: regenerateLeakageFlags
+          } = filterOutputLeakage(editedContentText);
+
+          if (regenerateLeakageDetected) {
+            logger.warn("[REGENERATE]", `Output leakage detectado en entrada ${i + 1}: ${regenerateLeakageFlags.join(", ")}`);
+          }
+
+          console.log(`[REGENERATE] Respuesta de edición para entrada ${i + 1}:`, filteredEditedContentText.substring(0, 200));
 
           // Parsear la respuesta JSON
           let editedContent;
           try {
             // Limpiar la respuesta para extraer solo el JSON
-            const jsonMatch = editedContentText.match(/\{[\s\S]*\}/);
+            const jsonMatch = filteredEditedContentText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               editedContent = JSON.parse(jsonMatch[0]);
             } else {
@@ -3134,6 +3215,22 @@ IMPORTANTE: Si un área NO está seleccionada para modificación, mantén el val
         return res.status(404).json({ message: "Entrada no encontrada" });
       }
 
+      // Verificar que el usuario tenga acceso al proyecto (entry → schedule → project)
+      const entrySchedule = await global.storage.getSchedule(entry.scheduleId);
+      if (!entrySchedule) {
+        return res.status(404).json({ message: "Cronograma asociado no encontrado" });
+      }
+
+      const hasAccess = await global.storage.checkUserProjectAccess(
+        req.user.id,
+        entrySchedule.projectId,
+        req.user.isPrimary
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({ message: "No tienes acceso a este cronograma" });
+      }
+
       // Actualizar los comentarios
       await global.storage.updateScheduleEntry(entryId, { comments });
 
@@ -4287,900 +4384,6 @@ IMPORTANTE: Si un área NO está seleccionada para modificación, mantén el val
   });
 
   // ============ NUEVOS ENDPOINTS PARA SISTEMA MONDAY.COM ============
-
-  // Project Tasks API
-  app.get("/api/projects/:projectId/tasks", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      // Get tasks for the specific project
-      const tasks = await db.select().from(schema.tasks)
-        .where(eq(schema.tasks.projectId, projectId))
-        .orderBy(asc(schema.tasks.id));
-
-      res.json(tasks);
-    } catch (error) {
-      console.error('Error fetching project tasks:', error);
-      res.status(500).json({ error: 'Failed to fetch project tasks' });
-    }
-  });
-
-  app.post("/api/projects/:projectId/tasks", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const taskData = {
-        ...req.body,
-        projectId,
-        createdById: req.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const [task] = await db.insert(schema.tasks)
-        .values(taskData)
-        .returning();
-
-      res.status(201).json(task);
-    } catch (error) {
-      console.error('Error creating task:', error);
-      res.status(500).json({ error: 'Failed to create task' });
-    }
-  });
-
-  app.patch("/api/tasks/:taskId", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const updateData = {
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
-      const [updatedTask] = await db.update(schema.tasks)
-        .set(updateData)
-        .where(eq(schema.tasks.id, taskId))
-        .returning();
-
-      if (!updatedTask) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
-
-      res.json(updatedTask);
-    } catch (error) {
-      console.error('Error updating task:', error);
-      res.status(500).json({ error: 'Failed to update task' });
-    }
-  });
-
-  // Task Groups CRUD
-  app.get("/api/projects/:projectId/task-groups", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      const taskGroups = await db.select().from(schema.taskGroups)
-        .where(eq(schema.taskGroups.projectId, projectId))
-        .orderBy(schema.taskGroups.position);
-
-      res.json(taskGroups);
-    } catch (error) {
-      console.error('Error fetching task groups:', error);
-      res.status(500).json({ error: 'Failed to fetch task groups' });
-    }
-  });
-
-  app.post("/api/projects/:projectId/task-groups", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      const taskGroupData = schema.insertTaskGroupSchema.parse({
-        ...req.body,
-        projectId,
-        createdBy: req.user?.id,
-      });
-
-      const [taskGroup] = await db.insert(schema.taskGroups)
-        .values(taskGroupData)
-        .returning();
-
-      res.status(201).json(taskGroup);
-    } catch (error) {
-      console.error('Error creating task group:', error);
-      res.status(500).json({ error: 'Failed to create task group' });
-    }
-  });
-
-  app.patch("/api/task-groups/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const groupId = parseInt(req.params.id);
-      const updates = req.body;
-
-      const [updatedGroup] = await db.update(schema.taskGroups)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.taskGroups.id, groupId))
-        .returning();
-
-      if (!updatedGroup) {
-        return res.status(404).json({ error: 'Task group not found' });
-      }
-
-      res.json(updatedGroup);
-    } catch (error) {
-      console.error('Error updating task group:', error);
-      res.status(500).json({ error: 'Failed to update task group' });
-    }
-  });
-
-  app.delete("/api/task-groups/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const groupId = parseInt(req.params.id);
-
-      await db.delete(schema.taskGroups)
-        .where(eq(schema.taskGroups.id, groupId));
-
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting task group:', error);
-      res.status(500).json({ error: 'Failed to delete task group' });
-    }
-  });
-
-  // Project Column Settings CRUD
-  app.get("/api/projects/:projectId/columns", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      const columns = await db.select().from(schema.projectColumnSettings)
-        .where(eq(schema.projectColumnSettings.projectId, projectId))
-        .orderBy(schema.projectColumnSettings.position);
-
-      res.json(columns);
-    } catch (error) {
-      console.error('Error fetching project columns:', error);
-      res.status(500).json({ error: 'Failed to fetch project columns' });
-    }
-  });
-
-  app.post("/api/projects/:projectId/columns", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      const columnData = schema.insertProjectColumnSettingSchema.parse({
-        ...req.body,
-        projectId,
-        createdBy: req.user?.id,
-      });
-
-      const [column] = await db.insert(schema.projectColumnSettings)
-        .values(columnData)
-        .returning();
-
-      res.status(201).json(column);
-    } catch (error) {
-      console.error('Error creating project column:', error);
-      res.status(500).json({ error: 'Failed to create project column' });
-    }
-  });
-
-  app.patch("/api/project-columns/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const columnId = parseInt(req.params.id);
-      const updates = req.body;
-
-      const [updatedColumn] = await db.update(schema.projectColumnSettings)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.projectColumnSettings.id, columnId))
-        .returning();
-
-      if (!updatedColumn) {
-        return res.status(404).json({ error: 'Project column not found' });
-      }
-
-      res.json(updatedColumn);
-    } catch (error) {
-      console.error('Error updating project column:', error);
-      res.status(500).json({ error: 'Failed to update project column' });
-    }
-  });
-
-  app.delete("/api/project-columns/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const columnId = parseInt(req.params.id);
-
-      await db.delete(schema.projectColumnSettings)
-        .where(eq(schema.projectColumnSettings.id, columnId));
-
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting project column:', error);
-      res.status(500).json({ error: 'Failed to delete project column' });
-    }
-  });
-
-  // Task Column Values CRUD
-  app.get("/api/tasks/:taskId/column-values", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-      const columnValues = await db.select().from(schema.taskColumnValues)
-        .where(eq(schema.taskColumnValues.taskId, taskId));
-
-      res.json(columnValues);
-    } catch (error) {
-      console.error('Error fetching task column values:', error);
-      res.status(500).json({ error: 'Failed to fetch task column values' });
-    }
-  });
-
-  app.post("/api/tasks/:taskId/column-values", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-      const valueData = schema.insertTaskColumnValueSchema.parse({
-        ...req.body,
-        taskId,
-      });
-
-      const [columnValue] = await db.insert(schema.taskColumnValues)
-        .values(valueData)
-        .returning();
-
-      res.status(201).json(columnValue);
-    } catch (error) {
-      console.error('Error creating task column value:', error);
-      res.status(500).json({ error: 'Failed to create task column value' });
-    }
-  });
-
-  app.patch("/api/task-column-values/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const valueId = parseInt(req.params.id);
-      const updates = req.body;
-
-      const [updatedValue] = await db.update(schema.taskColumnValues)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.taskColumnValues.id, valueId))
-        .returning();
-
-      if (!updatedValue) {
-        return res.status(404).json({ error: 'Task column value not found' });
-      }
-
-      res.json(updatedValue);
-    } catch (error) {
-      console.error('Error updating task column value:', error);
-      res.status(500).json({ error: 'Failed to update task column value' });
-    }
-  });
-
-  // Task Assignees CRUD
-  app.get("/api/tasks/:taskId/assignees", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-      const assignees = await db.select({
-        id: schema.taskAssignees.id,
-        taskId: schema.taskAssignees.taskId,
-        userId: schema.taskAssignees.userId,
-        assignedBy: schema.taskAssignees.assignedBy,
-        assignedAt: schema.taskAssignees.assignedAt,
-        user: {
-          id: schema.users.id,
-          fullName: schema.users.fullName,
-          username: schema.users.username,
-          profileImage: schema.users.profileImage,
-          role: schema.users.role,
-        }
-      })
-        .from(schema.taskAssignees)
-        .innerJoin(schema.users, eq(schema.taskAssignees.userId, schema.users.id))
-        .where(eq(schema.taskAssignees.taskId, taskId));
-
-      res.json(assignees);
-    } catch (error) {
-      console.error('Error fetching task assignees:', error);
-      res.status(500).json({ error: 'Failed to fetch task assignees' });
-    }
-  });
-
-  app.post("/api/tasks/:taskId/assignees", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-      const { userId } = req.body;
-
-      const assigneeData = {
-        taskId,
-        userId,
-        assignedBy: req.user?.id,
-      };
-
-      const [assignee] = await db.insert(schema.taskAssignees)
-        .values(assigneeData)
-        .returning();
-
-      res.status(201).json(assignee);
-    } catch (error) {
-      console.error('Error assigning task:', error);
-      res.status(500).json({ error: 'Failed to assign task' });
-    }
-  });
-
-  app.delete("/api/task-assignees/:id", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const assigneeId = parseInt(req.params.id);
-
-      await db.delete(schema.taskAssignees)
-        .where(eq(schema.taskAssignees.id, assigneeId));
-
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error removing task assignee:', error);
-      res.status(500).json({ error: 'Failed to remove task assignee' });
-    }
-  });
-
-  // Enhanced Tasks endpoint with groups and assignees
-  app.get("/api/tasks-with-groups", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      // Get tasks from all projects with safe column selection
-      const tasks = await db.select().from(schema.tasks).orderBy(asc(schema.tasks.id));
-
-      // Get task groups separately - handle missing table gracefully
-      let taskGroups = [];
-      try {
-        taskGroups = await db.select().from(schema.taskGroups);
-      } catch (error) {
-        console.warn('Task groups table not found, continuing without groups');
-      }
-
-      // Get projects separately
-      const projects = await db.select().from(schema.projects);
-
-      // Get users separately
-      const users = await db.select().from(schema.users);
-
-      // Combine data in JavaScript to avoid SQL type conflicts
-      const tasksWithDetails = tasks.map(task => {
-        // Crear grupos por defecto basados en el enum task.group
-        const defaultGroups = {
-          'todo': { id: 'todo', name: 'Por hacer', color: '#6b7280', position: 0 },
-          'in_progress': { id: 'in_progress', name: 'En progreso', color: '#3b82f6', position: 1 },
-          'completed': { id: 'completed', name: 'Completadas', color: '#10b981', position: 2 }
-        };
-
-        const group = taskGroups.find(g => g.id === task.groupId) ||
-          defaultGroups[task.group] ||
-          defaultGroups['todo'];
-
-        const project = projects.find(p => p.id === task.projectId);
-        const assignee = users.find(u => u.id === task.assignedToId) ||
-          users.find(u => u.id === task.createdById);
-
-        return {
-          task: {
-            id: task.id,
-            projectId: task.projectId,
-            title: task.title || 'Sin título',
-            description: task.description || '',
-            status: task.status || 'pending',
-            priority: task.priority || 'medium',
-            progress: task.progress || 0,
-            dueDate: task.dueDate,
-            tags: task.tags || [],
-            group: task.group,
-            groupId: task.groupId || task.group,
-            createdById: task.createdById,
-            assignedToId: task.assignedToId,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
-          },
-          group: group,
-          project: project ? {
-            id: project.id,
-            name: project.name,
-            client: project.client,
-          } : null,
-          assignee: assignee ? {
-            id: assignee.id,
-            fullName: assignee.fullName,
-            username: assignee.username,
-            profileImage: assignee.profileImage,
-          } : null
-        };
-      });
-
-      // Group tasks by task group
-      const groupedTasks = tasksWithDetails.reduce((acc, item) => {
-        const groupId = item.group?.id || 'ungrouped';
-        if (!acc[groupId]) {
-          acc[groupId] = {
-            group: item.group,
-            tasks: []
-          };
-        }
-
-        const task = {
-          ...item.task,
-          assignee: item.assignee,
-          additionalAssignees: []
-        };
-
-        acc[groupId].tasks.push(task);
-        return acc;
-      }, {} as any);
-
-      res.json(Object.values(groupedTasks));
-    } catch (error) {
-      console.error('Error fetching tasks with groups:', error);
-      res.status(500).json({ error: 'Failed to fetch tasks with groups' });
-    }
-  });
-
-  // ============ NUEVOS ENDPOINTS PARA SISTEMA DE COLABORACIÓN ============
-
-  // Obtener comentarios de una tarea
-  app.get('/api/tasks/:taskId/comments', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const comments = await global.storage.getTaskComments(taskId);
-      res.json(comments);
-    } catch (error) {
-      console.error('Error obteniendo comentarios:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Crear comentario en una tarea
-  app.post('/api/tasks/:taskId/comments', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const { content, mentionedUsers = [] } = req.body;
-
-      const comment = await global.storage.createTaskComment({
-        taskId,
-        userId: req.user.id,
-        content,
-        mentionedUsers
-      });
-
-      // Crear notificaciones para usuarios mencionados
-      if (mentionedUsers && mentionedUsers.length > 0) {
-        for (const userId of mentionedUsers) {
-          await global.storage.createNotification({
-            userId,
-            type: 'mentioned_in_comment',
-            title: 'Te mencionaron en un comentario',
-            message: `${req.user.fullName} te mencionó en un comentario`,
-            relatedTaskId: taskId,
-            relatedCommentId: comment.id
-          });
-        }
-      }
-
-      res.status(201).json(comment);
-    } catch (error) {
-      console.error('Error creando comentario:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Obtener notificaciones del usuario
-  app.get('/api/notifications', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const notifications = await global.storage.getUserNotifications(req.user.id);
-      res.json(notifications);
-    } catch (error) {
-      console.error('Error obteniendo notificaciones:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Marcar notificación como leída
-  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const notificationId = parseInt(req.params.id);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      await global.storage.markNotificationAsRead(notificationId, req.user.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error marcando notificación:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Obtener miembros de un proyecto
-  app.get('/api/projects/:projectId/members', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const members = await global.storage.getProjectMembers(projectId);
-      res.json(members);
-    } catch (error) {
-      console.error('Error obteniendo miembros:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Agregar miembro a un proyecto
-  app.post('/api/projects/:projectId/members', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const { userId, role = 'member' } = req.body;
-
-      const member = await global.storage.addProjectMember({
-        projectId,
-        userId,
-        role
-      });
-
-      res.status(201).json(member);
-    } catch (error) {
-      console.error('Error agregando miembro:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Obtener dependencias de una tarea
-  app.get('/api/tasks/:taskId/dependencies', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const dependencies = await global.storage.getTaskDependencies(taskId);
-      res.json(dependencies);
-    } catch (error) {
-      console.error('Error obteniendo dependencias:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Crear dependencia entre tareas
-  app.post('/api/tasks/:taskId/dependencies', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const { dependsOnTaskId } = req.body;
-
-      const dependency = await global.storage.createTaskDependency({
-        taskId,
-        dependsOnTaskId
-      });
-
-      res.status(201).json(dependency);
-    } catch (error) {
-      console.error('Error creando dependencia:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // ============ ENDPOINTS PARA GESTIÓN DE EQUIPOS ============
-
-  // Obtener equipos del usuario
-  app.get('/api/teams', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const userTeams = await db.select({
-        team: teams,
-        membership: teamMembers
-      })
-        .from(teamMembers)
-        .innerJoin(teams, eq(teamMembers.teamId, teams.id))
-        .where(eq(teamMembers.userId, req.user.id));
-
-      res.json(userTeams);
-    } catch (error) {
-      console.error('Error obteniendo equipos:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Obtener miembros de un equipo
-  app.get('/api/teams/:teamId/members', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      // Verificar que el usuario pertenece al equipo
-      const [membership] = await db.select()
-        .from(teamMembers)
-        .where(and(
-          eq(teamMembers.teamId, teamId),
-          eq(teamMembers.userId, req.user.id)
-        ));
-
-      if (!membership) {
-        return res.status(403).json({ message: "No tienes acceso a este equipo" });
-      }
-
-      const members = await db.select({
-        user: {
-          id: users.id,
-          fullName: users.fullName,
-          username: users.username,
-          email: users.email,
-          profileImage: users.profileImage,
-          role: users.role
-        },
-        membership: {
-          role: teamMembers.role,
-          joinedAt: teamMembers.joinedAt
-        }
-      })
-        .from(teamMembers)
-        .innerJoin(users, eq(teamMembers.userId, users.id))
-        .where(eq(teamMembers.teamId, teamId));
-
-      res.json(members);
-    } catch (error) {
-      console.error('Error obteniendo miembros del equipo:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Crear nuevo equipo (solo admins)
-  app.post('/api/teams', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      if (!req.user || req.user.role !== 'admin') {
-        return res.status(403).json({ message: "Solo los administradores pueden crear equipos" });
-      }
-
-      const { name, domain, description } = req.body;
-
-      const [newTeam] = await db.insert(teams)
-        .values({
-          name,
-          domain,
-          description,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
-
-      // Agregar al creador como owner del equipo
-      await db.insert(teamMembers)
-        .values({
-          teamId: newTeam.id,
-          userId: req.user.id,
-          role: 'owner',
-          joinedAt: new Date(),
-        });
-
-      res.status(201).json(newTeam);
-    } catch (error) {
-      console.error('Error creando equipo:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Update a specific task
-  app.patch('/api/tasks/:taskId', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const updates = req.body;
-
-      // Update task in database
-      const updatedTask = await db.update(schema.tasks)
-        .set({
-          ...updates,
-          updatedAt: new Date()
-        })
-        .where(eq(schema.tasks.id, taskId))
-        .returning();
-
-      if (updatedTask.length === 0) {
-        return res.status(404).json({ message: "Tarea no encontrada" });
-      }
-
-      // Log activity
-      if (req.user && req.user.id) {
-        await db.insert(schema.activityLog).values({
-          description: `Tarea actualizada: ${updatedTask[0].title}`,
-          taskId: taskId,
-          projectId: updatedTask[0].projectId,
-          userId: req.user.id
-        });
-      }
-
-      res.json(updatedTask[0]);
-    } catch (error) {
-      console.error('Error actualizando tarea:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Get task attachments
-  app.get('/api/tasks/:taskId/attachments', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const attachments = await db.select()
-        .from(schema.taskAttachments)
-        .where(eq(schema.taskAttachments.taskId, taskId))
-        .orderBy(desc(schema.taskAttachments.uploadedAt));
-
-      res.json(attachments);
-    } catch (error) {
-      console.error('Error obteniendo archivos adjuntos:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Upload task attachment
-  app.post('/api/tasks/:taskId/attachments', isAuthenticated, upload.single('file'), async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ message: "No se proporcionó archivo" });
-      }
-
-      // Save attachment to database
-      const attachment = await db.insert(schema.taskAttachments).values({
-        fileName: req.file.originalname,
-        fileUrl: `/uploads/${req.file.filename}`,
-        taskId: taskId
-      }).returning();
-
-      // Log activity
-      if (req.user && req.user.id) {
-        const task = await db.select().from(schema.tasks).where(eq(schema.tasks.id, taskId)).limit(1);
-        if (task.length > 0) {
-          await db.insert(schema.activityLog).values({
-            description: `Archivo adjunto añadido: ${req.file.originalname}`,
-            taskId: taskId,
-            projectId: task[0].projectId,
-            userId: req.user.id
-          });
-        }
-      }
-
-      res.status(201).json(attachment[0]);
-    } catch (error) {
-      console.error('Error subiendo archivo:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // Get single task with details
-  app.get('/api/tasks/:taskId', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const taskId = parseInt(req.params.taskId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const taskWithDetails = await db.select({
-        id: schema.tasks.id,
-        title: schema.tasks.title,
-        description: schema.tasks.description,
-        status: schema.tasks.status,
-        priority: schema.tasks.priority,
-        assignedToId: schema.tasks.assignedToId,
-        dueDate: schema.tasks.dueDate,
-        createdAt: schema.tasks.createdAt,
-        updatedAt: schema.tasks.updatedAt,
-        assignedTo: {
-          id: schema.users.id,
-          fullName: schema.users.fullName,
-          username: schema.users.username
-        }
-      })
-        .from(schema.tasks)
-        .leftJoin(schema.users, eq(schema.tasks.assignedToId, schema.users.id))
-        .where(eq(schema.tasks.id, taskId))
-        .limit(1);
-
-      if (taskWithDetails.length === 0) {
-        return res.status(404).json({ message: "Tarea no encontrada" });
-      }
-
-      res.json(taskWithDetails[0]);
-    } catch (error) {
-      console.error('Error obteniendo tarea:', error);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  });
-
-  // ============ NUEVOS ENDPOINTS PARA SISTEMA MONDAY.COM ============
-
-  // Project Tasks API
-  app.get("/api/projects/:projectId/tasks", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      // Get tasks for the specific project
-      const tasks = await db.select().from(schema.tasks)
-        .where(eq(schema.tasks.projectId, projectId))
-        .orderBy(asc(schema.tasks.id));
-
-      res.json(tasks);
-    } catch (error) {
-      console.error('Error fetching project tasks:', error);
-      res.status(500).json({ error: 'Failed to fetch project tasks' });
-    }
-  });
-
-  app.post("/api/projects/:projectId/tasks", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-
-      if (!req.user) {
-        return res.status(401).json({ message: "Usuario no autenticado" });
-      }
-
-      const taskData = {
-        ...req.body,
-        projectId,
-        createdById: req.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const [task] = await db.insert(schema.tasks)
-        .values(taskData)
-        .returning();
-
-      res.status(201).json(task);
-    } catch (error) {
-      console.error('Error creating task:', error);
-      res.status(500).json({ error: 'Failed to create task' });
-    }
-  });
 
   app.patch("/api/tasks/:taskId", isAuthenticated, async (req: Request, res: Response) => {
     try {

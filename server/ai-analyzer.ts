@@ -1,6 +1,7 @@
 // ===== IMPORTACIONES PARA ANÁLISIS CON IA =====
 // Servicio de integración con Gemini
 import { geminiService } from "./gemini-integration";
+import { sanitizeDocumentContent, sanitizeUserInput, filterOutputLeakage } from "./ai-sanitizer";
 // Módulos de Node.js para manejo de archivos
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -42,6 +43,8 @@ export interface DocumentAnalysisResult {
  */
 export async function analyzeDocument(documentText: string): Promise<DocumentAnalysisResult> {
   try {
+    const sanitizedDocumentText = sanitizeDocumentContent(documentText);
+
     const prompt = `
       As a marketing expert, analyze the following document and extract key marketing insights in JSON format.
       Focus on identifying:
@@ -84,7 +87,7 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
       Keep all text fields concise but detailed. If information for a field is not present in the document, omit that field from the JSON.
       
       Document to analyze:
-      ${documentText}
+      ${sanitizedDocumentText}
     `;
 
     // Usamos Gemini para el análisis de documentos
@@ -93,23 +96,33 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
       temperature: 0.7,
       maxTokens: 2000
     });
+
+    const {
+      content: filteredAnalysisText,
+      leakageDetected: analysisLeakageDetected,
+      flags: analysisLeakageFlags
+    } = filterOutputLeakage(analysisText);
+
+    if (analysisLeakageDetected) {
+      console.warn("Potential output leakage detected in document analysis:", analysisLeakageFlags.join(", "));
+    }
     
-    if (!analysisText) {
+    if (!filteredAnalysisText) {
       throw new Error("Empty response from Gemini");
     }
 
     // Intentar parsear la respuesta JSON
     try {
-      const parsedResult = JSON.parse(analysisText) as DocumentAnalysisResult;
+      const parsedResult = JSON.parse(filteredAnalysisText) as DocumentAnalysisResult;
       console.log("Document analysis completed successfully");
       return parsedResult;
     } catch (parseError) {
       console.error("Error parsing JSON response:", parseError);
-      console.error("Raw response:", analysisText);
+      console.error("Raw response:", filteredAnalysisText);
       
       // Si el JSON falla, crear un resultado básico con el texto como resumen
       return {
-        summary: analysisText.substring(0, 1000) + (analysisText.length > 1000 ? "..." : "")
+        summary: filteredAnalysisText.substring(0, 1000) + (filteredAnalysisText.length > 1000 ? "..." : "")
       };
     }
   } catch (error) {
@@ -186,14 +199,24 @@ export async function analyzeMarketingImage(
         maxTokens: 1500
       }
     );
+
+    const {
+      content: filteredAnalysisResult,
+      leakageDetected: imageLeakageDetected,
+      flags: imageLeakageFlags
+    } = filterOutputLeakage(analysisResult);
+
+    if (imageLeakageDetected) {
+      console.warn("Potential output leakage detected in image analysis:", imageLeakageFlags.join(", "));
+    }
     
     // Analizar el resultado y estructurarlo si es posible
     try {
       // Intentar extraer datos estructurados del texto
       const parsedResult = {
         analysisType,
-        rawAnalysis: analysisResult,
-        structuredData: extractStructuredData(analysisResult)
+        rawAnalysis: filteredAnalysisResult,
+        structuredData: extractStructuredData(filteredAnalysisResult)
       };
       
       return parsedResult;
@@ -255,11 +278,18 @@ export async function processChatMessage(
   chatHistory?: { role: string; content: string }[]
 ): Promise<string> {
   try {
+    const safeMessage = sanitizeUserInput(message);
+    const safeProjectName = sanitizeUserInput(String(projectContext?.name || ""));
+    const safeProjectClient = sanitizeUserInput(String(projectContext?.client || ""));
+    const safeProjectContext = projectContext
+      ? sanitizeDocumentContent(JSON.stringify(projectContext, null, 2))
+      : "";
+
     // Usar el servicio de Gemini en lugar de OpenAI
     const systemPrompt = projectContext 
-      ? `Eres un asistente de marketing para un proyecto llamado "${projectContext.name}" para el cliente "${projectContext.client}". 
+      ? `Eres un asistente de marketing para un proyecto llamado "${safeProjectName}" para el cliente "${safeProjectClient}". 
          Utiliza el siguiente contexto del proyecto en tus respuestas cuando sea relevante:
-         ${JSON.stringify(projectContext, null, 2)}`
+         ${safeProjectContext}`
       : "Eres un asistente de marketing para Cohete Workflow, una plataforma de gestión de proyectos de marketing.";
 
     // Preparar los mensajes para la API
@@ -269,13 +299,14 @@ export async function processChatMessage(
     if (chatHistory && chatHistory.length > 0) {
       promptText += "Historial de conversación:\n";
       for (const msg of chatHistory) {
-        promptText += `${msg.role === 'user' ? 'Usuario' : 'Asistente'}: ${msg.content}\n`;
+        const safeHistoryContent = sanitizeUserInput(msg.content || "");
+        promptText += `${msg.role === 'user' ? 'Usuario' : 'Asistente'}: ${safeHistoryContent}\n`;
       }
       promptText += "\n";
     }
     
     // Añadir el mensaje actual
-    promptText += `Usuario: ${message}\n\nAsistente:`;
+    promptText += `Usuario: ${safeMessage}\n\nAsistente:`;
 
     // Usar el servicio de Gemini con el modelo solicitado
     const response = await geminiService.generateText(promptText, {
@@ -284,7 +315,17 @@ export async function processChatMessage(
       maxTokens: 1000
     });
 
-    return response || "Lo siento, no pude procesar esa solicitud.";
+    const {
+      content: filteredResponse,
+      leakageDetected: chatLeakageDetected,
+      flags: chatLeakageFlags
+    } = filterOutputLeakage(response || "");
+
+    if (chatLeakageDetected) {
+      console.warn("Potential output leakage detected in chat response:", chatLeakageFlags.join(", "));
+    }
+
+    return filteredResponse || "Lo siento, no pude procesar esa solicitud.";
   } catch (error) {
     console.error("Error procesando mensaje de chat:", error);
     throw new Error(`Error al procesar mensaje de chat: ${(error as Error).message}`);

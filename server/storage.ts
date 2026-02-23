@@ -4,6 +4,7 @@
 
 import { db, isOffline } from "./db";
 import { MemStorage } from "./mem-storage";
+import { isOfflineModeAllowed } from "./runtime-config";
 import { eq, asc, desc, and, or, sql, like, inArray, gt } from "drizzle-orm";
 import * as schema from "./schema";
 import type {
@@ -357,8 +358,43 @@ export class DatabaseStorage implements IStorage {
 
   async getProjectsByUser(userId: string): Promise<Project[]> {
     try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        return [];
+      }
+
+      if (user.isPrimary || user.role === "admin") {
+        return await this.getProjects();
+      }
+
+      let memberProjects: Array<{ projectId: number }> = [];
+      let assignedProjects: Array<{ projectId: number }> = [];
+      try {
+        [memberProjects, assignedProjects] = await Promise.all([
+          db.select({ projectId: schema.projectMembers.projectId })
+            .from(schema.projectMembers)
+            .where(eq(schema.projectMembers.userId, userId)),
+          db.select({ projectId: schema.projectAssignments.projectId })
+            .from(schema.projectAssignments)
+            .where(eq(schema.projectAssignments.userId, userId)),
+        ]);
+      } catch (membershipError) {
+        console.warn("Project membership tables unavailable; falling back to project ownership only.", membershipError);
+      }
+
+      const relatedProjectIds = Array.from(
+        new Set([...memberProjects, ...assignedProjects].map((entry) => entry.projectId))
+      );
+
+      const accessFilter = relatedProjectIds.length > 0
+        ? or(
+          eq(schema.projects.createdBy, userId),
+          inArray(schema.projects.id, relatedProjectIds)
+        )
+        : eq(schema.projects.createdBy, userId);
+
       return await db.select().from(schema.projects)
-        .where(eq(schema.projects.createdBy, userId))
+        .where(accessFilter)
         .orderBy(desc(schema.projects.createdAt));
     } catch (error) {
       console.error('Error getting projects by user:', error);
@@ -390,13 +426,44 @@ export class DatabaseStorage implements IStorage {
 
   async checkUserProjectAccess(userId: string, projectId: number): Promise<boolean> {
     try {
-      const project = await this.getProject(projectId);
-      if (!project) return false;
+      const [project, user] = await Promise.all([
+        this.getProject(projectId),
+        this.getUser(userId)
+      ]);
 
-      // For now, allow access if user exists and project exists
-      // Can be extended to check team membership or permissions
-      const user = await this.getUser(userId);
-      return !!user;
+      if (!project || !user) return false;
+
+      // Primary/admin users have global visibility.
+      if (user.isPrimary || user.role === "admin") {
+        return true;
+      }
+
+      // Project creator always has access.
+      if (project.createdBy === userId) {
+        return true;
+      }
+
+      const [membership] = await db.select({ id: schema.projectMembers.id })
+        .from(schema.projectMembers)
+        .where(and(
+          eq(schema.projectMembers.projectId, projectId),
+          eq(schema.projectMembers.userId, userId)
+        ))
+        .limit(1);
+
+      if (membership) {
+        return true;
+      }
+
+      const [assignment] = await db.select({ id: schema.projectAssignments.id })
+        .from(schema.projectAssignments)
+        .where(and(
+          eq(schema.projectAssignments.projectId, projectId),
+          eq(schema.projectAssignments.userId, userId)
+        ))
+        .limit(1);
+
+      return !!assignment;
     } catch (error) {
       console.error('Error checking user project access:', error);
       return false;
@@ -1019,9 +1086,28 @@ export class DatabaseStorage implements IStorage {
   // Content history methods
   async getContentHistory(projectId: number): Promise<any[]> {
     try {
-      // For now, return empty array since this is just for backward compatibility
-      // In the future, this could return actual content history from the contentHistory table
-      return [];
+      return await db.select({
+        id: schema.contentHistory.id,
+        scheduleEntryId: schema.contentHistory.scheduleEntryId,
+        version: schema.contentHistory.version,
+        content: schema.contentHistory.content,
+        changeDescription: schema.contentHistory.changeDescription,
+        changedBy: schema.contentHistory.changedBy,
+        createdAt: schema.contentHistory.createdAt,
+        title: schema.scheduleEntries.title,
+        platform: schema.scheduleEntries.platform
+      })
+        .from(schema.contentHistory)
+        .innerJoin(
+          schema.scheduleEntries,
+          eq(schema.contentHistory.scheduleEntryId, schema.scheduleEntries.id)
+        )
+        .innerJoin(
+          schema.schedules,
+          eq(schema.scheduleEntries.scheduleId, schema.schedules.id)
+        )
+        .where(eq(schema.schedules.projectId, projectId))
+        .orderBy(desc(schema.contentHistory.createdAt));
     } catch (error) {
       console.error('Error getting content history:', error);
       return [];
@@ -1030,11 +1116,37 @@ export class DatabaseStorage implements IStorage {
 
   async createContentHistory(data: any): Promise<any> {
     try {
-      // For now, just return the data since this is for backward compatibility
-      return data;
+      const scheduleEntryId = Number.parseInt(String(data?.scheduleEntryId), 10);
+      const content = typeof data?.content === "string" ? data.content.trim() : "";
+
+      if (!Number.isInteger(scheduleEntryId) || scheduleEntryId <= 0) {
+        throw new Error("createContentHistory requires a valid scheduleEntryId");
+      }
+
+      if (!content) {
+        throw new Error("createContentHistory requires non-empty content");
+      }
+
+      const [latestVersion] = await db.select({ version: schema.contentHistory.version })
+        .from(schema.contentHistory)
+        .where(eq(schema.contentHistory.scheduleEntryId, scheduleEntryId))
+        .orderBy(desc(schema.contentHistory.version))
+        .limit(1);
+
+      const nextVersion = (latestVersion?.version ?? 0) + 1;
+
+      const [createdRecord] = await db.insert(schema.contentHistory).values({
+        scheduleEntryId,
+        version: nextVersion,
+        content,
+        changeDescription: data?.changeDescription ?? "Initial content generation",
+        changedBy: data?.changedBy ?? null
+      }).returning();
+
+      return createdRecord;
     } catch (error) {
       console.error('Error creating content history:', error);
-      return data;
+      throw error;
     }
   }
 
@@ -1087,5 +1199,10 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Create and export storage instance
-// Create and export storage instance
+const isProduction = process.env.NODE_ENV === "production";
+const allowOfflineMode = isOfflineModeAllowed();
+if (isOffline && (isProduction || !allowOfflineMode)) {
+  throw new Error("Offline MemStorage fallback is disabled unless ALLOW_OFFLINE_MODE=true in non-production.");
+}
+
 export const storage = isOffline ? new MemStorage() : new DatabaseStorage();
