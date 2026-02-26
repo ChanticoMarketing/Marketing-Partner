@@ -44,21 +44,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r border-white/10 bg-black/60 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] md:static md:z-0 transform transition-all duration-300 ease-in-out overflow-hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r bg-card md:static md:z-0 transform transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
         data-tour="main-navigation"
       >
-        <div className="flex flex-col h-full overflow-hidden hide-scrollbar">
+        <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-6 mb-2 border-b border-white/5">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shadow-[0_0_15px_rgba(var(--primary),0.3)] border border-primary/20 group">
-              <Rocket className="h-5 w-5 text-primary transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              <div className="absolute inset-0 rounded-xl bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="flex items-center gap-3 px-6 py-5 mb-2 border-b">
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Rocket className="h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-base font-bold tracking-[0.1em] text-white uppercase">Cohete<span className="text-primary">.AI</span></h1>
-              <p className="text-[10px] text-gray-400 tracking-widest uppercase">Command Center</p>
+              <h1 className="text-sm font-semibold tracking-tight">Cohete Workflow</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Command Center</p>
             </div>
             {/* Close button - mobile only */}
             <Button
@@ -123,19 +122,21 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </div>
 
           {/* User Profile */}
-          <div className="border-t border-white/10 p-4 mt-auto bg-black/20">
+          <div className="border-t p-4 mt-auto">
             <Link href="/profile">
-              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-all duration-200 cursor-pointer group border border-transparent hover:border-white/10">
-                <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-                  <Users className="h-4 w-4" />
-                  <div className="absolute -bottom-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-black shadow-[0_0_5px_rgba(34,197,94,0.5)]"></div>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer group">
+                <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                  <span className="text-xs font-medium">
+                    {user?.fullName?.charAt(0) || user?.username?.charAt(0) || "U"}
+                  </span>
+                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card"></div>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-sm font-bold text-gray-200 truncate group-hover:text-primary transition-colors tracking-wide">
-                    {user?.fullName?.split(' ')[0]}
+                  <span className="text-sm font-medium truncate">
+                    {user?.fullName?.split(' ')[0] || user?.username}
                   </span>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wider">
-                    {user?.isPrimary ? "Comandante" : "Piloto"}
+                  <span className="text-[10px] text-muted-foreground">
+                    {user?.isPrimary ? "Admin" : "User"}
                   </span>
                 </div>
                 <Button
@@ -173,29 +174,18 @@ function NavItem({ href, icon, label, isActive, onClick }: NavItemProps) {
     <Link href={href}>
       <div
         className={cn(
-          "flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 relative overflow-hidden group mb-1",
+          "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1",
           isActive
-            ? "bg-primary/10 text-primary shadow-[0_0_15px_rgba(var(--primary),0.15)] border border-primary/20"
-            : "text-gray-400 hover:bg-white/5 hover:text-white hover:border-white/10 border border-transparent"
+            ? "bg-secondary text-foreground"
+            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
         )}
         onClick={onClick}
       >
-        {isActive && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.8)]" />
-        )}
-        <div className="flex items-center w-full relative z-10">
-          <div className={cn(
-            "transition-colors duration-300",
-            isActive
-              ? "text-primary drop-shadow-[0_0_5px_rgba(var(--primary),0.5)]"
-              : "group-hover:text-primary"
-          )}>
+        <div className="flex items-center w-full">
+          <div className={cn("mr-3", isActive ? "text-foreground" : "")}>
             {icon}
           </div>
-          <span className={cn(
-            "tracking-wide transition-colors duration-300",
-            isActive ? "font-bold" : ""
-          )}>
+          <span className={cn(isActive ? "font-semibold" : "")}>
             {label}
           </span>
         </div>

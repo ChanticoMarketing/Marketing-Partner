@@ -91,8 +91,11 @@ export async function apiRequest(
     console.log(`Response status: ${response.status} for ${url}`);
 
     if (!response.ok && response.status === 401) {
-      // Redirect to login on 401
-      window.location.href = "/auth";
+      // Only redirect to login if we are NOT already on an auth endpoint
+      const isAuthEndpoint = url.includes('/api/login') || url.includes('/api/register');
+      if (!isAuthEndpoint) {
+        window.location.href = "/auth";
+      }
     }
 
     return response;

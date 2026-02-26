@@ -60,7 +60,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       {/* ===== ÁREA PRINCIPAL =====*/}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {/* Contenido principal con mejoras visuales */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-background/50 transition-all duration-300 min-h-0 subtle-pattern hide-scrollbar light-gradient-bg dark:dark-gradient-bg">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 bg-transparent transition-all duration-300 min-h-0 hide-scrollbar">
 
           {/* ===== BOTÓN DE MENU MÓVIL =====*/}
           {/* Solo visible en dispositivos móviles */}
@@ -71,8 +71,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
               className="flex items-center gap-3 rounded-md p-2 hover:bg-accent interactive-element"
             >
               {/* Icono del menú hamburguesa */}
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary shadow-md dark:dark-glow">
-                <Menu className="h-5 w-5 text-primary-foreground" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
+                <Menu className="h-5 w-5" />
               </div>
               {/* Logo y título de la aplicación */}
               <div className="flex items-center gap-2">

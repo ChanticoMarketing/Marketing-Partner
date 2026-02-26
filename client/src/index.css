@@ -95,13 +95,12 @@ html {
 /* Mejoras para cards y elementos interactivos */
 @layer components {
   .card {
-    @apply bg-card text-card-foreground shadow-sm;
+    @apply bg-card text-card-foreground;
     border: 1px solid hsl(var(--border));
     transition: all 0.2s ease;
   }
 
   .card:hover {
-    @apply shadow-md;
     transform: translateY(-1px);
   }
 
@@ -116,11 +115,10 @@ html {
   /* Mejoras para botones */
   .btn-primary {
     @apply bg-primary text-primary-foreground hover:bg-primary/90;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
   }
 
   /* Mejoras para inputs */
@@ -338,21 +336,14 @@ main.hide-scrollbar::-webkit-scrollbar {
      DEEP SPACE AMBER V2.0 - PREMIUM UTILITIES
      ======================================== */
 
-  /* Glass Morphism Premium */
+  /* Glass Morphism Premium - Flattened for Notion Redesign */
   .glass-premium {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    box-shadow: var(--shadow-soft);
+    @apply bg-card border border-border;
   }
 
-  /* Glass Panel - Dark variant for premium feel */
+  /* Glass Panel - Flattened for Notion Redesign */
   .glass-panel-dark {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    @apply bg-card border border-border;
   }
 
   /* Amber Glow Effects */
@@ -378,22 +369,9 @@ main.hide-scrollbar::-webkit-scrollbar {
     background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
   }
 
-  /* Gradient Border for Premium Elements */
+  /* Gradient Border - Flattened for Notion Redesign */
   .tech-border {
-    position: relative;
-  }
-
-  .tech-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(180deg, var(--border-gradient-start), var(--border-gradient-end));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    @apply border border-border;
   }
 
   /* Noise Texture Overlay */
@@ -411,16 +389,12 @@ main.hide-scrollbar::-webkit-scrollbar {
     mix-blend-mode: overlay;
   }
 
-  /* Premium Titles with Deep Space Amber Typography */
+  /* Premium Typography Defaults */
   .title-premium {
     font-family: var(--font-sans);
     letter-spacing: var(--title-tracking);
     font-weight: var(--title-weight);
-  }
-
-  /* Radial Background Gradient */
-  .bg-radial-amber {
-    background: var(--bg-radial-top);
+    color: hsl(var(--foreground));
   }
 
   /* Bento Grid Layout */
@@ -430,68 +404,18 @@ main.hide-scrollbar::-webkit-scrollbar {
     gap: 1.5rem;
   }
 
-  /* Spotlight Search Bar Effect */
+  /* Standard Minimal Search input */
   .spotlight-search {
-    @apply glass-premium;
-    border-radius: 0.75rem;
-    transition: all 0.3s ease;
+    @apply w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-white/40 transition-all outline-none;
   }
 
-  .spotlight-search:focus-within {
-    border-color: hsl(var(--primary) / 0.5);
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1), var(--shadow-amber-glow);
+  .spotlight-search:focus {
+    @apply border-white/30 bg-black/40 shadow-sm;
   }
 
-  /* Chip-style Metrics */
+  /* Minimal Chip */
   .metric-chip {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium;
-    transition: all 0.2s ease;
-  }
-
-  .metric-chip:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    transform: translateY(-1px);
-  }
-
-  /* Premium Button with Amber Glow */
-  .btn-amber-glow {
-    @apply bg-primary text-primary-foreground font-bold;
-    box-shadow: var(--shadow-amber-glow);
-    transition: all 0.3s ease;
-  }
-
-  .btn-amber-glow:hover {
-    box-shadow: var(--shadow-amber-glow-strong);
-    transform: translateY(-2px);
-  }
-
-  /* Gradient Background for Buttons */
-  .btn-gradient-amber {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
-    transition: all 0.3s ease;
-  }
-
-  .btn-gradient-amber:hover {
-    background: linear-gradient(135deg, hsl(var(--primary-dark)) 0%, hsl(var(--primary)) 100%);
-  }
-
-  /* Golden Border Effect */
-  .golden-border {
-    border: 2px solid transparent;
-    background-image: linear-gradient(var(--background), var(--background)),
-      linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-  }
-
-  /* 3D Icon Style with Amber Glow */
-  .icon-3d-amber {
-    filter: drop-shadow(0 4px 8px rgba(var(--primary-rgb), 0.3));
-    transition: filter 0.3s ease;
-  }
-
-  .icon-3d-amber:hover {
-    filter: drop-shadow(0 6px 12px rgba(var(--primary-rgb), 0.5));
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/5;
   }
 }
 
@@ -536,246 +460,70 @@ main.hide-scrollbar::-webkit-scrollbar {
   }
 
   .dark {
-    /* Deep Space Amber V2.0 - Premium Dark Mode */
+    /* Notion-inspired Document-Centric Dark Mode */
 
-    /* Rich Black Background System */
-    --background: 0 0% 2%;
-    /* #050507 - Rich Black */
-    --foreground: 0 0% 98%;
-    /* Pure white for maximum contrast */
+    /* Flat Dark Minimal Background System */
+    --background: 0 0% 10%;
+    /* ~#191919 */
+    --foreground: 0 0% 93%;
+    /* Off-white text for readability */
 
-    /* Card & Surface System */
-    --card: 0 0% 3%;
-    /* Slightly lighter than background */
-    --card-foreground: 0 0% 98%;
+    /* Card & Surface System - Completely flat against background */
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 93%;
 
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 98%;
+    /* Elevated Surfaces (Dropdowns, Modals) */
+    --popover: 0 0% 14%;
+    /* Slightly lighter for elevation */
+    --popover-foreground: 0 0% 93%;
 
-    /* Electric Amber Primary System */
-    --primary: 45 100% 50%;
-    /* #FFAE00 base */
-    --primary-dark: 48 100% 50%;
-    /* #FFD500 lighter end */
-    --primary-foreground: 0 0% 0%;
-    /* Black text on amber */
-    --primary-rgb: 255, 174, 0;
-    /* For alpha usage */
+    /* Primary Accent - Utilitarian White/Light Gray */
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 9%;
 
-    /* Secondary & Muted */
-    --secondary: 0 0% 8%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary & Muted Data (Hover states, subtle blocks) */
+    --secondary: 0 0% 15%;
+    /* Light block background */
+    --secondary-foreground: 0 0% 93%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 215 15% 60%;
-    /* Slate-400 equivalent */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    /* Secondary text */
 
     /* Accent System */
-    --accent: 0 0% 12%;
+    --accent: 0 0% 18%;
     --accent-foreground: 0 0% 98%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Borders & Inputs - with gradient feel */
-    --border: 0 0% 15%;
-    /* Subtle border */
-    --border-gradient-start: rgba(255, 255, 255, 0.1);
-    --border-gradient-end: rgba(255, 255, 255, 0.02);
-    --input: 0 0% 12%;
-    --ring: 45 100% 50%;
-    /* Amber focus ring */
+    /* Borders - Structural dividers */
+    --border: 0 0% 18%;
+    /* Subtle line separators */
+    --input: 0 0% 18%;
+    --ring: 0 0% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.375rem;
+    /* Very tight border radius (6px) for blocky, document feel */
 
-    /* Deep Space Amber Shadows & Effects */
+    /* Deep Shadows & Effects (No glows) */
     --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.5);
     --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.7);
-    --shadow-amber-glow: 0 0 20px rgba(255, 174, 0, 0.4);
-    --shadow-amber-glow-strong: 0 0 30px rgba(255, 174, 0, 0.6), 0 0 60px rgba(255, 174, 0, 0.3);
 
-    /* Glass Morphism System */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 20px;
+    /* Clean Glass Morphism System */
+    --glass-background: rgba(255, 255, 255, 0.02);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-blur: 24px;
 
-    /* Background Gradients */
-    --bg-radial-top: radial-gradient(ellipse 800px 400px at 50% 0%, rgba(10, 22, 40, 0.4) 0%, rgba(5, 5, 7, 0) 60%);
-    --bg-noise-opacity: 0.02;
+    /* Background Gradients - Removed noise, subtle top highlight */
+    --bg-radial-top: radial-gradient(ellipse 800px 400px at 50% -20%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 70%);
 
     /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --title-tracking: -0.02em;
-    --title-weight: 700;
+    --title-tracking: -4%;
+    --title-weight: 600;
   }
 }
 
-/* --- NUEVAS REGLAS / MODIFICACIONES --- */
-
-/* Glassmorphism panel styles */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Glow text */
-.glow-text {
-  text-shadow: 0 0 20px rgba(255, 196, 0, 0.5);
-}
-
-/* Glow border */
-.glow-border {
-  border: 1px solid rgba(255, 196, 0, 0.5);
-  box-shadow: 0 0 10px rgba(255, 196, 0, 0.3);
-}
-
-/* Glass panel dark variant (para modo oscuro) */
-.dark .glass-panel-dark {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Animación suave para el hover */
-.smooth-hover {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.smooth-hover:hover {
-  transform: translateY(-2px);
-}
-
-/* Estilos para botones */
-.btn-glass {
-  @apply glass-panel px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300;
-}
-
-.btn-glass:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-/* Inputs con estilo glass */
-.input-glass {
-  @apply glass-panel px-4 py-2 rounded-md border-none focus:outline-none focus:ring-2 focus:ring-primary/50;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Sidebar con glassmorphism */
-.sidebar-glass {
-  @apply glass-panel h-full;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-/* Cards con efecto de profundidad */
-.card-depth {
-  @apply shadow-xl;
-  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.3);
-}
-
-/* Progress bar estilizado */
-.progress-glass {
-  @apply glass-panel h-2 rounded-full overflow-hidden;
-}
-
-.progress-fill {
-  @apply h-full bg-gradient-to-r from-primary via-yellow-400 to-primary;
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-/* Badge con glow */
-.badge-glow {
-  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
-  background: rgba(255, 196, 0, 0.1);
-  border: 1px solid rgba(255, 196, 0, 0.3);
-  color: rgb(255, 196, 0);
-  box-shadow: 0 0 10px rgba(255, 196, 0, 0.2);
-}
-
-/* Divider con gradiente */
-.divider-gradient {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 196, 0, 0.5), transparent);
-}
-
-/* Skeleton loader mejorado */
-.skeleton-glow {
-  @apply animate-pulse glass-panel;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Notifications / Toast personalizados */
-.toast-glass {
-  @apply glass-panel p-4 rounded-lg shadow-2xl;
-  border-left: 3px solid rgb(255, 196, 0);
-}
-
-/* Scroll to top button */
-.scroll-top-btn {
-  @apply glass-panel p-3 rounded-full hover:shadow-lg transition-all duration-300;
-}
-
-.scroll-top-btn:hover {
-  background: rgba(255, 196, 0, 0.2);
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
+/* --- END OF PREMIUM UI REDESIGN --- */

@@ -32,53 +32,51 @@ export default function RecentSchedules() {
   const recentSchedules = schedules.slice(0, 5);
 
   return (
-    <Card className="glass-panel-dark tech-border h-full">
-      <CardHeader className="border-b border-white/5 pb-4">
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold text-white tracking-tight">Cronogramas Recientes</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
+    <div className="border rounded-xl bg-card overflow-hidden">
+      <div className="border-b px-6 py-4 flex items-center gap-3">
+        <div className="p-2 rounded-md bg-secondary text-foreground">
+          <Calendar className="h-4 w-4" />
+        </div>
+        <h3 className="font-semibold text-sm tracking-tight text-foreground">Cronogramas Recientes</h3>
+      </div>
+      <div className="p-0">
         {recentSchedules.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            <div className="relative mx-auto mb-4 h-16 w-16 opacity-20">
+            <div className="relative mx-auto mb-4 h-16 w-16 opacity-10">
               <Calendar className="h-16 w-16" />
             </div>
-            <p className="text-lg font-medium text-gray-400 mb-2">No hay cronogramas creados</p>
-            <p className="text-sm text-gray-500 mb-6">Genera tu primer calendario de contenido</p>
+            <p className="text-lg font-medium mb-2">No hay cronogramas creados</p>
+            <p className="text-sm text-muted-foreground mb-6">Genera tu primer calendario de contenido</p>
             <Button
-              className="btn-amber-glow font-bold"
+              className="font-medium"
               onClick={() => setLocation("/calendar-creator")}
             >
               Crear Primer Cronograma
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="flex flex-col">
             {recentSchedules.map((schedule) => (
               <div
                 key={schedule.id}
-                className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                className="group flex items-center justify-between p-4 border-b last:border-0 hover:bg-secondary/30 transition-colors cursor-pointer"
                 onClick={() => setLocation(`/projects/${schedule.projectId}/schedule/${schedule.id}`)}
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="font-bold text-white group-hover:text-primary transition-colors">{schedule.name}</h4>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h4 className="font-medium text-sm text-foreground">{schedule.name}</h4>
                     {schedule.entriesCount && (
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase tracking-wider font-bold">
+                      <Badge variant="secondary" className="text-[10px] uppercase font-medium">
                         {schedule.entriesCount} entradas
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-400 font-medium uppercase tracking-wider">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {formatDate(schedule.createdAt)}
                     </span>
-                    <span className="w-1 h-1 rounded-full bg-gray-600"></span>
+                    <span className="w-1 h-1 rounded-full bg-border"></span>
                     <span className="flex items-center gap-1">
                       <FileText className="h-3 w-3" />
                       Proyecto #{schedule.projectId}
@@ -88,23 +86,24 @@ export default function RecentSchedules() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all"
+                  className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             ))}
-
-            <Button
-              variant="outline"
-              className="w-full mt-2 border-white/10 bg-transparent hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all duration-300 uppercase text-xs font-bold tracking-widest h-10"
-              onClick={() => setLocation("/calendar-creator")}
-            >
-              Crear Nuevo Cronograma
-            </Button>
+            <div className="p-4 bg-muted/20">
+              <Button
+                variant="outline"
+                className="w-full text-xs font-medium h-9"
+                onClick={() => setLocation("/calendar-creator")}
+              >
+                Crear Nuevo Cronograma
+              </Button>
+            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

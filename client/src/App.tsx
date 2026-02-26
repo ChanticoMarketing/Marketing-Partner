@@ -46,8 +46,8 @@ import MainLayout from "./layouts/main-layout";
 import { AuthProvider } from "./hooks/use-auth";
 import { ThemeProvider } from "./hooks/use-theme";
 import { AppTourProvider } from "./hooks/use-app-tour";
-// Botón del asistente AI
 import CopilotButton from "@/components/copilot/copilot-button";
+import { Preloader } from "@/components/ui/preloader";
 
 // ===== COMPONENTE PRINCIPAL DE LA APLICACIÓN =====
 function App() {
@@ -61,8 +61,9 @@ function App() {
       <ThemeProvider defaultTheme="system">
         {/* AuthProvider: Maneja el estado de autenticación del usuario */}
         <AuthProvider>
-          {/* AppTourProvider: Maneja los tours guiados de la aplicación */}
           <AppTourProvider>
+            {/* Modal de Preloader Cinemático */}
+            <Preloader />
             {/* Container principal con altura mínima y color de fondo dinámico */}
             <div style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
               {/* ===== SISTEMA DE ROUTING ===== */}
@@ -108,7 +109,7 @@ function App() {
                   {(params) => (
                     <ProtectedRoute>
                       <MainLayout>
-                        <ProjectDetail id={parseInt(params.id)} />
+                        <ProjectDetail id={params ? parseInt(params.id) : 0} />
                       </MainLayout>
                     </ProtectedRoute>
                   )}
@@ -116,13 +117,12 @@ function App() {
 
                 {/* Página de detalle de un cronograma específico dentro de un proyecto */}
                 {/* Recibe tanto el ID del proyecto como el ID del cronograma */}
-                <Route path="/projects/:id/schedule/:scheduleId">
+                <Route path="/projects/:projectId/schedule/:id">
                   {(params) => (
                     <ProtectedRoute>
                       <MainLayout>
                         <ScheduleDetail
-                          projectId={parseInt(params.id)}
-                          scheduleId={parseInt(params.scheduleId)}
+                          id={params ? parseInt(params.id) : 0}
                         />
                       </MainLayout>
                     </ProtectedRoute>
@@ -131,11 +131,11 @@ function App() {
 
                 {/* Página de análisis de imágenes para un proyecto específico */}
                 {/* Permite analizar imágenes de marketing usando IA */}
-                <Route path="/projects/:id/image-analysis">
-                  {(params) => (
+                <Route path="/projects/:projectId/image-analysis">
+                  {() => (
                     <ProtectedRoute>
                       <MainLayout>
-                        <ProjectImageAnalysisPage projectId={parseInt(params.id)} />
+                        <ProjectImageAnalysisPage />
                       </MainLayout>
                     </ProtectedRoute>
                   )}

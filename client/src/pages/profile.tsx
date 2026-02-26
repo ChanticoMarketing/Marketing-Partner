@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import gsap from "gsap";
 
 // Import avatars from assets
 // COMMENTED OUT: Images not found
@@ -108,6 +109,7 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 export default function ProfilePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string>("");
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -135,6 +137,25 @@ export default function ProfilePage() {
   const { data: user, isLoading } = useQuery<UserProfile>({
     queryKey: ["/api/user"],
   });
+
+  useEffect(() => {
+    if (isLoading) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".gsap-stagger",
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.15,
+          ease: "power3.out",
+          delay: 0.2
+        }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, [isLoading]);
 
   // Fetch user statistics
   const { data: userStats } = useQuery<UserStats>({
@@ -572,9 +593,9 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6" ref={containerRef}>
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-8 gsap-stagger">
           <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
             <User className="h-8 w-8 text-primary" />
           </div>
@@ -589,7 +610,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Cover Image Section */}
-        <div className="glass-panel-dark tech-border rounded-xl overflow-hidden relative group">
+        <div className="glass-panel-dark tech-border rounded-xl overflow-hidden relative group gsap-stagger">
           <div className="relative h-64 bg-black/50 overflow-hidden">
             {user?.coverImage || coverImagePreview ? (
               <img
@@ -675,7 +696,7 @@ export default function ProfilePage() {
         </div>
 
         {/* User Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 gsap-stagger">
           <div className="glass-panel-dark p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-primary/30 transition-colors duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Briefcase className="w-16 h-16 text-primary" />
@@ -731,7 +752,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 gsap-stagger">
           <Button onClick={() => setIsEditModalOpen(true)}>
             <Edit className="h-4 w-4 mr-2" />
             Editar Perfil
