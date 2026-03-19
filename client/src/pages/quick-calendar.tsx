@@ -337,7 +337,7 @@ export default function QuickCalendar() {
               <Card className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-300 group">
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                    <LayoutTemplate className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    <LayoutTemplate className="h-5 w-5 text-primary/90 dark:text-primary/80" />
                   </div>
                   <div>
                     <h3 className="font-semibold">Estructurado</h3>
@@ -348,7 +348,7 @@ export default function QuickCalendar() {
             </div>
 
             {/* Comparison Card */}
-            <Card className="glass-card border-0 shadow-premium bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+            <Card className="glass-card border-0 shadow-premium bg-gradient-to-br from-slate-900 to-slate-800 text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
@@ -359,13 +359,13 @@ export default function QuickCalendar() {
                 <p className="text-slate-300 text-sm">
                   Perfecto cuando necesitas resultados inmediatos sin configuraciones complejas. La IA tomará decisiones inteligentes basadas en tu proyecto.
                 </p>
-                <div className="pt-4 border-t border-white/10">
+                <div className="pt-4 border-t border-border">
                   <p className="text-xs text-slate-400 mb-2">¿Necesitas más control?</p>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setLocation("/calendar-creator")}
-                    className="w-full bg-white/10 hover:bg-white/20 text-white border-0"
+                    className="w-full bg-muted/80 hover:bg-white/20 text-foreground border-0"
                   >
                     Ir al Modo Avanzado
                   </Button>

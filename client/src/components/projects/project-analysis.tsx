@@ -609,7 +609,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
             <TabsContent value="uvp" className="space-y-4">
               <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/10">
                 <CardHeader>
-                  <CardTitle className="text-amber-700 dark:text-amber-400">Propuesta de Valor Única (UVP)</CardTitle>
+                  <CardTitle className="text-amber-700 dark:text-primary/80">Propuesta de Valor Única (UVP)</CardTitle>
                   <CardDescription>¿Qué hace a tu marca radicalmente diferente?</CardDescription>
                 </CardHeader>
                 <CardContent>

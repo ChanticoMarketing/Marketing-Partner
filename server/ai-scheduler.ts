@@ -1,13 +1,13 @@
 // ===== IMPORTACIONES PARA PROGRAMACIÓN DE CONTENIDO =====
 // date-fns: Librería para manejo y formateo de fechas
 import { format, parseISO, addDays } from "date-fns";
-// Servicio de integración con Gemini AI
+// Servicio de integración con IA (xAI/Grok)
 import { geminiService } from "./gemini-integration";
 import { logger, sanitizePrompt, sanitizeResponse } from "./logger";
 import { sanitizeUserInput, filterOutputLeakage } from "./ai-sanitizer";
 
 // ===== CONFIGURACIÓN DE IA =====
-// Integración exclusiva con Gemini para todas las funcionalidades de IA
+// Integración con xAI (Grok) para todas las funcionalidades de IA
 
 // ===== INTERFACES PARA CRONOGRAMA DE CONTENIDO =====
 /**
@@ -706,7 +706,7 @@ export async function generateSchedule(
     `;
 
     // Usamos exclusivamente Gemini para generar el cronograma
-    console.log("[CALENDAR] Generando cronograma con Gemini");
+    console.log("[CALENDAR] Generando cronograma con IA (Grok)");
 
     // Modificamos el prompt para forzar una respuesta más estructurada y evitar errores de formato
     const enhancedPrompt = `${prompt}
@@ -757,8 +757,8 @@ export async function generateSchedule(
       maxTokens: 6000,
       // Aumentamos los reintentos para casos de red inestable
       retryCount: 3,
-      // Utilizamos el modelo solicitado (Gemini 3 Pro Preview)
-      model: 'gemini-3-pro-preview'
+      // Modelo xAI Grok
+      model: 'grok-3-mini'
     });
 
     const {

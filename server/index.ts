@@ -102,7 +102,7 @@ if (isProduction) {
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'", "https://generativelanguage.googleapis.com"]
+        connectSrc: ["'self'", "https://api.x.ai"]
       }
     }
   }));
@@ -138,7 +138,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
 
     // Permitir siempre en desarrollo o si el origen está en la lista permitida
-  if (!isProduction || allowedOrigins.has(origin)) {
+    if (!isProduction || allowedOrigins.has(origin)) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
@@ -221,8 +221,8 @@ app.get('/', (req, res, next) => {
 app.get('/health', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-cache');
-  
-  res.status(200).json({ 
+
+  res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     service: 'cohete-workflow',
@@ -232,7 +232,7 @@ app.get('/health', (req, res) => {
 
 // API health check 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'OK',
     api: 'cohete-workflow'
   });
@@ -316,8 +316,8 @@ app.use((req, res, next) => {
 
     // Detailed status endpoint for debugging (separate from health checks)
     app.get('/api/status', (req, res) => {
-      res.status(200).json({ 
-        status: 'OK', 
+      res.status(200).json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         service: 'Cohete Workflow',
         version: '1.0.0',
@@ -354,7 +354,7 @@ app.use((req, res, next) => {
     // ===== STATIC FILE SERVING - OPTIMIZADO PARA REPLIT =====
     if (isProduction) {
       console.log('🏭 Setting up production static file serving...');
-      
+
       // Rutas corregidas para deployment desde dist/
       const possiblePaths = [
         path.join(__dirname, 'public'),              // dist/public/ (build output)
@@ -362,7 +362,7 @@ app.use((req, res, next) => {
         path.join(process.cwd(), 'dist/public'),     // absolute from project root
         path.join(process.cwd(), 'client/dist')      // absolute client build
       ];
-      
+
       let staticPath = null;
       for (const testPath of possiblePaths) {
         if (fs.existsSync(testPath) && fs.existsSync(path.join(testPath, 'index.html'))) {
@@ -373,7 +373,7 @@ app.use((req, res, next) => {
 
       if (staticPath) {
         console.log('✅ Static files found at:', staticPath);
-        
+
         // Optimizado para Replit deployment speed
         app.use(express.static(staticPath, {
           maxAge: '1h', // Reducido para deployment
@@ -387,7 +387,7 @@ app.use((req, res, next) => {
           if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
             return next();
           }
-          
+
           // Servir index.html rápidamente
           const indexPath = path.join(staticPath, 'index.html');
           res.sendFile(indexPath);

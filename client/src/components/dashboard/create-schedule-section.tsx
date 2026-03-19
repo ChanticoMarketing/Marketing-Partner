@@ -33,7 +33,7 @@ export default function CreateScheduleSection() {
           </div>
 
           <Link href="/calendars" className="block">
-            <Button className="w-full bg-gradient-to-r from-blue-600 to-amber-600 hover:from-blue-700 hover:to-amber-700 text-white">
+            <Button className="w-full bg-gradient-to-r from-blue-600 to-primary/90 hover:from-blue-700 hover:to-amber-700 text-foreground">
               <Calendar className="mr-2 h-4 w-4" />
               Ver Calendarios
               <ArrowRight className="ml-2 h-4 w-4" />

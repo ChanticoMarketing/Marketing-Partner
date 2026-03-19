@@ -117,7 +117,7 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
       Facebook: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
       Twitter: "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300",
       LinkedIn: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      TikTok: "bg-black text-white dark:bg-gray-700 dark:text-gray-300",
+      TikTok: "bg-black text-foreground dark:bg-gray-700 dark:text-muted-foreground",
       default: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300"
     };
 

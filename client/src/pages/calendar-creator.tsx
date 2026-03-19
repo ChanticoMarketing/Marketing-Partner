@@ -235,7 +235,7 @@ function StrategyContextCard({ projectId }: { projectId: string }) {
           <>
             <div className="grid gap-1">
               <span className="font-bold text-[10px] uppercase text-primary/70 tracking-wider">Buyer Persona</span>
-              <p className="text-gray-300 text-xs leading-relaxed line-clamp-2">{analysis.buyerPersona || "No definido"}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">{analysis.buyerPersona || "No definido"}</p>
             </div>
             <div className="grid gap-1">
               <span className="font-bold text-[10px] uppercase text-primary/70 tracking-wider">Tono de Voz</span>
@@ -243,12 +243,12 @@ function StrategyContextCard({ projectId }: { projectId: string }) {
             </div>
             <div className="grid gap-1">
               <span className="font-bold text-[10px] uppercase text-primary/70 tracking-wider">Misión</span>
-              <p className="text-gray-300 text-xs leading-relaxed line-clamp-1">{analysis.mission || "No definida"}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed line-clamp-1">{analysis.mission || "No definida"}</p>
             </div>
           </>
         ) : (
           <div className="flex flex-col gap-2">
-            <div className="flex items-start gap-2 text-amber-500 bg-amber-500/10 p-2 rounded">
+            <div className="flex items-start gap-2 text-primary bg-primary/10 p-2 rounded">
               <AlertCircle className="h-4 w-4 mt-0.5" />
               <p className="text-xs">Faltan datos clave de estrategia. La IA generará contenido genérico sin personalidad.</p>
             </div>
@@ -700,22 +700,22 @@ export default function CalendarCreator() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="glass-panel-dark rounded-xl border-white/5 overflow-hidden relative">
+      <div className="bg-card border-border rounded-xl border-border/50 overflow-hidden relative">
         {/* Background Effects */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full -mr-20 -mt-20 blur-[100px] pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full -ml-20 -mb-20 blur-[100px] pointer-events-none"></div>
 
-        <div className="relative z-10 p-6 border-b border-white/10">
+        <div className="relative z-10 p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 shadow-md">
                 <CalendarIcon className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white uppercase">
+                <h1 className="text-3xl font-bold tracking-tight text-foreground uppercase">
                   Creación <span className="text-primary">Avanzada</span>
                 </h1>
-                <p className="text-gray-400 tracking-wide mt-1">
+                <p className="text-muted-foreground tracking-wide mt-1">
                   Configura un calendario detallado con opciones personalizadas para cada plataforma.
                 </p>
               </div>
@@ -733,20 +733,20 @@ export default function CalendarCreator() {
               return false; // No hacer nada, ya que el botón tiene su propio manejador
             }}>
               <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-                <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 mb-8 bg-black/40 border border-white/10 p-1 rounded-lg h-auto">
-                  <TabsTrigger value="general" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-gray-400 py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
+                <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 mb-8 bg-muted/30 border border-border p-1 rounded-lg h-auto">
+                  <TabsTrigger value="general" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-muted-foreground py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
                     General
                   </TabsTrigger>
-                  <TabsTrigger value="distribution" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-gray-400 py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
+                  <TabsTrigger value="distribution" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-muted-foreground py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
                     Distribución
                   </TabsTrigger>
-                  <TabsTrigger value="platforms" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-gray-400 py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
+                  <TabsTrigger value="platforms" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-muted-foreground py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
                     Plataformas
                   </TabsTrigger>
-                  <TabsTrigger value="content" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-gray-400 py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
+                  <TabsTrigger value="content" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-muted-foreground py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
                     Contenido
                   </TabsTrigger>
-                  <TabsTrigger value="advanced" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-gray-400 py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
+                  <TabsTrigger value="advanced" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-muted-foreground py-2.5 uppercase tracking-wide text-xs font-bold transition-all">
                     Avanzado
                   </TabsTrigger>
                 </TabsList>
@@ -767,16 +767,16 @@ export default function CalendarCreator() {
                               disabled={projectsLoading}
                             >
                               <FormControl>
-                                <SelectTrigger className="h-11 bg-black/20 border-white/10 text-white hover:border-primary/50 focus:ring-primary/50 transition-all duration-200">
+                                <SelectTrigger className="h-11 bg-muted/50 border-border text-foreground hover:border-primary/50 focus:ring-primary/50 transition-all duration-200">
                                   <SelectValue placeholder="Elige un proyecto" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="bg-black/90 border-white/10 text-white backdrop-blur-xl">
+                              <SelectContent className="bg-black/90 border-border text-foreground backdrop-blur-xl">
                                 {projects?.map((project: Project) => (
                                   <SelectItem
                                     key={project.id}
                                     value={project.id.toString()}
-                                    className="focus:bg-primary/20 focus:text-primary text-gray-300 cursor-pointer"
+                                    className="focus:bg-primary/20 focus:text-primary text-muted-foreground cursor-pointer"
                                   >
                                     {project.name} - {project.client}
                                   </SelectItem>
@@ -797,7 +797,7 @@ export default function CalendarCreator() {
                             <FormControl>
                               <Input
                                 placeholder="Ej: Calendario Mensual Q2"
-                                className="h-11 bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200"
+                                className="h-11 bg-muted/50 border-border text-foreground placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200"
                                 {...field}
                               />
                             </FormControl>
@@ -830,16 +830,16 @@ export default function CalendarCreator() {
                               defaultValue={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="h-11 bg-black/20 border-white/10 text-white hover:border-primary/50 focus:ring-primary/50 transition-all duration-200">
+                                <SelectTrigger className="h-11 bg-muted/50 border-border text-foreground hover:border-primary/50 focus:ring-primary/50 transition-all duration-200">
                                   <SelectValue placeholder="Selecciona el tipo de periodo" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="bg-black/90 border-white/10 text-white backdrop-blur-xl">
-                                <SelectItem value="quincenal" className="focus:bg-primary/20 focus:text-primary text-gray-300 cursor-pointer">Quincenal (15 días)</SelectItem>
-                                <SelectItem value="mensual" className="focus:bg-primary/20 focus:text-primary text-gray-300 cursor-pointer">Mensual (31 días)</SelectItem>
+                              <SelectContent className="bg-black/90 border-border text-foreground backdrop-blur-xl">
+                                <SelectItem value="quincenal" className="focus:bg-primary/20 focus:text-primary text-muted-foreground cursor-pointer">Quincenal (15 días)</SelectItem>
+                                <SelectItem value="mensual" className="focus:bg-primary/20 focus:text-primary text-muted-foreground cursor-pointer">Mensual (31 días)</SelectItem>
                               </SelectContent>
                             </Select>
-                            <FormDescription className="text-xs text-gray-500">
+                            <FormDescription className="text-xs text-muted-foreground">
                               El tipo de periodo determina la duración del calendario generado.
                             </FormDescription>
                             <FormMessage className="text-red-400" />
@@ -899,11 +899,11 @@ export default function CalendarCreator() {
                               <FormControl>
                                 <Textarea
                                   placeholder="Describe las características generales del calendario, temas principales, etc."
-                                  className="min-h-[220px] bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200 resize-none"
+                                  className="min-h-[220px] bg-muted/50 border-border text-foreground placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200 resize-none"
                                   {...field}
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs flex items-center gap-1.5 text-gray-500">
+                              <FormDescription className="text-xs flex items-center gap-1.5 text-muted-foreground">
                                 <AlertCircle className="h-4 w-4" />
                                 Las instrucciones específicas para cada red social se pueden configurar en la pestaña "Contenido".
                               </FormDescription>
@@ -930,11 +930,11 @@ export default function CalendarCreator() {
                               <FormControl>
                                 <Textarea
                                   placeholder="Instrucciones específicas para ajustar el tono, estilo o estructura de las publicaciones generadas por la IA"
-                                  className="min-h-[150px] bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200 resize-none"
+                                  className="min-h-[150px] bg-muted/50 border-border text-foreground placeholder:text-gray-600 focus:border-primary/50 focus:ring-primary/50 transition-all duration-200 resize-none"
                                   {...field}
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs flex items-center gap-1.5 text-gray-500">
+                              <FormDescription className="text-xs flex items-center gap-1.5 text-muted-foreground">
                                 <Info className="h-4 w-4 text-primary" />
                                 Estas instrucciones ayudarán a la IA a generar contenido más personalizado.
                               </FormDescription>
@@ -953,7 +953,7 @@ export default function CalendarCreator() {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
+                          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 3v18h18" />
                               <path d="M18 17V9" />
@@ -961,7 +961,7 @@ export default function CalendarCreator() {
                               <path d="M8 17v-3" />
                             </svg>
                           </div>
-                          <h3 className="text-lg font-bold uppercase tracking-wide text-white">Distribución de Publicaciones</h3>
+                          <h3 className="text-lg font-bold uppercase tracking-wide text-foreground">Distribución de Publicaciones</h3>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -977,11 +977,11 @@ export default function CalendarCreator() {
                                 description: `${checked ? "Seguirá" : "No seguirá"} las especificaciones del proyecto para la distribución`,
                               });
                             }}
-                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20 bg-black/40"
+                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border bg-muted/30"
                           />
                           <Label
                             htmlFor="follow-specs-distribution"
-                            className="text-xs font-medium text-gray-400 uppercase tracking-wide"
+                            className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
                           >
                             Seguir especificaciones del proyecto
                           </Label>
@@ -1006,13 +1006,13 @@ export default function CalendarCreator() {
                               <div
                                 className={`relative rounded-xl border p-4 transition-all duration-300 ${!form.watch('followSpecsDistribution') ? 'cursor-pointer hover:border-primary/50 group' : 'cursor-not-allowed opacity-50'}
                                   ${field.value === 'uniform'
-                                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]'
-                                    : 'glass-panel-dark border-white/5'
+                                    ? 'bg-primary/10 border-primary shadow-md'
+                                    : 'bg-card border-border border-border/50'
                                   }`}
                                 onClick={() => !form.watch('followSpecsDistribution') && field.onChange('uniform')}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="h-12 w-32 bg-black/40 rounded-md overflow-hidden relative border border-white/5">
+                                  <div className="h-12 w-32 bg-muted/30 rounded-md overflow-hidden relative border border-border/50">
                                     <div className="flex absolute inset-0 items-end pb-1 px-1 gap-0.5">
                                       <div className="flex-1 h-[40%] bg-primary/80 rounded-sm"></div>
                                       <div className="flex-1 h-[40%] bg-primary/80 rounded-sm"></div>
@@ -1022,12 +1022,12 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'uniform' ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>Uniforme</p>
-                                    <p className="text-[10px] text-gray-500 mt-1">Distribución equitativa</p>
+                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'uniform' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>Uniforme</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Distribución equitativa</p>
                                   </div>
                                 </div>
                                 {field.value === 'uniform' && (
-                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-black rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M20 6L9 17l-5-5" />
                                     </svg>
@@ -1038,13 +1038,13 @@ export default function CalendarCreator() {
                               <div
                                 className={`relative rounded-xl border p-4 transition-all duration-300 ${!form.watch('followSpecsDistribution') ? 'cursor-pointer hover:border-primary/50 group' : 'cursor-not-allowed opacity-50'}
                                   ${field.value === 'frontloaded'
-                                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]'
-                                    : 'glass-panel-dark border-white/5'
+                                    ? 'bg-primary/10 border-primary shadow-md'
+                                    : 'bg-card border-border border-border/50'
                                   }`}
                                 onClick={() => !form.watch('followSpecsDistribution') && field.onChange('frontloaded')}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="h-12 w-32 bg-black/40 rounded-md overflow-hidden relative border border-white/5">
+                                  <div className="h-12 w-32 bg-muted/30 rounded-md overflow-hidden relative border border-border/50">
                                     <div className="flex absolute inset-0 items-end pb-1 px-1 gap-0.5">
                                       <div className="flex-1 h-[60%] bg-primary/80 rounded-sm"></div>
                                       <div className="flex-1 h-[50%] bg-primary/80 rounded-sm"></div>
@@ -1054,12 +1054,12 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'frontloaded' ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>Mayor al inicio</p>
-                                    <p className="text-[10px] text-gray-500 mt-1">Concentración inicial</p>
+                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'frontloaded' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>Mayor al inicio</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Concentración inicial</p>
                                   </div>
                                 </div>
                                 {field.value === 'frontloaded' && (
-                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-black rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M20 6L9 17l-5-5" />
                                     </svg>
@@ -1070,13 +1070,13 @@ export default function CalendarCreator() {
                               <div
                                 className={`relative rounded-xl border p-4 transition-all duration-300 ${!form.watch('followSpecsDistribution') ? 'cursor-pointer hover:border-primary/50 group' : 'cursor-not-allowed opacity-50'}
                                   ${field.value === 'backloaded'
-                                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]'
-                                    : 'glass-panel-dark border-white/5'
+                                    ? 'bg-primary/10 border-primary shadow-md'
+                                    : 'bg-card border-border border-border/50'
                                   }`}
                                 onClick={() => !form.watch('followSpecsDistribution') && field.onChange('backloaded')}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="h-12 w-32 bg-black/40 rounded-md overflow-hidden relative border border-white/5">
+                                  <div className="h-12 w-32 bg-muted/30 rounded-md overflow-hidden relative border border-border/50">
                                     <div className="flex absolute inset-0 items-end pb-1 px-1 gap-0.5">
                                       <div className="flex-1 h-[20%] bg-primary/80 rounded-sm"></div>
                                       <div className="flex-1 h-[30%] bg-primary/80 rounded-sm"></div>
@@ -1086,12 +1086,12 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'backloaded' ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>Mayor al final</p>
-                                    <p className="text-[10px] text-gray-500 mt-1">Concentración final</p>
+                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'backloaded' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>Mayor al final</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Concentración final</p>
                                   </div>
                                 </div>
                                 {field.value === 'backloaded' && (
-                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-black rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M20 6L9 17l-5-5" />
                                     </svg>
@@ -1102,13 +1102,13 @@ export default function CalendarCreator() {
                               <div
                                 className={`relative rounded-xl border p-4 transition-all duration-300 ${!form.watch('followSpecsDistribution') ? 'cursor-pointer hover:border-primary/50 group' : 'cursor-not-allowed opacity-50'}
                                   ${field.value === 'weekends'
-                                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]'
-                                    : 'glass-panel-dark border-white/5'
+                                    ? 'bg-primary/10 border-primary shadow-md'
+                                    : 'bg-card border-border border-border/50'
                                   }`}
                                 onClick={() => !form.watch('followSpecsDistribution') && field.onChange('weekends')}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="h-12 w-32 bg-black/40 rounded-md overflow-hidden relative border border-white/5">
+                                  <div className="h-12 w-32 bg-muted/30 rounded-md overflow-hidden relative border border-border/50">
                                     <div className="flex absolute inset-0 items-end pb-1 px-1 gap-0.5">
                                       <div className="flex-1 h-[25%] bg-primary/80 rounded-sm"></div>
                                       <div className="flex-1 h-[25%] bg-primary/80 rounded-sm"></div>
@@ -1120,12 +1120,12 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'weekends' ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>Fines de semana</p>
-                                    <p className="text-[10px] text-gray-500 mt-1">Sábados y domingos</p>
+                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'weekends' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>Fines de semana</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Sábados y domingos</p>
                                   </div>
                                 </div>
                                 {field.value === 'weekends' && (
-                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-black rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M20 6L9 17l-5-5" />
                                     </svg>
@@ -1136,13 +1136,13 @@ export default function CalendarCreator() {
                               <div
                                 className={`relative rounded-xl border p-4 transition-all duration-300 ${!form.watch('followSpecsDistribution') ? 'cursor-pointer hover:border-primary/50 group' : 'cursor-not-allowed opacity-50'}
                                   ${field.value === 'weekdays'
-                                    ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]'
-                                    : 'glass-panel-dark border-white/5'
+                                    ? 'bg-primary/10 border-primary shadow-md'
+                                    : 'bg-card border-border border-border/50'
                                   }`}
                                 onClick={() => !form.watch('followSpecsDistribution') && field.onChange('weekdays')}
                               >
                                 <div className="flex flex-col items-center gap-3">
-                                  <div className="h-12 w-32 bg-black/40 rounded-md overflow-hidden relative border border-white/5">
+                                  <div className="h-12 w-32 bg-muted/30 rounded-md overflow-hidden relative border border-border/50">
                                     <div className="flex absolute inset-0 items-end pb-1 px-1 gap-0.5">
                                       <div className="flex-1 h-[60%] bg-primary/80 rounded-sm"></div>
                                       <div className="flex-1 h-[60%] bg-primary/80 rounded-sm"></div>
@@ -1154,12 +1154,12 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'weekdays' ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>Días laborables</p>
-                                    <p className="text-[10px] text-gray-500 mt-1">Lunes a viernes</p>
+                                    <p className={`font-bold uppercase tracking-wider text-xs ${field.value === 'weekdays' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>Días laborables</p>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Lunes a viernes</p>
                                   </div>
                                 </div>
                                 {field.value === 'weekdays' && (
-                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-black rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                  <div className="absolute top-2 right-2 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M20 6L9 17l-5-5" />
                                     </svg>
@@ -1193,14 +1193,14 @@ export default function CalendarCreator() {
                               <Alert className="bg-primary/5 border-primary/20">
                                 <AlertCircle className="h-4 w-4 text-primary" />
                                 <AlertTitle className="text-primary font-bold uppercase tracking-wide text-xs">Distribución de publicaciones</AlertTitle>
-                                <AlertDescription className="text-gray-400 text-xs mt-1">
+                                <AlertDescription className="text-muted-foreground text-xs mt-1">
                                   Esta configuración determina cómo se distribuirán las publicaciones durante el periodo especificado. Escoge el patrón que mejor se adapte a tu estrategia de contenido.
                                 </AlertDescription>
                               </Alert>
 
                               {/* Vista previa del calendario */}
-                              <div className="glass-panel-dark border border-white/5 rounded-xl p-6">
-                                <h4 className="font-bold uppercase tracking-wider text-xs mb-4 flex items-center gap-2 text-white">
+                              <div className="bg-card border-border border border-border/50 rounded-xl p-6">
+                                <h4 className="font-bold uppercase tracking-wider text-xs mb-4 flex items-center gap-2 text-foreground">
                                   <CalendarIcon className="h-4 w-4 text-primary" />
                                   Simulación de distribución
                                 </h4>
@@ -1209,7 +1209,7 @@ export default function CalendarCreator() {
                                   {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((day, i) => (
                                     <div
                                       key={i}
-                                      className="text-center text-[10px] font-bold uppercase tracking-wider py-1 text-gray-500"
+                                      className="text-center text-[10px] font-bold uppercase tracking-wider py-1 text-muted-foreground"
                                     >
                                       {day}
                                     </div>
@@ -1315,8 +1315,8 @@ export default function CalendarCreator() {
                                         sizeClass = 'w-2.5 h-2.5';
                                       }
                                     } else {
-                                      bgColor = isWeekend ? 'bg-white/5' : 'bg-transparent';
-                                      borderColor = 'border-white/5';
+                                      bgColor = isWeekend ? 'bg-muted' : 'bg-transparent';
+                                      borderColor = 'border-border/50';
                                     }
 
                                     return (
@@ -1324,36 +1324,36 @@ export default function CalendarCreator() {
                                         key={i}
                                         className={`relative h-10 border rounded-md ${bgColor} ${borderColor} transition-colors flex items-center justify-center`}
                                       >
-                                        <span className={`text-xs font-medium ${hasPost ? 'text-white' : 'text-gray-600'}`}>
+                                        <span className={`text-xs font-medium ${hasPost ? 'text-foreground' : 'text-gray-600'}`}>
                                           {dayIndex + 1}
                                         </span>
 
                                         {hasPost && (
-                                          <div className={`absolute bottom-1 ${sizeClass} rounded-full ${dotColor} shadow-[0_0_5px_rgba(var(--primary),0.5)]`} />
+                                          <div className={`absolute bottom-1 ${sizeClass} rounded-full ${dotColor} shadow-md`} />
                                         )}
                                       </div>
                                     );
                                   })}
                                 </div>
 
-                                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
-                                  <div className="text-xs font-medium text-gray-500">
-                                    Publicaciones simuladas: <span className="text-white">{field.value === 'uniform' ? '8' :
+                                <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                                  <div className="text-xs font-medium text-muted-foreground">
+                                    Publicaciones simuladas: <span className="text-foreground">{field.value === 'uniform' ? '8' :
                                       field.value === 'frontloaded' || field.value === 'backloaded' ? '8' :
                                         field.value === 'weekends' ? '12' : '10'}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1">
-                                      <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_5px_rgba(var(--primary),0.5)]" />
-                                      <span className="text-xs text-gray-500">Publicación</span>
+                                      <div className="w-2 h-2 rounded-full bg-primary shadow-md" />
+                                      <span className="text-xs text-muted-foreground">Publicación</span>
                                     </div>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Opciones avanzadas de distribución */}
-                              <div className={`glass-panel-dark border border-white/5 rounded-xl p-6 ${form.watch('followSpecsDistribution') ? 'opacity-60 pointer-events-none' : ''}`}>
-                                <h4 className="font-bold uppercase tracking-wider text-xs mb-6 flex items-center gap-2 text-white">
+                              <div className={`bg-card border-border border border-border/50 rounded-xl p-6 ${form.watch('followSpecsDistribution') ? 'opacity-60 pointer-events-none' : ''}`}>
+                                <h4 className="font-bold uppercase tracking-wider text-xs mb-6 flex items-center gap-2 text-foreground">
                                   <Settings2 className="h-4 w-4 text-primary" />
                                   Preferencias de distribución avanzadas
                                 </h4>
@@ -1362,13 +1362,13 @@ export default function CalendarCreator() {
                                   {/* Días de publicación */}
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Publicar en estos días
                                       </h5>
                                       <div className="relative group">
-                                        <Info className="h-4 w-4 text-gray-500 cursor-help" />
-                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-gray-300 rounded-md shadow-lg border border-white/10 hidden group-hover:block z-50 backdrop-blur-xl">
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-muted-foreground rounded-md shadow-lg border border-border hidden group-hover:block z-50 backdrop-blur-xl">
                                           Marca los días en que deseas publicar. Las publicaciones se distribuirán entre los días seleccionados.
                                         </div>
                                       </div>
@@ -1384,7 +1384,7 @@ export default function CalendarCreator() {
                                         { id: "S", label: "Sábado" },
                                         { id: "D", label: "Domingo" }
                                       ].map((day) => (
-                                        <div key={day.id} className="flex items-center space-x-2 bg-black/40 border border-white/5 rounded px-2 py-1.5 hover:border-primary/30 transition-colors">
+                                        <div key={day.id} className="flex items-center space-x-2 bg-muted/30 border border-border/50 rounded px-2 py-1.5 hover:border-primary/30 transition-colors">
                                           <Checkbox
                                             id={`day-${day.id}`}
                                             checked={selectedDays.includes(day.id)}
@@ -1399,11 +1399,11 @@ export default function CalendarCreator() {
                                                 console.log("Días seleccionados:", newSelectedDays);
                                               }
                                             }}
-                                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20"
+                                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border"
                                           />
                                           <Label
                                             htmlFor={`day-${day.id}`}
-                                            className="text-sm font-medium text-gray-300 cursor-pointer"
+                                            className="text-sm font-medium text-muted-foreground cursor-pointer"
                                           >
                                             {day.label}
                                           </Label>
@@ -1419,8 +1419,8 @@ export default function CalendarCreator() {
                                     )}
 
                                     {selectedDays.length > 0 && (
-                                      <div className="mt-3 bg-black/40 border border-white/5 rounded-md p-3">
-                                        <div className="text-xs text-gray-400 flex items-center mb-2 uppercase tracking-wider font-bold">
+                                      <div className="mt-3 bg-muted/30 border border-border/50 rounded-md p-3">
+                                        <div className="text-xs text-muted-foreground flex items-center mb-2 uppercase tracking-wider font-bold">
                                           <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-primary" />
                                           <span>Vista previa de distribución:</span>
                                         </div>
@@ -1431,7 +1431,7 @@ export default function CalendarCreator() {
                                               key={day}
                                               className={`text-center py-1 text-[10px] font-bold rounded-sm transition-colors ${selectedDays.includes(day)
                                                 ? 'bg-primary/20 text-primary border border-primary/30'
-                                                : 'bg-white/5 text-gray-600 border border-white/5'
+                                                : 'bg-muted text-gray-600 border border-border/50'
                                                 }`}
                                             >
                                               {day}
@@ -1445,7 +1445,7 @@ export default function CalendarCreator() {
                                   {/* Sección de zona horaria */}
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Zona horaria para publicaciones
                                       </h5>
@@ -1456,31 +1456,31 @@ export default function CalendarCreator() {
                                       onValueChange={handleTimezoneChange}
                                       defaultValue="UTC-6"
                                     >
-                                      <SelectTrigger className="w-full h-9 text-xs glass-panel-dark border-white/10 text-white focus:ring-primary/50">
+                                      <SelectTrigger className="w-full h-9 text-xs bg-card border-border border-border text-foreground focus:ring-primary/50">
                                         <SelectValue placeholder="Selecciona zona horaria" />
                                       </SelectTrigger>
-                                      <SelectContent className="glass-panel-dark border-white/10 text-white">
-                                        <SelectItem value="UTC-8" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC-8 (Pacífico EE.UU.)</SelectItem>
-                                        <SelectItem value="UTC-7" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC-7 (Montaña EE.UU.)</SelectItem>
-                                        <SelectItem value="UTC-6" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC-6 (México/Centro EE.UU.)</SelectItem>
-                                        <SelectItem value="UTC-5" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC-5 (Colombia/Este EE.UU.)</SelectItem>
-                                        <SelectItem value="UTC-3" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC-3 (Argentina/Brasil)</SelectItem>
-                                        <SelectItem value="UTC+0" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC+0 (Reino Unido)</SelectItem>
-                                        <SelectItem value="UTC+1" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-white">UTC+1 (España/Europa Central)</SelectItem>
+                                      <SelectContent className="bg-card border-border border-border text-foreground">
+                                        <SelectItem value="UTC-8" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC-8 (Pacífico EE.UU.)</SelectItem>
+                                        <SelectItem value="UTC-7" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC-7 (Montaña EE.UU.)</SelectItem>
+                                        <SelectItem value="UTC-6" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC-6 (México/Centro EE.UU.)</SelectItem>
+                                        <SelectItem value="UTC-5" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC-5 (Colombia/Este EE.UU.)</SelectItem>
+                                        <SelectItem value="UTC-3" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC-3 (Argentina/Brasil)</SelectItem>
+                                        <SelectItem value="UTC+0" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC+0 (Reino Unido)</SelectItem>
+                                        <SelectItem value="UTC+1" className="text-xs hover:bg-primary/20 focus:bg-primary/20 focus:text-foreground">UTC+1 (España/Europa Central)</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
 
                                   {/* Bloques horarios para publicaciones */}
-                                  <div className="space-y-3 pt-2 border-t border-white/10">
+                                  <div className="space-y-3 pt-2 border-t border-border">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Bloques horarios para publicar
                                       </h5>
                                       <div className="relative group">
-                                        <Info className="h-4 w-4 text-gray-500 cursor-help" />
-                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-gray-300 rounded-md shadow-lg border border-white/10 hidden group-hover:block z-50 backdrop-blur-xl">
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-muted-foreground rounded-md shadow-lg border border-border hidden group-hover:block z-50 backdrop-blur-xl">
                                           Selecciona los bloques de horas en los que prefieres publicar. Las publicaciones se distribuirán dentro de estos horarios.
                                         </div>
                                       </div>
@@ -1505,8 +1505,8 @@ export default function CalendarCreator() {
                                               flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer transition-all duration-300
                                               border 
                                               ${isSelected
-                                                ? 'bg-primary/10 border-primary shadow-[0_0_10px_rgba(var(--primary),0.1)]'
-                                                : 'glass-panel-dark border-white/5 hover:border-primary/30 hover:bg-white/5'
+                                                ? 'bg-primary/10 border-primary shadow-md'
+                                                : 'bg-card border-border border-border/50 hover:border-primary/30 hover:bg-muted'
                                               }
                                             `}
                                             onClick={() => {
@@ -1518,17 +1518,17 @@ export default function CalendarCreator() {
                                             <div className={`
                                               h-9 w-9 rounded-md flex items-center justify-center text-xl transition-colors
                                               ${isSelected
-                                                ? 'bg-primary/20 text-white'
-                                                : 'bg-black/40 text-gray-500'
+                                                ? 'bg-primary/20 text-foreground'
+                                                : 'bg-muted/30 text-muted-foreground'
                                               }
                                             `}>
                                               {block.icon}
                                             </div>
                                             <div className="flex-grow">
-                                              <div className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                              <div className={`text-sm font-bold ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
                                                 {block.label}
                                               </div>
-                                              <div className="text-xs text-gray-500">
+                                              <div className="text-xs text-muted-foreground">
                                                 {block.hours}
                                               </div>
                                             </div>
@@ -1539,7 +1539,7 @@ export default function CalendarCreator() {
                                                 toggleTimeBlock(block.id);
                                                 console.log(`Toggled checkbox for ${block.id}: ${checked}`);
                                               }}
-                                              className="h-4 w-4 cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20 bg-black/40"
+                                              className="h-4 w-4 cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border bg-muted/30"
                                             />
                                           </div>
                                         );
@@ -1551,7 +1551,7 @@ export default function CalendarCreator() {
                                         <Clock className="h-4 w-4 text-primary mt-0.5" />
                                         <div>
                                           <div className="text-sm font-bold text-primary uppercase tracking-wide">Distribución inteligente</div>
-                                          <div className="text-xs text-gray-400 mt-0.5">
+                                          <div className="text-xs text-muted-foreground mt-0.5">
                                             La IA distribuirá publicaciones en los horarios seleccionados para maximizar engagement
                                           </div>
                                         </div>
@@ -1561,21 +1561,21 @@ export default function CalendarCreator() {
                                         onCheckedChange={(checked) => {
                                           console.log(`Distribución inteligente: ${checked ? 'activada' : 'desactivada'}`);
                                         }}
-                                        className="data-[state=checked]:bg-primary cursor-pointer border-white/10"
+                                        className="data-[state=checked]:bg-primary cursor-pointer border-border"
                                       />
                                     </div>
                                   </div>
 
                                   {/* Días de mayor actividad */}
-                                  <div className="space-y-3 pt-2 border-t border-white/10">
+                                  <div className="space-y-3 pt-2 border-t border-border">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Días de mayor actividad
                                       </h5>
                                       <div className="relative group">
-                                        <Info className="h-4 w-4 text-gray-500 cursor-help" />
-                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-gray-300 rounded-md shadow-lg border border-white/10 hidden group-hover:block z-50 backdrop-blur-xl">
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-muted-foreground rounded-md shadow-lg border border-border hidden group-hover:block z-50 backdrop-blur-xl">
                                           Marca los días más importantes para tu audiencia. Se publicará con mayor frecuencia en estos días.
                                         </div>
                                       </div>
@@ -1600,12 +1600,12 @@ export default function CalendarCreator() {
                                               className={`
                                                 flex flex-col items-center gap-1.5 p-2 rounded-lg cursor-pointer transition-all duration-300
                                                 ${priority === "alta"
-                                                  ? "bg-primary/20 border border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)]"
+                                                  ? "bg-primary/20 border border-primary shadow-md"
                                                   : priority === "media"
                                                     ? "bg-primary/10 border border-primary/50"
                                                     : priority === "baja"
-                                                      ? "bg-white/5 border border-white/10"
-                                                      : "glass-panel-dark border border-white/5 hover:border-primary/30"
+                                                      ? "bg-muted border border-border"
+                                                      : "bg-card border-border border border-border/50 hover:border-primary/30"
                                                 }
                                               `}
                                               onClick={() => {
@@ -1622,27 +1622,27 @@ export default function CalendarCreator() {
                                               <div className={`
                                                 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-colors
                                                 ${priority === "alta"
-                                                  ? "bg-primary text-black shadow-[0_0_10px_rgba(var(--primary),0.4)]"
+                                                  ? "bg-primary text-primary-foreground shadow-md"
                                                   : priority === "media"
-                                                    ? "bg-primary/60 text-white"
+                                                    ? "bg-primary/60 text-foreground"
                                                     : priority === "baja"
-                                                      ? "bg-white/10 text-gray-300"
-                                                      : "bg-black/40 text-gray-600"
+                                                      ? "bg-muted/80 text-muted-foreground"
+                                                      : "bg-muted/30 text-gray-600"
                                                 }
                                               `}>
                                                 {day.label[0]}
                                               </div>
-                                              <span className={`text-[10px] font-bold uppercase tracking-wider ${priority !== "ninguna" ? 'text-white' : 'text-gray-500'}`}>{day.fullName}</span>
+                                              <span className={`text-[10px] font-bold uppercase tracking-wider ${priority !== "ninguna" ? 'text-foreground' : 'text-muted-foreground'}`}>{day.fullName}</span>
 
                                               {priority !== "ninguna" && (
                                                 <div className="absolute -top-1 -right-1 rounded-full border border-black/50 shadow-sm">
                                                   <div className={`
                                                     w-4 h-4 rounded-full flex items-center justify-center
                                                     ${priority === "alta"
-                                                      ? "bg-primary text-black"
+                                                      ? "bg-primary text-primary-foreground"
                                                       : priority === "media"
-                                                        ? "bg-primary/80 text-white"
-                                                        : "bg-gray-500 text-white"
+                                                        ? "bg-primary/80 text-foreground"
+                                                        : "bg-gray-500 text-foreground"
                                                     }
                                                   `}>
                                                     {priority === "alta" && <ArrowUp className="h-2 w-2" />}
@@ -1657,9 +1657,9 @@ export default function CalendarCreator() {
                                       })}
                                     </div>
 
-                                    <div className="mt-2 text-xs text-gray-500 flex items-center justify-center gap-6 uppercase tracking-wider font-medium">
+                                    <div className="mt-2 text-xs text-muted-foreground flex items-center justify-center gap-6 uppercase tracking-wider font-medium">
                                       <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_5px_rgba(var(--primary),0.5)]"></div>
+                                        <div className="w-2 h-2 rounded-full bg-primary shadow-md"></div>
                                         <span>Prioridad alta</span>
                                       </div>
                                       <div className="flex items-center gap-1.5">
@@ -1674,16 +1674,16 @@ export default function CalendarCreator() {
                                   </div>
 
                                   {/* Fechas de exclusión */}
-                                  <div className="space-y-3 pt-2 border-t border-white/10">
+                                  <div className="space-y-3 pt-2 border-t border-border">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Fechas de exclusión
                                       </h5>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="h-7 px-2 text-xs glass-panel-dark border-white/10 text-white hover:bg-primary/20 hover:border-primary/50 hover:text-primary transition-all"
+                                        className="h-7 px-2 text-xs bg-card border-border border-border text-foreground hover:bg-primary/20 hover:border-primary/50 hover:text-primary transition-all"
                                         onClick={handleAddExcludedDate}
                                       >
                                         <Plus className="h-3 w-3 mr-1" />
@@ -1694,7 +1694,7 @@ export default function CalendarCreator() {
                                     <div className="flex flex-col space-y-4">
                                       {/* Control de calendario para fechas de exclusión */}
                                       {showExclusionDatePicker && (
-                                        <div className="p-3 glass-panel-dark rounded-md border border-white/10 shadow-xl backdrop-blur-xl">
+                                        <div className="p-3 bg-card border-border rounded-md border border-border shadow-xl backdrop-blur-xl">
                                           <Calendar
                                             mode="multiple"
                                             selected={exclusionDates}
@@ -1726,7 +1726,7 @@ export default function CalendarCreator() {
                                                 });
                                               }
                                             }}
-                                            className="rounded-md border border-white/10 text-white"
+                                            className="rounded-md border border-border text-foreground"
                                             locale={es}
                                           />
                                         </div>
@@ -1748,33 +1748,33 @@ export default function CalendarCreator() {
                                           </Badge>
                                         ))}
                                         {excludedDates.length === 0 && (
-                                          <p className="text-xs text-gray-500 italic">
+                                          <p className="text-xs text-muted-foreground italic">
                                             No hay fechas excluidas. Haga clic en "Añadir fecha" para seleccionar días que desea evitar.
                                           </p>
                                         )}
                                       </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 italic">
+                                    <p className="text-xs text-muted-foreground italic">
                                       No se programarán publicaciones en las fechas marcadas como exclusión.
                                     </p>
                                   </div>
 
                                   {/* Sección de vista previa */}
-                                  <div className="space-y-3 pt-2 border-t border-white/10">
+                                  <div className="space-y-3 pt-2 border-t border-border">
                                     <div className="flex items-center justify-between">
-                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-gray-300">
+                                      <h5 className="text-sm font-medium flex items-center gap-1.5 text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                                         Vista previa de distribución
                                       </h5>
                                       <div className="relative group">
-                                        <Info className="h-4 w-4 text-gray-500 cursor-help" />
-                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-gray-300 rounded-md shadow-lg border border-white/10 hidden group-hover:block z-50 backdrop-blur-xl">
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        <div className="absolute right-0 w-64 p-2 mt-2 text-xs bg-black/90 text-muted-foreground rounded-md shadow-lg border border-border hidden group-hover:block z-50 backdrop-blur-xl">
                                           Esta vista previa muestra cómo se distribuirán las publicaciones según tus preferencias de días y horarios.
                                         </div>
                                       </div>
                                     </div>
 
-                                    <div className="glass-panel-dark rounded-md p-4 border border-white/10">
+                                    <div className="bg-card border-border rounded-md p-4 border border-border">
                                       {(() => {
                                         // Esta función se ejecuta en cada renderizado para calcular las variables del calendario
                                         const startDateStr = form.watch('startDate');
@@ -1821,20 +1821,20 @@ export default function CalendarCreator() {
 
                                         return (
                                           <>
-                                            <div className="text-xs text-gray-400 flex items-center justify-between mb-3 uppercase tracking-wider font-bold">
+                                            <div className="text-xs text-muted-foreground flex items-center justify-between mb-3 uppercase tracking-wider font-bold">
                                               <div className="flex items-center gap-1.5">
                                                 <CalendarIcon2 className="h-3.5 w-3.5 text-primary" />
                                                 <span>Simulación calendario {form.watch('periodType') === "mensual" ? 'mensual (31 días)' : 'quincenal (15 días)'}</span>
                                               </div>
-                                              <div className="font-medium text-white">
+                                              <div className="font-medium text-foreground">
                                                 {formattedStartDate} - {formattedEndDate}
                                               </div>
                                             </div>
 
                                             {/* Calendario simulado de días según periodo */}
-                                            <div className="overflow-hidden rounded-md border border-white/10 mb-3">
+                                            <div className="overflow-hidden rounded-md border border-border mb-3">
                                               {/* Encabezados de los días */}
-                                              <div className="grid grid-cols-7 bg-black/60 border-b border-white/10">
+                                              <div className="grid grid-cols-7 bg-black/60 border-b border-border">
                                                 {["L", "M", "X", "J", "V", "S", "D"].map(day => (
                                                   <div key={day} className="text-center text-[10px] font-bold py-1.5 text-primary uppercase tracking-widest">
                                                     {day}
@@ -1848,7 +1848,7 @@ export default function CalendarCreator() {
                                                 {Array.from({ length: initialOffset }).map((_, i) => (
                                                   <div
                                                     key={`empty-${i}`}
-                                                    className="relative h-16 p-1 bg-black/20"
+                                                    className="relative h-16 p-1 bg-muted/50"
                                                   />
                                                 ))}
 
@@ -1870,11 +1870,11 @@ export default function CalendarCreator() {
                                                       className={`
                                                         relative h-16 p-1 transition-colors
                                                         ${i === 0 ? "bg-primary/10 border border-primary/30" : ""}
-                                                        ${hasPosts && !isExcluded ? "bg-black/40" : "bg-black/20"}
+                                                        ${hasPosts && !isExcluded ? "bg-muted/30" : "bg-muted/50"}
                                                         ${isExcluded ? "bg-red-500/10" : ""}
                                                       `}
                                                     >
-                                                      <div className={`text-[10px] font-bold mb-2 ${i === 0 ? "text-primary" : "text-gray-500"}`}>
+                                                      <div className={`text-[10px] font-bold mb-2 ${i === 0 ? "text-primary" : "text-muted-foreground"}`}>
                                                         {calendarDay.dayOfMonth}
                                                         {i === 0 && <span className="ml-1 bg-primary/20 text-primary px-1 py-0.5 rounded text-[8px] uppercase tracking-wider border border-primary/30">Inicio</span>}
                                                       </div>
@@ -1922,7 +1922,7 @@ export default function CalendarCreator() {
                                                   return Array.from({ length: remainingCells }).map((_, i) => (
                                                     <div
                                                       key={`remaining-${i}`}
-                                                      className="relative h-16 p-1 bg-black/20"
+                                                      className="relative h-16 p-1 bg-muted/50"
                                                     />
                                                   ));
                                                 })()}
@@ -1936,23 +1936,23 @@ export default function CalendarCreator() {
                                         <div className="flex flex-wrap gap-x-4 gap-y-1">
                                           <div className="flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_6px_rgba(236,72,153,0.6)]"></div>
-                                            <span className="text-gray-500 uppercase tracking-wider text-[10px] font-medium">Instagram</span>
+                                            <span className="text-muted-foreground uppercase tracking-wider text-[10px] font-medium">Instagram</span>
                                           </div>
                                           <div className="flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.6)]"></div>
-                                            <span className="text-gray-500 uppercase tracking-wider text-[10px] font-medium">Facebook</span>
+                                            <span className="text-muted-foreground uppercase tracking-wider text-[10px] font-medium">Facebook</span>
                                           </div>
                                           <div className="flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-sky-500 shadow-[0_0_6px_rgba(14,165,233,0.6)]"></div>
-                                            <span className="text-gray-500 uppercase tracking-wider text-[10px] font-medium">Twitter</span>
+                                            <span className="text-muted-foreground uppercase tracking-wider text-[10px] font-medium">Twitter</span>
                                           </div>
                                           <div className="flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-blue-700 shadow-[0_0_6px_rgba(29,78,216,0.6)]"></div>
-                                            <span className="text-gray-500 uppercase tracking-wider text-[10px] font-medium">LinkedIn</span>
+                                            <span className="text-muted-foreground uppercase tracking-wider text-[10px] font-medium">LinkedIn</span>
                                           </div>
                                         </div>
                                         <div>
-                                          <span className="text-white font-bold uppercase tracking-wider">
+                                          <span className="text-foreground font-bold uppercase tracking-wider">
                                             Total: {(() => {
                                               try {
                                                 // Cálculo simplificado de publicaciones totales basado en días de la semana
@@ -2003,7 +2003,7 @@ export default function CalendarCreator() {
                                         <AlertCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
                                         <div>
                                           <h6 className="text-sm font-bold text-primary uppercase tracking-wider">Distribución inteligente</h6>
-                                          <p className="text-xs text-gray-400 mt-1">
+                                          <p className="text-xs text-muted-foreground mt-1">
                                             La IA analizará los mejores momentos para publicar en cada plataforma y distribuirá el contenido de manera óptima según las preferencias que has indicado.
                                           </p>
                                         </div>
@@ -2024,12 +2024,12 @@ export default function CalendarCreator() {
                 <TabsContent value="platforms" className="space-y-6 p-1">
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="p-1.5 rounded-lg bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary),0.2)]">
+                      <span className="p-1.5 rounded-lg bg-primary/20 text-primary shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
                         </svg>
                       </span>
-                      <h3 className="text-lg font-bold text-white uppercase tracking-wider">Plataformas</h3>
+                      <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Plataformas</h3>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -2045,11 +2045,11 @@ export default function CalendarCreator() {
                             description: `${checked ? "Seguirá" : "No seguirá"} las especificaciones del proyecto para las plataformas`,
                           });
                         }}
-                        className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20 bg-black/40"
+                        className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border bg-muted/30"
                       />
                       <Label
                         htmlFor="follow-specs-platforms"
-                        className="text-xs font-medium text-gray-300"
+                        className="text-xs font-medium text-muted-foreground"
                       >
                         Seguir especificaciones del proyecto
                       </Label>
@@ -2074,8 +2074,8 @@ export default function CalendarCreator() {
                           relative rounded-xl border p-4 flex flex-col items-center justify-center gap-2 
                           transition-all duration-300 cursor-pointer overflow-hidden
                           ${selectedPlatforms.includes(platform.id)
-                            ? `bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.15)]`
-                            : `glass-panel-dark border-white/5 hover:border-primary/30 hover:bg-white/5`
+                            ? `bg-primary/10 border-primary shadow-md`
+                            : `bg-card border-border border-border/50 hover:border-primary/30 hover:bg-muted`
                           }
                         `}
                       >
@@ -2086,13 +2086,13 @@ export default function CalendarCreator() {
 
                         {/* Ícono y contenido */}
                         <div className="relative z-10 flex flex-col items-center gap-2">
-                          <div className={`w-14 h-14 rounded-xl ${platform.color} flex items-center justify-center text-white shadow-md transform transition-transform duration-300 ${selectedPlatforms.includes(platform.id) ? 'scale-105 shadow-[0_0_15px_rgba(var(--primary),0.3)]' : ''}`}>
+                          <div className={`w-14 h-14 rounded-xl ${platform.color} flex items-center justify-center text-foreground shadow-md transform transition-transform duration-300 ${selectedPlatforms.includes(platform.id) ? 'scale-105 shadow-md' : ''}`}>
                             <span className="text-xl font-semibold">{platform.name.substring(0, 1)}</span>
                           </div>
                           <div className="text-center mt-1">
-                            <p className="font-bold text-white text-sm uppercase tracking-wider">{platform.name}</p>
+                            <p className="font-bold text-foreground text-sm uppercase tracking-wider">{platform.name}</p>
                             <div className="flex items-center justify-center gap-1 mt-1">
-                              <Badge variant="outline" className={`bg-opacity-20 text-[10px] px-2 py-0.5 uppercase tracking-wider ${selectedPlatforms.includes(platform.id) ? 'bg-primary/10 text-primary border-primary/30' : 'bg-white/5 text-gray-500 border-white/10'}`}>
+                              <Badge variant="outline" className={`bg-opacity-20 text-[10px] px-2 py-0.5 uppercase tracking-wider ${selectedPlatforms.includes(platform.id) ? 'bg-primary/10 text-primary border-primary/30' : 'bg-muted text-muted-foreground border-border'}`}>
                                 {platform.contentTypes.length} {platform.contentTypes.length === 1 ? 'formato' : 'formatos'}
                               </Badge>
                             </div>
@@ -2101,7 +2101,7 @@ export default function CalendarCreator() {
 
                         {/* Indicador de selección */}
                         {selectedPlatforms.includes(platform.id) && (
-                          <div className="absolute -top-1 -right-1 bg-primary text-black rounded-bl-lg rounded-tr-lg p-1 drop-shadow-md shadow-[0_0_10px_rgba(var(--primary),0.4)]">
+                          <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-bl-lg rounded-tr-lg p-1 drop-shadow-md shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
@@ -2124,7 +2124,7 @@ export default function CalendarCreator() {
                   {selectedPlatforms.length > 0 && (
                     <div className="flex items-center gap-2 mt-4">
                       <Info className="h-4 w-4 text-primary" />
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Ajusta el contenido de cada plataforma en la pestaña "Contenido".
                       </p>
                     </div>
@@ -2134,9 +2134,9 @@ export default function CalendarCreator() {
                 {/* Tab: Content */}
                 <TabsContent value="content" className="space-y-6 p-1">
                   {selectedPlatforms.length === 0 ? (
-                    <Alert variant="default" className="mt-4 bg-white/5 text-gray-400 border-white/10">
+                    <Alert variant="default" className="mt-4 bg-muted text-muted-foreground border-border">
                       <Info className="h-4 w-4" />
-                      <AlertTitle className="font-bold uppercase tracking-wider text-white">Configuración pendiente</AlertTitle>
+                      <AlertTitle className="font-bold uppercase tracking-wider text-foreground">Configuración pendiente</AlertTitle>
                       <AlertDescription className="text-xs">
                         Primero selecciona las plataformas que deseas incluir en la pestaña "Plataformas".
                       </AlertDescription>
@@ -2145,10 +2145,10 @@ export default function CalendarCreator() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="p-1.5 rounded-lg bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary),0.2)]">
+                          <span className="p-1.5 rounded-lg bg-primary/20 text-primary shadow-md">
                             <Sparkles className="h-5 w-5" />
                           </span>
-                          <h3 className="text-lg font-bold text-white uppercase tracking-wider">Configuración de contenido por plataforma</h3>
+                          <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Configuración de contenido por plataforma</h3>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -2164,11 +2164,11 @@ export default function CalendarCreator() {
                                 description: `${checked ? "Seguirá" : "No seguirá"} las especificaciones del proyecto para el contenido`,
                               });
                             }}
-                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20 bg-black/40"
+                            className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border bg-muted/30"
                           />
                           <Label
                             htmlFor="follow-specs-content"
-                            className="text-xs font-medium text-gray-300"
+                            className="text-xs font-medium text-muted-foreground"
                           >
                             Seguir especificaciones del proyecto
                           </Label>
@@ -2195,16 +2195,16 @@ export default function CalendarCreator() {
                             <AccordionItem
                               key={platformId}
                               value={platformId}
-                              className="border overflow-hidden rounded-lg border-white/10 glass-panel-dark"
+                              className="border overflow-hidden rounded-lg border-border bg-card border-border"
                             >
-                              <AccordionTrigger className={`px-4 py-3 hover:no-underline hover:bg-white/5 group`}>
+                              <AccordionTrigger className={`px-4 py-3 hover:no-underline hover:bg-muted group`}>
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-lg ${platform.color} flex items-center justify-center text-white shadow-md`}>
+                                  <div className={`w-8 h-8 rounded-lg ${platform.color} flex items-center justify-center text-foreground shadow-md`}>
                                     {platform.name.substring(0, 1)}
                                   </div>
                                   <div className="text-left">
-                                    <p className="font-bold text-white uppercase tracking-wider">{platform.name}</p>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                                    <p className="font-bold text-foreground uppercase tracking-wider">{platform.name}</p>
+                                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
                                       {platformConfig.contentTypes.reduce((acc, ct) => acc + ct.quantity, 0)} publicaciones configuradas
                                     </p>
                                   </div>
@@ -2215,12 +2215,12 @@ export default function CalendarCreator() {
                                 <div className="space-y-6">
                                   <div className="space-y-4">
                                     <div className="flex items-center gap-2">
-                                      <h4 className="text-sm font-bold text-white uppercase tracking-wider">Tipos de contenido</h4>
+                                      <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Tipos de contenido</h4>
                                       <Badge
                                         variant="outline"
                                         className={`
                                           ${platformConfig.contentTypes.reduce((acc, ct) => acc + ct.quantity, 0) === 0
-                                            ? "bg-white/5 text-gray-500 border-white/10"
+                                            ? "bg-muted text-muted-foreground border-border"
                                             : "bg-primary/10 text-primary border-primary/30"
                                           }
                                         `}
@@ -2233,19 +2233,19 @@ export default function CalendarCreator() {
                                       {platformConfig.contentTypes.map((contentType) => (
                                         <div
                                           key={`${platformId}-${contentType.type}`}
-                                          className="border rounded-lg p-3 space-y-2 glass-panel-dark border-white/10 hover:border-primary/30 transition-all shadow-md"
+                                          className="border rounded-lg p-3 space-y-2 bg-card border-border border-border hover:border-primary/30 transition-all shadow-md"
                                         >
                                           <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                               <div className="w-8 h-8 rounded-md flex items-center justify-center bg-primary/20 text-primary">
                                                 <span>{CONTENT_TYPE_EMOJIS[contentType.type]}</span>
                                               </div>
-                                              <span className="text-sm font-bold capitalize text-white">{contentType.type}</span>
+                                              <span className="text-sm font-bold capitalize text-foreground">{contentType.type}</span>
                                             </div>
                                             <Badge
                                               variant="outline"
                                               className={`px-1.5 ${contentType.quantity === 0
-                                                ? "bg-white/5 border-white/10 text-gray-600"
+                                                ? "bg-muted border-border text-gray-600"
                                                 : "bg-primary/20 border-primary/30 text-primary"
                                                 }`}
                                             >
@@ -2258,7 +2258,7 @@ export default function CalendarCreator() {
                                               type="button"
                                               variant="outline"
                                               size="icon"
-                                              className={`h-8 w-8 rounded-lg ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'glass-panel-dark border-white/10 hover:border-primary/30'}`}
+                                              className={`h-8 w-8 rounded-lg ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'bg-card border-border border-border hover:border-primary/30'}`}
                                               onClick={() => handleContentTypeQuantityChange(
                                                 platformId,
                                                 contentType.type,
@@ -2282,7 +2282,7 @@ export default function CalendarCreator() {
                                                   contentType.type,
                                                   parseInt(e.target.value)
                                                 )}
-                                                className={`w-full h-2 rounded-lg appearance-none ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} bg-black/40 accent-primary`}
+                                                className={`w-full h-2 rounded-lg appearance-none ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} bg-muted/30 accent-primary`}
                                                 disabled={form.watch('followSpecsContent')}
                                               />
                                             </div>
@@ -2291,7 +2291,7 @@ export default function CalendarCreator() {
                                               type="button"
                                               variant="outline"
                                               size="icon"
-                                              className={`h-8 w-8 rounded-lg ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'glass-panel-dark border-white/10 hover:border-primary/30'}`}
+                                              className={`h-8 w-8 rounded-lg ${form.watch('followSpecsContent') ? 'opacity-50 cursor-not-allowed' : 'bg-card border-border border-border hover:border-primary/30'}`}
                                               onClick={() => handleContentTypeQuantityChange(
                                                 platformId,
                                                 contentType.type,
@@ -2309,11 +2309,11 @@ export default function CalendarCreator() {
                                     </div>
                                   </div>
 
-                                  <Separator className="bg-white/10" />
+                                  <Separator className="bg-muted/80" />
 
                                   <div className="space-y-3">
                                     <div className="flex items-center justify-between gap-2">
-                                      <h4 className="text-sm font-bold flex items-center gap-2 text-white uppercase tracking-wider">
+                                      <h4 className="text-sm font-bold flex items-center gap-2 text-foreground uppercase tracking-wider">
                                         <span className={`h-4 w-4 rounded-full ${platform.color}`}></span>
                                         Instrucciones personalizadas para {platform.name}
                                       </h4>
@@ -2341,11 +2341,11 @@ export default function CalendarCreator() {
                                               description: `${checked ? "Seguirá" : "No seguirá"} las especificaciones del proyecto para ${platform.name}`,
                                             });
                                           }}
-                                          className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-white/20 bg-black/40"
+                                          className="h-4 w-4 rounded-sm cursor-pointer data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border bg-muted/30"
                                         />
                                         <Label
                                           htmlFor={`follow-specs-${platformId}`}
-                                          className="text-xs font-medium text-gray-300"
+                                          className="text-xs font-medium text-muted-foreground"
                                         >
                                           Seguir especificaciones del proyecto
                                         </Label>
@@ -2355,7 +2355,7 @@ export default function CalendarCreator() {
                                     <div className="relative">
                                       <Textarea
                                         placeholder={`Instrucciones específicas para ${platform.name}. (Ej: tono de voz, requerimientos especiales, información de la estrategia, etc.)`}
-                                        className="min-h-[120px] pr-10 border rounded-lg shadow-md transition-all bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-primary/50 resize-none"
+                                        className="min-h-[120px] pr-10 border rounded-lg shadow-md transition-all bg-muted/50 border-border text-foreground placeholder:text-gray-600 focus:border-primary/50 resize-none"
                                         value={platformConfig.customInstructions || ''}
                                         onChange={(e) => {
                                           const platforms = form.getValues('platforms');
@@ -2382,7 +2382,7 @@ export default function CalendarCreator() {
 
                                     <Alert className="bg-primary/5 border-primary/20 py-2">
                                       <Info className="h-4 w-4 text-primary" />
-                                      <AlertDescription className="text-xs text-gray-400">
+                                      <AlertDescription className="text-xs text-muted-foreground">
                                         Estas instrucciones serán utilizadas por la IA para generar contenido específico para esta plataforma.
                                       </AlertDescription>
                                     </Alert>
@@ -2404,8 +2404,8 @@ export default function CalendarCreator() {
                       {/* La sección de selección de modelo de IA ha sido eliminada */}
 
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-amber-500" />
-                        <h3 className="text-lg font-medium dark:text-white">Elementos de contenido</h3>
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-medium dark:text-foreground">Elementos de contenido</h3>
                       </div>
 
                       <div className="space-y-4">
@@ -2418,11 +2418,11 @@ export default function CalendarCreator() {
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 dark:border-slate-500 rounded transition-all"
+                                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary dark:border-slate-500 rounded transition-all"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-medium dark:text-white flex items-center gap-1">
+                                <FormLabel className="text-sm font-medium dark:text-foreground flex items-center gap-1">
                                   Incluir Copy In
                                   {field.value && <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded">Activo</span>}
                                 </FormLabel>
@@ -2443,11 +2443,11 @@ export default function CalendarCreator() {
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 dark:border-slate-500 rounded transition-all"
+                                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary dark:border-slate-500 rounded transition-all"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-medium dark:text-white flex items-center gap-1">
+                                <FormLabel className="text-sm font-medium dark:text-foreground flex items-center gap-1">
                                   Incluir Copy Out
                                   {field.value && <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded">Activo</span>}
                                 </FormLabel>
@@ -2468,11 +2468,11 @@ export default function CalendarCreator() {
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 dark:border-slate-500 rounded transition-all"
+                                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary dark:border-slate-500 rounded transition-all"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-medium dark:text-white flex items-center gap-1">
+                                <FormLabel className="text-sm font-medium dark:text-foreground flex items-center gap-1">
                                   Incluir Hashtags
                                   {field.value && <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded">Activo</span>}
                                 </FormLabel>
@@ -2493,11 +2493,11 @@ export default function CalendarCreator() {
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 dark:border-slate-500 rounded transition-all"
+                                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary dark:border-slate-500 rounded transition-all"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-medium dark:text-white flex items-center gap-1">
+                                <FormLabel className="text-sm font-medium dark:text-foreground flex items-center gap-1">
                                   Incluir Instrucciones de Diseño
                                   {field.value && <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded">Activo</span>}
                                 </FormLabel>
@@ -2514,7 +2514,7 @@ export default function CalendarCreator() {
                     <div className="space-y-5">
                       <div className="flex items-center gap-2">
                         <Info className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-bold text-white uppercase tracking-wider">Sugerencias</h3>
+                        <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Sugerencias</h3>
                       </div>
 
                       <ScrollArea className="h-[calc(100%-3rem)] pr-4">
@@ -2522,7 +2522,7 @@ export default function CalendarCreator() {
                           <Alert className="bg-primary/5 border-primary/20">
                             <AlertCircle className="h-4 w-4 text-primary" />
                             <AlertTitle className="text-primary font-bold uppercase tracking-wider">Mantén tus instrucciones claras</AlertTitle>
-                            <AlertDescription className="text-gray-400 text-xs">
+                            <AlertDescription className="text-muted-foreground text-xs">
                               Las instrucciones específicas para cada plataforma generarán mejor contenido. Sé detallado en tus requerimientos.
                             </AlertDescription>
                           </Alert>
@@ -2530,7 +2530,7 @@ export default function CalendarCreator() {
                           <Alert className="bg-primary/5 border-primary/20">
                             <AlertCircle className="h-4 w-4 text-primary" />
                             <AlertTitle className="text-primary font-bold uppercase tracking-wider">Proporciona contexto</AlertTitle>
-                            <AlertDescription className="text-gray-400 text-xs">
+                            <AlertDescription className="text-muted-foreground text-xs">
                               Incluye información sobre tu marca, audiencia y objetivos en las instrucciones para obtener resultados más relevantes.
                             </AlertDescription>
                           </Alert>
@@ -2538,7 +2538,7 @@ export default function CalendarCreator() {
                           <Alert className="bg-primary/5 border-primary/20">
                             <AlertCircle className="h-4 w-4 text-primary" />
                             <AlertTitle className="text-primary font-bold uppercase tracking-wider">Balancea los tipos de contenido</AlertTitle>
-                            <AlertDescription className="text-gray-400 text-xs">
+                            <AlertDescription className="text-muted-foreground text-xs">
                               Distribuye tus publicaciones entre diferentes formatos para mantener tu feed dinámico y atractivo.
                             </AlertDescription>
                           </Alert>
@@ -2549,12 +2549,12 @@ export default function CalendarCreator() {
                 </TabsContent>
               </Tabs>
 
-              <div className="flex justify-between items-center border-t border-white/10 p-6 mt-6">
+              <div className="flex justify-between items-center border-t border-border p-6 mt-6">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => window.history.back()}
-                  className="glass-panel-dark border-white/10 text-white hover:bg-white/5 hover:text-primary transition-all"
+                  className="bg-card border-border border-border text-foreground hover:bg-muted hover:text-primary transition-all"
                 >
                   Cancelar
                 </Button>
@@ -2591,7 +2591,7 @@ export default function CalendarCreator() {
                     // Enviar formulario
                     onSubmit(values);
                   }}
-                  className="rounded-md px-6 py-2.5 bg-primary text-black hover:bg-primary/90 transition-all duration-200 font-bold uppercase tracking-wider flex items-center justify-center gap-2 h-10 shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-md px-6 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-bold uppercase tracking-wider flex items-center justify-center gap-2 h-10 shadow-md hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
                     <>
@@ -2613,13 +2613,13 @@ export default function CalendarCreator() {
 
           {/* Dialogo de Conceptos */}
           <Dialog open={showConceptsDialog} onOpenChange={setShowConceptsDialog}>
-            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-neutral-900 border-white/10 text-white">
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-neutral-900 border-border text-foreground">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-primary flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
                   Brainstorming: Ideas de Contenido
                 </DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogDescription className="text-muted-foreground">
                   Selecciona los conceptos que quieres desarrollar en el calendario. La IA generará el contenido completo basándose en tu selección.
                 </DialogDescription>
               </DialogHeader>
@@ -2628,7 +2628,7 @@ export default function CalendarCreator() {
                 {isGeneratingConcepts && concepts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="text-gray-400 animate-pulse">Analizando estrategia y generando conceptos...</p>
+                    <p className="text-muted-foreground animate-pulse">Analizando estrategia y generando conceptos...</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2643,8 +2643,8 @@ export default function CalendarCreator() {
                           }
                         }}
                         className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 relative overflow-hidden group ${selectedConcepts.includes(concept.title)
-                          ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.2)]'
-                          : 'bg-black/40 border-white/5 hover:border-white/20'
+                          ? 'bg-primary/10 border-primary shadow-md'
+                          : 'bg-muted/30 border-border/50 hover:border-border'
                           }`}
                       >
                         <div className="absolute top-3 right-3">
@@ -2656,14 +2656,14 @@ export default function CalendarCreator() {
                           </div>
                         </div>
 
-                        <h4 className="font-bold text-base pr-8 mb-2 text-white group-hover:text-primary transition-colors">{concept.title}</h4>
+                        <h4 className="font-bold text-base pr-8 mb-2 text-foreground group-hover:text-primary transition-colors">{concept.title}</h4>
 
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary/80">{concept.platform}</Badge>
-                            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">{concept.objective}</span>
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{concept.objective}</span>
                           </div>
-                          <p className="text-xs text-gray-400 leading-relaxed border-t border-white/5 pt-2 mt-2">
+                          <p className="text-xs text-muted-foreground leading-relaxed border-t border-border/50 pt-2 mt-2">
                             <span className="text-primary/60 font-bold uppercase text-[10px] block mb-1">Por qué funciona:</span>
                             {concept.rationale}
                           </p>
@@ -2674,8 +2674,8 @@ export default function CalendarCreator() {
                 )}
               </div>
 
-              <DialogFooter className="border-t border-white/5 pt-4 gap-2 sm:justify-between">
-                <div className="text-xs text-gray-500 flex items-center">
+              <DialogFooter className="border-t border-border/50 pt-4 gap-2 sm:justify-between">
+                <div className="text-xs text-muted-foreground flex items-center">
                   {selectedConcepts.length} ideas seleccionadas
                 </div>
                 <div className="flex gap-2">

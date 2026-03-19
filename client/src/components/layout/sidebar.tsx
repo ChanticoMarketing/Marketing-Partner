@@ -63,7 +63,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="ml-auto md:hidden text-gray-400 hover:text-white hover:bg-white/10"
+              className="ml-auto md:hidden text-muted-foreground hover:text-foreground hover:bg-muted/80"
               onClick={onClose}
             >
               <X className="h-4 w-4" />
@@ -99,8 +99,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
             {/* Admin section for Primary users only */}
             {isPrimary && (
-              <div className="mt-6 pt-6 border-t border-white/10">
-                <h2 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
+              <div className="mt-6 pt-6 border-t border-border">
+                <h2 className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   Sistemas
                 </h2>
                 <NavItem
@@ -142,7 +142,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                  className="h-8 w-8 rounded-md text-muted-foreground hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
         {/* Encabezado de página */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 dark:text-white">
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 dark:text-foreground">
               <span className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 text-blue-600 dark:bg-gradient-to-br dark:from-blue-500/30 dark:to-blue-600/30 dark:text-blue-400">
                 <BarChart4 className="h-6 w-6" />
               </span>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
           <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
             <Button 
               variant="outline" 
-              className="gap-1.5 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-white dark:hover:bg-[#2a3349]"
+              className="gap-1.5 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-foreground dark:hover:bg-[#2a3349]"
               onClick={handleExportData}
             >
               <Download className="h-4 w-4" />
@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
                   onValueChange={setSelectedProject}
                   disabled={projectsLoading}
                 >
-                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-white">
+                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-foreground">
                     <SelectValue placeholder="Seleccionar proyecto" />
                   </SelectTrigger>
                   <SelectContent className="dark:border-[#3e4a6d] dark:bg-[#1e293b]">
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
                       <SelectItem 
                         key={project.id} 
                         value={project.id.toString()}
-                        className="dark:text-white dark:focus:bg-[#2a3349]"
+                        className="dark:text-foreground dark:focus:bg-[#2a3349]"
                       >
                         {project.name}
                       </SelectItem>
@@ -212,18 +212,18 @@ export default function AnalyticsPage() {
                   value={selectedPlatform} 
                   onValueChange={setSelectedPlatform}
                 >
-                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-white">
+                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-foreground">
                     <SelectValue placeholder="Todas las plataformas" />
                   </SelectTrigger>
                   <SelectContent className="dark:border-[#3e4a6d] dark:bg-[#1e293b]">
-                    <SelectItem value="all" className="dark:text-white dark:focus:bg-[#2a3349]">Todas las plataformas</SelectItem>
-                    <SelectItem value="instagram" className="dark:text-white dark:focus:bg-[#2a3349]">Instagram</SelectItem>
-                    <SelectItem value="facebook" className="dark:text-white dark:focus:bg-[#2a3349]">Facebook</SelectItem>
-                    <SelectItem value="twitter" className="dark:text-white dark:focus:bg-[#2a3349]">Twitter</SelectItem>
-                    <SelectItem value="linkedin" className="dark:text-white dark:focus:bg-[#2a3349]">LinkedIn</SelectItem>
-                    <SelectItem value="tiktok" className="dark:text-white dark:focus:bg-[#2a3349]">TikTok</SelectItem>
-                    <SelectItem value="youtube" className="dark:text-white dark:focus:bg-[#2a3349]">YouTube</SelectItem>
-                    <SelectItem value="pinterest" className="dark:text-white dark:focus:bg-[#2a3349]">Pinterest</SelectItem>
+                    <SelectItem value="all" className="dark:text-foreground dark:focus:bg-[#2a3349]">Todas las plataformas</SelectItem>
+                    <SelectItem value="instagram" className="dark:text-foreground dark:focus:bg-[#2a3349]">Instagram</SelectItem>
+                    <SelectItem value="facebook" className="dark:text-foreground dark:focus:bg-[#2a3349]">Facebook</SelectItem>
+                    <SelectItem value="twitter" className="dark:text-foreground dark:focus:bg-[#2a3349]">Twitter</SelectItem>
+                    <SelectItem value="linkedin" className="dark:text-foreground dark:focus:bg-[#2a3349]">LinkedIn</SelectItem>
+                    <SelectItem value="tiktok" className="dark:text-foreground dark:focus:bg-[#2a3349]">TikTok</SelectItem>
+                    <SelectItem value="youtube" className="dark:text-foreground dark:focus:bg-[#2a3349]">YouTube</SelectItem>
+                    <SelectItem value="pinterest" className="dark:text-foreground dark:focus:bg-[#2a3349]">Pinterest</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -234,15 +234,15 @@ export default function AnalyticsPage() {
                   value={selectedTimeRange} 
                   onValueChange={setSelectedTimeRange}
                 >
-                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-white">
+                  <SelectTrigger className="h-10 dark:border-[#3e4a6d] dark:bg-[#1e293b] dark:text-foreground">
                     <SelectValue placeholder="Seleccionar periodo" />
                   </SelectTrigger>
                   <SelectContent className="dark:border-[#3e4a6d] dark:bg-[#1e293b]">
-                    <SelectItem value="last7days" className="dark:text-white dark:focus:bg-[#2a3349]">Últimos 7 días</SelectItem>
-                    <SelectItem value="last30days" className="dark:text-white dark:focus:bg-[#2a3349]">Últimos 30 días</SelectItem>
-                    <SelectItem value="last90days" className="dark:text-white dark:focus:bg-[#2a3349]">Últimos 90 días</SelectItem>
-                    <SelectItem value="last6months" className="dark:text-white dark:focus:bg-[#2a3349]">Últimos 6 meses</SelectItem>
-                    <SelectItem value="lastyear" className="dark:text-white dark:focus:bg-[#2a3349]">Último año</SelectItem>
+                    <SelectItem value="last7days" className="dark:text-foreground dark:focus:bg-[#2a3349]">Últimos 7 días</SelectItem>
+                    <SelectItem value="last30days" className="dark:text-foreground dark:focus:bg-[#2a3349]">Últimos 30 días</SelectItem>
+                    <SelectItem value="last90days" className="dark:text-foreground dark:focus:bg-[#2a3349]">Últimos 90 días</SelectItem>
+                    <SelectItem value="last6months" className="dark:text-foreground dark:focus:bg-[#2a3349]">Últimos 6 meses</SelectItem>
+                    <SelectItem value="lastyear" className="dark:text-foreground dark:focus:bg-[#2a3349]">Último año</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -253,13 +253,13 @@ export default function AnalyticsPage() {
         {/* Contenido principal - Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 dark:bg-[#1e293b] dark:border dark:border-[#3e4a6d]">
-            <TabsTrigger value="overview" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-white dark:text-slate-400">
+            <TabsTrigger value="overview" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-foreground dark:text-slate-400">
               Vista General
             </TabsTrigger>
-            <TabsTrigger value="content" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-white dark:text-slate-400">
+            <TabsTrigger value="content" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-foreground dark:text-slate-400">
               Tipos de Contenido
             </TabsTrigger>
-            <TabsTrigger value="trends" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-white dark:text-slate-400">
+            <TabsTrigger value="trends" className="dark:data-[state=active]:bg-[#2a3349] dark:data-[state=active]:text-foreground dark:text-slate-400">
               Tendencias
             </TabsTrigger>
           </TabsList>

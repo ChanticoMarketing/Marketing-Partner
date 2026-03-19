@@ -502,7 +502,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
           <Button 
             variant="outline" 
             size="sm" 
-            className="rounded-lg gap-1 transition-all duration-200 shadow-sm hover:shadow border-amber-200 hover:border-amber-300 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 interactive-element dark:border-amber-600/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+            className="rounded-lg gap-1 transition-all duration-200 shadow-sm hover:shadow border-amber-200 hover:border-primary/30 bg-primary/10 text-primary/90 hover:bg-primary/20 interactive-element dark:border-primary/90/30 dark:bg-primary/10 dark:text-amber-300 dark:hover:bg-primary/20"
             onClick={handleEnterReviewMode}
           >
             <Edit className="h-3.5 w-3.5 mr-1" />
@@ -529,7 +529,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
       <Card className="shadow-sm border border-amber-200 bg-amber-50/80 dark:bg-amber-900/20 dark:border-amber-700/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-amber-800 dark:text-amber-300">
-            <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <Sparkles className="h-5 w-5 text-primary/90 dark:text-primary/80" />
             Instrucciones adicionales para la IA
           </CardTitle>
           <CardDescription className="text-amber-700 dark:text-amber-300/80">
@@ -549,7 +549,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.titles}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, titles: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Títulos</span>
                 </label>
@@ -559,7 +559,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.descriptions}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, descriptions: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Descripciones</span>
                 </label>
@@ -569,7 +569,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.content}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, content: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Contenido</span>
                 </label>
@@ -579,7 +579,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.copyIn}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, copyIn: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Texto Integrado</span>
                 </label>
@@ -589,7 +589,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.copyOut}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, copyOut: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Texto Descripción</span>
                 </label>
@@ -599,7 +599,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.designInstructions}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, designInstructions: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Instrucciones de Diseño</span>
                 </label>
@@ -609,7 +609,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.platforms}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, platforms: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Plataformas</span>
                 </label>
@@ -619,7 +619,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                     type="checkbox"
                     checked={selectedAreas.hashtags}
                     onChange={(e) => setSelectedAreas(prev => ({ ...prev, hashtags: e.target.checked }))}
-                    className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-primary/30 text-primary/90 focus:ring-primary"
                   />
                   <span className="text-sm text-amber-700 dark:text-amber-300">Hashtags</span>
                 </label>
@@ -636,7 +636,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.titles}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, titles: e.target.value }))}
                   placeholder="Ejemplo: 'Haz los títulos más llamativos y dinámicos', 'Incluye palabras de acción', 'Usa números cuando sea posible'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -650,7 +650,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.descriptions}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, descriptions: e.target.value }))}
                   placeholder="Ejemplo: 'Utiliza descripciones más persuasivas y emotivas', 'Enfócate en los beneficios', 'Sé más directo'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -664,7 +664,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.content}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Ejemplo: 'Agrega más detalles y beneficios específicos', 'Incluye testimonios', 'Más datos técnicos'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -678,7 +678,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.copyIn}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, copyIn: e.target.value }))}
                   placeholder="Ejemplo: 'Simplifica el texto integrado para mayor impacto', 'Usa frases más cortas', 'Más directo al grano'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -692,7 +692,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.copyOut}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, copyOut: e.target.value }))}
                   placeholder="Ejemplo: 'Incluye más emojis en el texto descripción', 'Haz preguntas para generar engagement', 'Más llamadas a la acción'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -706,7 +706,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.designInstructions}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, designInstructions: e.target.value }))}
                   placeholder="Ejemplo: 'Especifica colores más vibrantes y modernos', 'Usa tipografías más llamativas', 'Añade elementos gráficos específicos'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -720,7 +720,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.platforms}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, platforms: e.target.value }))}
                   placeholder="Ejemplo: 'Adapta mejor a Instagram y Facebook', 'Más contenido para LinkedIn', 'Enfoque en TikTok'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -734,7 +734,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={specificInstructions.hashtags}
                   onChange={(e) => setSpecificInstructions(prev => ({ ...prev, hashtags: e.target.value }))}
                   placeholder="Ejemplo: 'Agrega hashtags de temporada y trending', 'Incluye más hashtags de nicho', 'Menos hashtags pero más específicos'..."
-                  className="min-h-[80px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                  className="min-h-[80px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
                 />
               </div>
             )}
@@ -748,7 +748,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                 value={additionalInstructions}
                 onChange={(e) => setAdditionalInstructions(e.target.value)}
                 placeholder="Ejemplo: 'Utiliza un tono más formal', 'Incluye más emojis', 'Enfócate en los beneficios del producto', 'Agrega más hashtags relacionados con la temporada'..."
-                className="min-h-[100px] border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white"
+                className="min-h-[100px] border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground"
               />
             </div>
             <div className="flex justify-between">
@@ -756,7 +756,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                 onClick={handleRegenerateSchedule}
                 disabled={isRegenerating || !hasValidInstructions()}
                 variant="outline"
-                className="bg-amber-200 border-amber-300 text-amber-800 hover:bg-amber-300 hover:text-amber-900 dark:bg-amber-800/40 dark:border-amber-700/50 dark:text-amber-200 dark:hover:bg-amber-700/60"
+                className="bg-amber-200 border-primary/30 text-amber-800 hover:bg-amber-300 hover:text-amber-900 dark:bg-amber-800/40 dark:border-amber-700/50 dark:text-amber-200 dark:hover:bg-amber-700/60"
               >
                 {isRegenerating ? (
                   <>
@@ -774,7 +774,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
               <Button 
                 onClick={handleSaveAdditionalInstructions}
                 disabled={isSavingInstructions || (schedule && additionalInstructions === (schedule.additionalInstructions || ''))}
-                className="bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600 dark:text-white dark:hover:bg-amber-700"
+                className="bg-primary/90 text-foreground hover:bg-amber-700 dark:bg-primary/90 dark:text-foreground dark:hover:bg-amber-700"
               >
                 {isSavingInstructions ? (
                   <>
@@ -789,7 +789,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                 )}
               </Button>
             </div>
-            <div className="text-xs text-amber-600 dark:text-amber-400 space-y-1 mt-2">
+            <div className="text-xs text-primary/90 dark:text-primary/80 space-y-1 mt-2">
               <p className="flex items-center">
                 <AlertCircle className="h-3.5 w-3.5 mr-1" />
                 Estas instrucciones serán utilizadas como guía para la IA cuando se regenere el cronograma.
@@ -818,7 +818,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
         <div className="my-8 space-y-4">
           <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg dark:bg-amber-900/20 dark:border-amber-800/40 dark:text-amber-100">
             <div className="flex items-start gap-3 mb-3">
-              <div className="p-1.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-300">
+              <div className="p-1.5 rounded-full bg-amber-100 text-primary/90 dark:bg-amber-900/50 dark:text-amber-300">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div>
@@ -841,7 +841,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                   value={reviewComments.generalComments}
                   onChange={handleGeneralCommentsChange}
                   rows={4}
-                  className="w-full resize-none border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white dark:focus:border-amber-600 dark:focus:ring-amber-600"
+                  className="w-full resize-none border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground dark:focus:border-primary/90 dark:focus:ring-primary/90"
                 />
               </div>
               
@@ -875,9 +875,9 @@ export default function ScheduleDetail({ id }: { id: number }) {
                           value={reviewComments.entryComments[entry.id] || ''}
                           onChange={(e) => handleEntryCommentChange(entry.id, e.target.value)}
                           rows={3}
-                          className="w-full resize-none mt-2 border-amber-300 focus:border-amber-500 focus:ring-amber-500 dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-white dark:focus:border-amber-600 dark:focus:ring-amber-600"
+                          className="w-full resize-none mt-2 border-primary/30 focus:border-primary focus:ring-primary dark:border-amber-800/50 dark:bg-[#1e293b] dark:text-foreground dark:focus:border-primary/90 dark:focus:ring-primary/90"
                         />
-                        <div className="mt-2 text-xs text-amber-700 dark:text-amber-400/80">
+                        <div className="mt-2 text-xs text-amber-700 dark:text-primary/80/80">
                           <p>Puedes comentar sobre el título, texto, horario o cualquier otro aspecto de esta publicación.</p>
                         </div>
                       </AccordionContent>
@@ -901,7 +901,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                 variant="outline" 
                 onClick={handleRegenerateSchedule}
                 disabled={isRegenerating || !reviewComments.generalComments.trim()}
-                className="bg-amber-200 border-amber-300 text-amber-800 hover:bg-amber-300 hover:text-amber-900 dark:bg-amber-800/40 dark:border-amber-700/50 dark:text-amber-200 dark:hover:bg-amber-700/60"
+                className="bg-amber-200 border-primary/30 text-amber-800 hover:bg-amber-300 hover:text-amber-900 dark:bg-amber-800/40 dark:border-amber-700/50 dark:text-amber-200 dark:hover:bg-amber-700/60"
               >
                 {isRegenerating ? (
                   <>
@@ -916,7 +916,7 @@ export default function ScheduleDetail({ id }: { id: number }) {
                 )}
               </Button>
               {!reviewComments.generalComments.trim() && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                <p className="text-xs text-primary/90 dark:text-primary/80 mt-2">
                   Debes agregar instrucciones generales para poder regenerar el cronograma.
                 </p>
               )}
@@ -927,14 +927,14 @@ export default function ScheduleDetail({ id }: { id: number }) {
               <Button 
                 variant="outline" 
                 onClick={handleExitReviewMode}
-                className="border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:border-amber-800/40 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                className="border-primary/30 text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:border-amber-800/40 dark:text-amber-300 dark:hover:bg-amber-900/30"
               >
                 Cancelar
               </Button>
               <Button 
                 onClick={handleSubmitReview}
                 disabled={isSubmittingReview}
-                className="bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600 dark:text-white dark:hover:bg-amber-700"
+                className="bg-primary/90 text-foreground hover:bg-amber-700 dark:bg-primary/90 dark:text-foreground dark:hover:bg-amber-700"
               >
                 {isSubmittingReview ? (
                   <>

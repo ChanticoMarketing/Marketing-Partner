@@ -120,7 +120,7 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-muted/50 z-40" onClick={onClose} />
       
       {/* Drawer */}
       <div 

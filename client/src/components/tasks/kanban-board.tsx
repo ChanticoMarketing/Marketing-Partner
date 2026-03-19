@@ -159,7 +159,7 @@ export function KanbanBoard({
 
   // Render priority badges with appropriate colors
   const renderPriorityBadge = (priority: string) => {
-    let className = "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    let className = "bg-gray-500/20 text-muted-foreground border-gray-500/30";
 
     switch (priority) {
       case 'baja':
@@ -172,7 +172,7 @@ export function KanbanBoard({
         break;
       case 'alta':
       case 'high':
-        className = "bg-orange-500/20 text-orange-500 border-orange-500/30 hover:bg-orange-500/30";
+        className = "bg-primary/20 text-primary border-primary/30 hover:bg-primary/30";
         break;
       case 'urgente':
       case 'urgent':
@@ -189,12 +189,12 @@ export function KanbanBoard({
 
   // Render status badges
   const renderStatusBadge = (status: string) => {
-    let className = "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    let className = "bg-gray-500/20 text-muted-foreground border-gray-500/30";
 
     switch (status) {
       case 'pendiente':
       case 'pending':
-        className = "bg-white/5 text-gray-400 border-white/10";
+        className = "bg-muted text-muted-foreground border-border";
         break;
       case 'en_progreso':
       case 'in_progress':

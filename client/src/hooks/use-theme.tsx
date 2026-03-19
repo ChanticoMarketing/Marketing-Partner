@@ -120,17 +120,17 @@ export function ThemeProvider({
 
     // Actualizar variables CSS para el esquema de color
     if (colorScheme === "brand") {
-      document.documentElement.style.setProperty('--primary', '38 92% 50%'); // Rocket Gold
+      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan
     } else if (colorScheme === "amber") {
-      document.documentElement.style.setProperty('--primary', '45 93% 47%');
+      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan Fallback
     } else if (colorScheme === "blue") {
-      document.documentElement.style.setProperty('--primary', '38 92% 50%'); // Fallback to Gold even for blue
+      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan Fallback
     } else if (colorScheme === "green") {
-      document.documentElement.style.setProperty('--primary', '142 71% 45%');
+      document.documentElement.style.setProperty('--primary', '162 47% 50%'); // Muted Sage
     } else if (colorScheme === "purple") {
-      document.documentElement.style.setProperty('--primary', '270 76% 55%');
+      document.documentElement.style.setProperty('--primary', '255 45% 60%'); // Muted Lavender
     } else if (colorScheme === "red") {
-      document.documentElement.style.setProperty('--primary', '0 91% 51%');
+      document.documentElement.style.setProperty('--primary', '0 50% 60%'); // Muted Coral
     }
   }, [colorScheme]);
 

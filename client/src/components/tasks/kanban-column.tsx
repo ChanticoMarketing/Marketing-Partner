@@ -42,13 +42,13 @@ export function KanbanColumn({
   });
 
   return (
-    <Card className={`flex flex-col h-full glass-panel-dark border-white/5 ${className || ''}`}>
-      <CardHeader className="py-3 px-4 border-b border-white/10 bg-white/5">
+    <Card className={`flex flex-col h-full bg-card border-border border-border/50 ${className || ''}`}>
+      <CardHeader className="py-3 px-4 border-b border-border bg-muted">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-md font-medium text-white">
+          <CardTitle className="text-md font-medium text-foreground">
             {title}
           </CardTitle>
-          <Badge variant="outline" className="ml-2 border-white/10 bg-white/5 text-gray-300">
+          <Badge variant="outline" className="ml-2 border-border bg-muted text-muted-foreground">
             {tasks.length}
           </Badge>
         </div>

@@ -1500,7 +1500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[CALENDAR ROUTE] Error tipo: ${errorType}, Mensaje: ${errorMessage}`);
 
       // Mensajes de error específicos basados en el tipo de error
-      if (errorType === "NETWORK" || errorMessage.includes("connect") || errorMessage.includes("Servicio de Gemini temporalmente no disponible")) {
+      if (errorType === "NETWORK" || errorMessage.includes("connect") || errorMessage.includes("Servicio de IA temporalmente no disponible")) {
         // Error de conexión o disponibilidad de Gemini
         return res.status(503).json({
           message: "Servicio de IA temporalmente no disponible. Por favor intenta nuevamente en unos minutos.",
@@ -1844,7 +1844,7 @@ IMPORTANTE: Si un área NO está seleccionada para modificación, mantén el val
           const editedContentText = await geminiService.generateText(editPrompt, {
             temperature: 0.7,
             maxTokens: 2000,
-            model: 'gemini-1.5-pro'
+            model: 'grok-3-mini'
           });
 
           const {

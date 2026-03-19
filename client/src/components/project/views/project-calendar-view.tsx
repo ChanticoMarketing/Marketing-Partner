@@ -108,7 +108,7 @@ export default function ProjectCalendarView({ projectId, viewId }: ProjectCalend
       case "critical":
         return "bg-red-500";
       case "high":
-        return "bg-orange-500";
+        return "bg-primary";
       case "medium":
         return "bg-yellow-500";
       case "low":
@@ -167,7 +167,7 @@ export default function ProjectCalendarView({ projectId, viewId }: ProjectCalend
               {dayTasks.slice(0, 3).map((task: Task) => (
                 <div 
                   key={task.id} 
-                  className={`text-xs rounded px-1 py-0.5 truncate mb-1 text-white ${getPriorityColor(task.priority)}`}
+                  className={`text-xs rounded px-1 py-0.5 truncate mb-1 text-foreground ${getPriorityColor(task.priority)}`}
                 >
                   {task.title}
                 </div>
@@ -198,7 +198,7 @@ export default function ProjectCalendarView({ projectId, viewId }: ProjectCalend
                         task.priority === "urgent" || task.priority === "critical" 
                           ? "bg-red-500" 
                           : task.priority === "high" 
-                          ? "bg-orange-500" 
+                          ? "bg-primary" 
                           : task.priority === "medium" 
                           ? "bg-yellow-500" 
                           : "bg-green-500"
@@ -282,7 +282,7 @@ export default function ProjectCalendarView({ projectId, viewId }: ProjectCalend
                   <span>Urgente / Crítica</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="w-3 h-3 rounded-full bg-orange-500"></span>
+                  <span className="w-3 h-3 rounded-full bg-primary"></span>
                   <span>Alta</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">

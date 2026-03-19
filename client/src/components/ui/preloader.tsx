@@ -114,7 +114,7 @@ export function Preloader() {
                     <p className="text-sm text-primary tracking-[0.3em] font-medium uppercase font-mono">Initializing Systems</p>
                 </div>
 
-                <div className="w-48 h-1 overflow-hidden rounded-full bg-white/5 mt-4">
+                <div className="w-48 h-1 overflow-hidden rounded-full bg-muted mt-4">
                     <div ref={loadingBarRef} className="h-full bg-primary" />
                 </div>
             </div>

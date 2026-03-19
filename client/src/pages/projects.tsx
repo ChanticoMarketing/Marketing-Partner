@@ -58,12 +58,12 @@ const StatusBadge = ({ status }: { status: string }) => {
         };
       case "on_hold":
         return {
-          className: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+          className: "bg-primary/10 text-primary/80 border-primary/20",
           label: "EN ESPERA"
         };
       default:
         return {
-          className: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+          className: "bg-gray-500/10 text-muted-foreground border-gray-500/20",
           label: status.toUpperCase()
         };
     }
@@ -123,15 +123,15 @@ export default function Projects() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
             <span className="text-primary">/</span> PROYECTOS
           </h2>
-          <p className="text-sm text-gray-400">Gestión de campañas y misiones activas</p>
+          <p className="text-sm text-muted-foreground">Gestión de campañas y misiones activas</p>
         </div>
         {user?.isPrimary && (
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wide shadow-[0_0_15px_rgba(var(--primary),0.3)] transition-all duration-300 hover:scale-105"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wide shadow-md transition-all duration-300 hover:scale-105"
           >
             <Plus className="h-4 w-4 mr-2" />
             NUEVO PROYECTO
@@ -139,11 +139,11 @@ export default function Projects() {
         )}
       </div>
 
-      <div className="glass-panel-dark tech-border rounded-xl overflow-hidden">
+      <div className="bg-card border-border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10 hover:bg-white/5">
+              <TableRow className="border-border hover:bg-muted">
                 <TableHead className="text-xs font-bold text-primary uppercase tracking-wider py-4">Proyecto</TableHead>
                 <TableHead className="text-xs font-bold text-primary uppercase tracking-wider py-4">Cliente</TableHead>
                 <TableHead className="text-xs font-bold text-primary uppercase tracking-wider py-4">Estado</TableHead>
@@ -154,7 +154,7 @@ export default function Projects() {
             <TableBody>
               {currentProjects.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-16 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
                     <div className="flex flex-col items-center gap-3">
                       <Rocket className="h-12 w-12 text-gray-700" />
                       <p>No hay proyectos activos en este sector.</p>
@@ -163,29 +163,29 @@ export default function Projects() {
                 </TableRow>
               ) : (
                 currentProjects.map((project) => (
-                  <TableRow key={project.id} className="border-white/5 hover:bg-white/5 transition-colors">
-                    <TableCell className="font-medium text-white">
+                  <TableRow key={project.id} className="border-border/50 hover:bg-muted transition-colors">
+                    <TableCell className="font-medium text-foreground">
                       <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_5px_rgba(var(--primary),0.8)]"></div>
+                        <div className="h-2 w-2 rounded-full bg-primary shadow-md"></div>
                         {project.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-gray-400">{project.client}</TableCell>
+                    <TableCell className="text-muted-foreground">{project.client}</TableCell>
                     <TableCell>
                       <StatusBadge status={project.status} />
                     </TableCell>
-                    <TableCell className="text-gray-400 font-mono text-xs">
+                    <TableCell className="text-muted-foreground font-mono text-xs">
                       {formatRelative(new Date(project.updatedAt), new Date())}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link href={`/projects/${project.id}`}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-primary hover:bg-primary/10" title="Ver Detalles">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10" title="Ver Detalles">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
                         {user?.isPrimary && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-primary hover:bg-primary/10" title="Editar">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10" title="Editar">
                             <Pencil className="h-4 w-4" />
                           </Button>
                         )}
@@ -199,8 +199,8 @@ export default function Projects() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-white/10 px-6 py-4 bg-black/20">
-            <p className="text-xs text-gray-500 uppercase tracking-wider">
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/50">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">
               Mostrando <strong>{startIndex + 1}</strong> - <strong>{endIndex}</strong> de <strong>{totalProjects}</strong>
             </p>
             <Pagination>
@@ -209,7 +209,7 @@ export default function Projects() {
                   <PaginationPrevious
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     className={cn(
-                      "cursor-pointer hover:bg-white/10 hover:text-primary transition-colors",
+                      "cursor-pointer hover:bg-muted/80 hover:text-primary transition-colors",
                       currentPage === 1 && "pointer-events-none opacity-50"
                     )}
                   />
@@ -221,7 +221,7 @@ export default function Projects() {
                       onClick={() => setCurrentPage(i + 1)}
                       isActive={currentPage === i + 1}
                       className={cn(
-                        "cursor-pointer hover:bg-white/10 hover:text-primary transition-colors",
+                        "cursor-pointer hover:bg-muted/80 hover:text-primary transition-colors",
                         currentPage === i + 1 && "bg-primary/20 text-primary border-primary/30"
                       )}
                     >
@@ -234,7 +234,7 @@ export default function Projects() {
                   <PaginationNext
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     className={cn(
-                      "cursor-pointer hover:bg-white/10 hover:text-primary transition-colors",
+                      "cursor-pointer hover:bg-muted/80 hover:text-primary transition-colors",
                       currentPage === totalPages && "pointer-events-none opacity-50"
                     )}
                   />

@@ -596,21 +596,21 @@ export default function ProfilePage() {
       <div className="space-y-6" ref={containerRef}>
         {/* Header */}
         <div className="flex items-center gap-4 mb-8 gsap-stagger">
-          <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
+          <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 shadow-md">
             <User className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               <span className="text-primary">/</span> MI PERFIL
             </h1>
-            <p className="text-gray-400 tracking-wide">
+            <p className="text-muted-foreground tracking-wide">
               Identidad digital y estadísticas de rendimiento
             </p>
           </div>
         </div>
 
         {/* Cover Image Section */}
-        <div className="glass-panel-dark tech-border rounded-xl overflow-hidden relative group gsap-stagger">
+        <div className="bg-card border-border border-border rounded-xl overflow-hidden relative group gsap-stagger">
           <div className="relative h-64 bg-black/50 overflow-hidden">
             {user?.coverImage || coverImagePreview ? (
               <img
@@ -629,7 +629,7 @@ export default function ProfilePage() {
 
           <div className="px-8 pb-8 relative -mt-20 flex flex-col md:flex-row items-end gap-6">
             <div className="relative group/avatar">
-              <div className="h-40 w-40 rounded-2xl border-2 border-primary/50 bg-black/80 overflow-hidden shadow-[0_0_30px_rgba(var(--primary),0.3)] backdrop-blur-xl p-1">
+              <div className="h-40 w-40 rounded-2xl border-2 border-primary/50 bg-black/80 overflow-hidden shadow-md backdrop-blur-xl p-1">
                 {user?.profileImage ? (
                   <img
                     src={user.profileImage}
@@ -637,7 +637,7 @@ export default function ProfilePage() {
                     className="w-full h-full object-cover rounded-xl"
                   />
                 ) : (
-                  <div className="w-full h-full bg-white/5 flex items-center justify-center rounded-xl">
+                  <div className="w-full h-full bg-muted flex items-center justify-center rounded-xl">
                     <User className="h-20 w-20 text-primary/50" />
                   </div>
                 )}
@@ -650,7 +650,7 @@ export default function ProfilePage() {
             <div className="flex-1 mb-2">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-3xl font-bold text-white tracking-tight mb-1 flex items-center gap-3">
+                  <h2 className="text-3xl font-bold text-foreground tracking-tight mb-1 flex items-center gap-3">
                     {user?.fullName}
                     {user?.isPrimary && (
                       <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-wider text-[10px]">
@@ -659,7 +659,7 @@ export default function ProfilePage() {
                     )}
                   </h2>
                   <p className="text-primary/80 font-mono text-sm mb-2">@{user?.username}</p>
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     {user?.jobTitle && (
                       <div className="flex items-center gap-1.5">
                         <Briefcase className="h-4 w-4 text-primary/70" />
@@ -684,7 +684,7 @@ export default function ProfilePage() {
                 <div className="flex gap-3">
                   <Button
                     onClick={() => setIsEditModalOpen(true)}
-                    className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 uppercase tracking-wider font-bold shadow-[0_0_15px_rgba(var(--primary),0.1)]"
+                    className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 uppercase tracking-wider font-bold shadow-md"
                   >
                     <Edit className="h-4 w-4 mr-2" />
                     Editar Datos
@@ -697,56 +697,56 @@ export default function ProfilePage() {
 
         {/* User Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 gsap-stagger">
-          <div className="glass-panel-dark p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-primary/30 transition-colors duration-300">
+          <div className="bg-card border-border p-6 rounded-xl border border-border/50 relative overflow-hidden group hover:border-primary/30 transition-colors duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Briefcase className="w-16 h-16 text-primary" />
             </div>
             <div className="relative z-10">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Proyectos Creados</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-2">Proyectos Creados</p>
               <div className="flex items-end gap-2">
-                <p className="text-3xl font-bold text-white">{userStats?.projectsCreated || 0}</p>
+                <p className="text-3xl font-bold text-foreground">{userStats?.projectsCreated || 0}</p>
                 <span className="text-xs text-primary mb-1.5 font-mono">MISIONES</span>
               </div>
             </div>
           </div>
 
-          <div className="glass-panel-dark p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-green-500/30 transition-colors duration-300">
+          <div className="bg-card border-border p-6 rounded-xl border border-border/50 relative overflow-hidden group hover:border-green-500/30 transition-colors duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <CheckCircle2 className="w-16 h-16 text-green-500" />
             </div>
             <div className="relative z-10">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Tareas Completadas</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-2">Tareas Completadas</p>
               <div className="flex items-end gap-2">
-                <p className="text-3xl font-bold text-white">{userStats?.tasksCompleted || 0}</p>
+                <p className="text-3xl font-bold text-foreground">{userStats?.tasksCompleted || 0}</p>
                 <span className="text-xs text-green-500 mb-1.5 font-mono">OBJETIVOS</span>
               </div>
             </div>
           </div>
 
-          <div className="glass-panel-dark p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-300">
+          <div className="bg-card border-border p-6 rounded-xl border border-border/50 relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Calendar className="w-16 h-16 text-purple-500" />
             </div>
             <div className="relative z-10">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Cronogramas</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-2">Cronogramas</p>
               <div className="flex items-end gap-2">
-                <p className="text-3xl font-bold text-white">{userStats?.totalSchedules || 0}</p>
+                <p className="text-3xl font-bold text-foreground">{userStats?.totalSchedules || 0}</p>
                 <span className="text-xs text-purple-500 mb-1.5 font-mono">PLANES</span>
               </div>
             </div>
           </div>
 
-          <div className="glass-panel-dark p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-orange-500/30 transition-colors duration-300">
+          <div className="bg-card border-border p-6 rounded-xl border border-border/50 relative overflow-hidden group hover:border-primary/30 transition-colors duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <BarChart3 className="w-16 h-16 text-orange-500" />
+              <BarChart3 className="w-16 h-16 text-primary" />
             </div>
             <div className="relative z-10">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Nivel de Perfil</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-2">Nivel de Perfil</p>
               <div className="flex items-end gap-2 mb-2">
-                <p className="text-3xl font-bold text-white">{calculateProfileCompleteness()}%</p>
-                <span className="text-xs text-orange-500 mb-1.5 font-mono">COMPLETO</span>
+                <p className="text-3xl font-bold text-foreground">{calculateProfileCompleteness()}%</p>
+                <span className="text-xs text-primary mb-1.5 font-mono">COMPLETO</span>
               </div>
-              <Progress value={calculateProfileCompleteness()} className="h-1.5 bg-white/10" />
+              <Progress value={calculateProfileCompleteness()} className="h-1.5 bg-muted/80" />
             </div>
           </div>
         </div>
@@ -994,7 +994,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <CheckCircle2 className="h-6 w-6 text-white" />
+                                <CheckCircle2 className="h-6 w-6 text-foreground" />
                               </div>
                             </div>
                           </div>
@@ -1021,7 +1021,7 @@ export default function ProfilePage() {
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                            <div className="text-center text-white">
+                            <div className="text-center text-foreground">
                               <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-70" />
                               <p className="text-sm">Sin imagen de portada</p>
                             </div>

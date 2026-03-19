@@ -335,50 +335,50 @@ const UserManagementPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             <span className="text-primary">/</span> GESTIÓN DE USUARIOS
           </h1>
-          <p className="text-gray-400 tracking-wide mt-1">
+          <p className="text-muted-foreground tracking-wide mt-1">
             Administración de personal y credenciales de acceso
           </p>
         </div>
 
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wider uppercase shadow-[0_0_15px_rgba(var(--primary),0.3)] transition-all duration-300 hover:scale-105">
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wider uppercase shadow-md transition-all duration-300 hover:scale-105">
           <UserPlus className="mr-2 h-4 w-4" />
           Nuevo Usuario
         </Button>
       </div>
 
       {/* Stats & Search Section */}
-      <div className="glass-panel-dark tech-border p-6 rounded-xl space-y-6">
+      <div className="bg-card border-border p-6 rounded-xl space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-black/40 border border-white/10 rounded-lg p-4 flex items-center gap-4">
+          <div className="bg-muted/30 border border-border rounded-lg p-4 flex items-center gap-4">
             <div className="p-3 rounded-full bg-primary/10 text-primary">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Administradores</p>
-              <p className="text-2xl font-bold text-white">{users?.filter(user => user.isPrimary).length || 0}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Administradores</p>
+              <p className="text-2xl font-bold text-foreground">{users?.filter(user => user.isPrimary).length || 0}</p>
             </div>
           </div>
 
-          <div className="bg-black/40 border border-white/10 rounded-lg p-4 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-blue-500/10 text-blue-400">
+          <div className="bg-muted/30 border border-border rounded-lg p-4 flex items-center gap-4">
+            <div className="p-3 rounded-full bg-slate-500/10 text-slate-500 dark:text-slate-400">
               <ShieldAlert className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Estándar</p>
-              <p className="text-2xl font-bold text-white">{users?.filter(user => !user.isPrimary).length || 0}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Estándar</p>
+              <p className="text-2xl font-bold text-foreground">{users?.filter(user => !user.isPrimary).length || 0}</p>
             </div>
           </div>
 
-          <div className="bg-black/40 border border-white/10 rounded-lg p-4 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-purple-500/10 text-purple-400">
+          <div className="bg-muted/30 border border-border rounded-lg p-4 flex items-center gap-4">
+            <div className="p-3 rounded-full bg-slate-500/10 text-slate-500 dark:text-slate-400">
               <UserCog className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Total Usuarios</p>
-              <p className="text-2xl font-bold text-white">{users?.length || 0}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Usuarios</p>
+              <p className="text-2xl font-bold text-foreground">{users?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -387,7 +387,7 @@ const UserManagementPage = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary w-4 h-4" />
           <Input
             placeholder="Buscar por nombre o credencial..."
-            className="pl-10 bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-primary/50 focus:ring-primary/20"
+            className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -403,9 +403,9 @@ const UserManagementPage = () => {
           </div>
         </div>
       ) : isError ? (
-        <div className="glass-panel-dark border-red-500/20 bg-red-500/5 p-8 rounded-xl text-center">
+        <div className="bg-card border-red-500/20 bg-red-500/5 p-8 rounded-xl text-center">
           <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Error de Sistema</h3>
+          <h3 className="text-xl font-bold text-foreground mb-2">Error de Sistema</h3>
           <p className="text-red-400">
             {error instanceof Error ? error.message : "Fallo en la recuperación de datos de usuarios"}
           </p>
@@ -414,7 +414,7 @@ const UserManagementPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredUsers && filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
-              <div key={user.id} className="glass-panel-dark tech-border group relative overflow-hidden rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--primary),0.15)] hover:-translate-y-1">
+              <div key={user.id} className="bg-card border-border group relative overflow-hidden rounded-xl transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                   <UserCog className="w-24 h-24 text-primary" />
                 </div>
@@ -422,13 +422,13 @@ const UserManagementPage = () => {
                 <div className="p-6 relative z-10">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="font-bold text-lg text-white group-hover:text-primary transition-colors flex items-center gap-2">
+                      <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
                         {user.fullName}
                         {user.isPrimary && (
-                          <span className="flex h-2 w-2 rounded-full bg-primary shadow-[0_0_5px_rgba(var(--primary),0.8)]"></span>
+                          <span className="flex h-2 w-2 rounded-full bg-primary shadow-md"></span>
                         )}
                       </h3>
-                      <p className="text-sm text-gray-400 font-mono">@{user.username}</p>
+                      <p className="text-sm text-muted-foreground font-mono">@{user.username}</p>
                     </div>
                     {user.isPrimary ? (
                       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 uppercase text-[10px] tracking-wider">
@@ -442,13 +442,13 @@ const UserManagementPage = () => {
                   </div>
 
                   <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-sm border-b border-white/5 pb-2">
-                      <span className="text-gray-500">Rol</span>
-                      <span className="text-gray-300 uppercase text-xs font-bold tracking-wide">{user.role || "N/A"}</span>
+                    <div className="flex justify-between text-sm border-b border-border/50 pb-2">
+                      <span className="text-muted-foreground">Rol</span>
+                      <span className="text-foreground uppercase text-xs font-bold tracking-wide">{user.role || "N/A"}</span>
                     </div>
-                    <div className="flex justify-between text-sm border-b border-white/5 pb-2">
-                      <span className="text-gray-500">Alta</span>
-                      <span className="text-gray-300 font-mono text-xs">{new Date(user.createdAt).toLocaleDateString()}</span>
+                    <div className="flex justify-between text-sm border-b border-border/50 pb-2">
+                      <span className="text-muted-foreground">Alta</span>
+                      <span className="text-foreground font-mono text-xs">{new Date(user.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
@@ -456,7 +456,7 @@ const UserManagementPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-400 hover:text-primary hover:bg-primary/10"
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
                       onClick={() => handleEditUser(user)}
                       title="Editar permisos"
                     >
@@ -466,7 +466,7 @@ const UserManagementPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-400 hover:text-primary hover:bg-primary/10"
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
                       onClick={() => handleChangePassword(user)}
                       title="Cambiar contraseña"
                     >
@@ -477,7 +477,7 @@ const UserManagementPage = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
+                        className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => {
                           setDeleteUserId(user.id);
                           setIsDeleteDialogOpen(true);
@@ -492,14 +492,14 @@ const UserManagementPage = () => {
               </div>
             ))
           ) : (
-            <div className="col-span-full glass-panel-dark rounded-xl p-12 text-center border border-white/5">
-              <div className="inline-flex p-4 rounded-full bg-white/5 mb-4">
-                <Search className="w-8 h-8 text-gray-500" />
+            <div className="col-span-full bg-card rounded-xl p-12 text-center border border-border/50">
+              <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">
+              <h3 className="text-lg font-bold text-foreground mb-2">
                 No se encontraron usuarios
               </h3>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 {searchTerm ? "Ajusta los parámetros de búsqueda." : "No hay personal registrado en el sistema."}
               </p>
             </div>

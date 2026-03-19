@@ -1,5 +1,5 @@
 // ===== IMPORTACIONES PARA ANÁLISIS CON IA =====
-// Servicio de integración con Gemini
+// Servicio de integración con IA (xAI/Grok)
 import { geminiService } from "./gemini-integration";
 import { sanitizeDocumentContent, sanitizeUserInput, filterOutputLeakage } from "./ai-sanitizer";
 // Módulos de Node.js para manejo de archivos
@@ -7,7 +7,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 // ===== CONFIGURACIÓN DE IA =====
-// Usamos exclusivamente los modelos de Gemini para todas las funcionalidades de IA
+// Usamos xAI (Grok) para todas las funcionalidades de IA
 
 // ===== INTERFACE PARA RESULTADOS DE ANÁLISIS =====
 /**
@@ -90,9 +90,9 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
       ${sanitizedDocumentText}
     `;
 
-    // Usamos Gemini para el análisis de documentos
+    // Usamos xAI (Grok) para el análisis de documentos
     const analysisText = await geminiService.generateText(prompt, {
-      model: "gemini-1.5-pro", // Usando modelo disponible de Gemini
+      model: "grok-3-mini",
       temperature: 0.7,
       maxTokens: 2000
     });
@@ -106,9 +106,9 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
     if (analysisLeakageDetected) {
       console.warn("Potential output leakage detected in document analysis:", analysisLeakageFlags.join(", "));
     }
-    
+
     if (!filteredAnalysisText) {
-      throw new Error("Empty response from Gemini");
+      throw new Error("Empty response from AI");
     }
 
     // Intentar parsear la respuesta JSON
@@ -119,7 +119,7 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
     } catch (parseError) {
       console.error("Error parsing JSON response:", parseError);
       console.error("Raw response:", filteredAnalysisText);
-      
+
       // Si el JSON falla, crear un resultado básico con el texto como resumen
       return {
         summary: filteredAnalysisText.substring(0, 1000) + (filteredAnalysisText.length > 1000 ? "..." : "")
@@ -127,7 +127,7 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
     }
   } catch (error) {
     console.error("Error analyzing document:", error);
-    
+
     // Crear un resultado de error más específico
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to analyze document: ${errorMessage}`);
@@ -143,20 +143,20 @@ export async function analyzeDocument(documentText: string): Promise<DocumentAna
  * @param analysisType Tipo de análisis a realizar: 'brand', 'content', o 'audience'
  */
 export async function analyzeMarketingImage(
-  imagePath: string, 
+  imagePath: string,
   analysisType: 'brand' | 'content' | 'audience' = 'content'
 ): Promise<any> {
   try {
     // Verificar que el archivo existe
     await fs.access(imagePath);
-    
+
     // Leer archivo como Base64
     const imageBuffer = await fs.readFile(imagePath);
     const base64Image = imageBuffer.toString('base64');
-    
+
     // Seleccionar el prompt según el tipo de análisis
     let prompt: string;
-    
+
     switch (analysisType) {
       case 'brand':
         prompt = `Analiza esta imagen desde una perspectiva de branding y marketing.
@@ -167,7 +167,7 @@ export async function analyzeMarketingImage(
         4. Coherencia con estándares actuales de diseño
         5. Sugerencias para mejorar la alineación de marca`;
         break;
-      
+
       case 'audience':
         prompt = `Analiza esta imagen para identificar el público objetivo:
         1. Perfil demográfico aproximado del público objetivo
@@ -176,7 +176,7 @@ export async function analyzeMarketingImage(
         4. Posible respuesta del público objetivo
         5. Recomendaciones para mejorar la conexión con la audiencia`;
         break;
-      
+
       case 'content':
       default:
         prompt = `Analiza esta imagen como contenido de marketing:
@@ -188,13 +188,13 @@ export async function analyzeMarketingImage(
         6. Recomendaciones para optimizar su impacto`;
         break;
     }
-    
+
     // Usar el modelo de visión de Gemini para analizar la imagen
     const analysisResult = await geminiService.generateTextWithImage(
       prompt,
       base64Image,
       {
-        model: "gemini-1.5-pro",
+        model: "grok-3-mini",
         temperature: 0.5,
         maxTokens: 1500
       }
@@ -209,7 +209,7 @@ export async function analyzeMarketingImage(
     if (imageLeakageDetected) {
       console.warn("Potential output leakage detected in image analysis:", imageLeakageFlags.join(", "));
     }
-    
+
     // Analizar el resultado y estructurarlo si es posible
     try {
       // Intentar extraer datos estructurados del texto
@@ -218,7 +218,7 @@ export async function analyzeMarketingImage(
         rawAnalysis: filteredAnalysisResult,
         structuredData: extractStructuredData(filteredAnalysisResult)
       };
-      
+
       return parsedResult;
     } catch (parseError) {
       // Si no se puede estructurar, devolver el texto crudo
@@ -246,29 +246,29 @@ function extractStructuredData(text: string): any {
   } catch (e) {
     // No es un JSON válido, seguimos con el análisis de texto
   }
-  
+
   // Proceso heurístico para extraer secciones numeradas
   const result: Record<string, string> = {};
-  
+
   // Buscar patrones comunes como "1. Título: Contenido"
   const sectionRegex = /(\d+)[\.\)]\s*([^:]+):\s*([^\n]+)/g;
   let match;
-  
+
   while ((match = sectionRegex.exec(text)) !== null) {
     const [_, number, title, content] = match;
     result[title.trim()] = content.trim();
   }
-  
+
   // Si no encontramos secciones estructuradas, intentar dividir por líneas numeradas
   if (Object.keys(result).length === 0) {
     const lineRegex = /(\d+)[\.\)]\s*([^\n]+)/g;
-    
+
     while ((match = lineRegex.exec(text)) !== null) {
       const [_, number, content] = match;
       result[`Punto ${number}`] = content.trim();
     }
   }
-  
+
   return Object.keys(result).length > 0 ? result : { summary: text };
 }
 
@@ -285,8 +285,8 @@ export async function processChatMessage(
       ? sanitizeDocumentContent(JSON.stringify(projectContext, null, 2))
       : "";
 
-    // Usar el servicio de Gemini en lugar de OpenAI
-    const systemPrompt = projectContext 
+    // Usar el servicio de xAI (Grok)
+    const systemPrompt = projectContext
       ? `Eres un asistente de marketing para un proyecto llamado "${safeProjectName}" para el cliente "${safeProjectClient}". 
          Utiliza el siguiente contexto del proyecto en tus respuestas cuando sea relevante:
          ${safeProjectContext}`
@@ -294,7 +294,7 @@ export async function processChatMessage(
 
     // Preparar los mensajes para la API
     let promptText = systemPrompt + "\n\n";
-    
+
     // Añadir el historial de chat al prompt
     if (chatHistory && chatHistory.length > 0) {
       promptText += "Historial de conversación:\n";
@@ -304,13 +304,13 @@ export async function processChatMessage(
       }
       promptText += "\n";
     }
-    
+
     // Añadir el mensaje actual
     promptText += `Usuario: ${safeMessage}\n\nAsistente:`;
 
-    // Usar el servicio de Gemini con el modelo solicitado
+    // Usar el servicio de xAI (Grok)
     const response = await geminiService.generateText(promptText, {
-      model: "gemini-1.5-pro",
+      model: "grok-3-mini",
       temperature: 0.7,
       maxTokens: 1000
     });

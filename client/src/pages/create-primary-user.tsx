@@ -100,7 +100,7 @@ export default function CreatePrimaryUser() {
               <Shield className="h-6 w-6 text-primary dark:text-[#65cef5]" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold dark:text-white">Crear Usuario Primario</CardTitle>
+          <CardTitle className="text-2xl font-bold dark:text-foreground">Crear Usuario Primario</CardTitle>
           <CardDescription className="dark:text-slate-400">
             Crea una cuenta de administrador con permisos completos
           </CardDescription>
@@ -119,7 +119,7 @@ export default function CreatePrimaryUser() {
                       <FormControl>
                         <Input
                           placeholder="Juan Pérez"
-                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-white focus:dark:border-[#65cef5]"
+                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-foreground focus:dark:border-[#65cef5]"
                           {...field}
                         />
                       </FormControl>
@@ -140,7 +140,7 @@ export default function CreatePrimaryUser() {
                       <FormControl>
                         <Input
                           placeholder="admin"
-                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-white focus:dark:border-[#65cef5]"
+                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-foreground focus:dark:border-[#65cef5]"
                           {...field}
                         />
                       </FormControl>
@@ -162,7 +162,7 @@ export default function CreatePrimaryUser() {
                         <Input
                           type="password"
                           placeholder="••••••••"
-                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-white focus:dark:border-[#65cef5]"
+                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-foreground focus:dark:border-[#65cef5]"
                           {...field}
                         />
                       </FormControl>
@@ -187,7 +187,7 @@ export default function CreatePrimaryUser() {
                         <Input
                           type="password"
                           placeholder="Clave secreta"
-                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-white focus:dark:border-[#65cef5]"
+                          className="pl-9 dark:bg-[#1e293b] dark:border-[#3e4a6d] dark:text-foreground focus:dark:border-[#65cef5]"
                           {...field}
                         />
                       </FormControl>

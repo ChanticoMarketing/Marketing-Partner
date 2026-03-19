@@ -1,5 +1,6 @@
-// ===== INTEGRACIÓN CON GOOGLE GEMINI =====
-import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+// ===== INTEGRACIÓN CON xAI (Grok) =====
+// Usa el SDK de OpenAI apuntando al endpoint de xAI (api.x.ai/v1)
+import OpenAI from "openai";
 import { Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 
@@ -17,53 +18,55 @@ interface GenerateOptions {
   responseFormat?: "json" | "text";
 }
 
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-pro";
+const DEFAULT_MODEL = process.env.AI_MODEL || "grok-3-mini";
 
 export class GeminiService {
-  private client: GoogleGenerativeAI | null = null;
-  private apiKey: string;
+  private client: OpenAI | null = null;
   private wss: WebSocketServer | null = null;
 
-  constructor(apiKey: string) {
-    this.apiKey =
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      process.env.GOOGLE_GENAI_API_KEY ||
-      apiKey;
+  constructor() {
+    const apiKey =
+      process.env.XAI_API_KEY ||
+      process.env.GROK_API_KEY ||
+      "";
 
-    if (!this.apiKey) {
+    if (!apiKey) {
       console.warn(
-        "[GEMINI] No se encontró GEMINI_API_KEY. La funcionalidad de IA estará limitada."
+        "[AI] No se encontró XAI_API_KEY. La funcionalidad de IA estará limitada."
       );
       return;
     }
 
-    this.client = new GoogleGenerativeAI(this.apiKey);
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: "https://api.x.ai/v1",
+    });
+
+    console.log(`[AI] Servicio de IA inicializado con modelo por defecto: ${DEFAULT_MODEL}`);
   }
 
-  private getModel(modelId?: string): GenerativeModel {
+  private getClient(): OpenAI {
     if (!this.client) {
-      throw Object.assign(new Error("Gemini API no configurada"), {
+      throw Object.assign(new Error("API de IA no configurada"), {
         errorType: "AUTH",
       });
     }
-    const modelName = modelId || DEFAULT_MODEL;
-    return this.client.getGenerativeModel({ model: modelName });
+    return this.client;
   }
 
   initWebSocketServer(server: Server) {
     try {
-      console.log("[GEMINI-WS] Inicializando servidor WebSocket para streaming de IA...");
+      console.log("[AI-WS] Inicializando servidor WebSocket para streaming de IA...");
       this.wss = new WebSocketServer({ server });
 
       this.wss.on("connection", (ws: WebSocket) => {
-        console.log("[GEMINI-WS] Nueva conexión WebSocket establecida");
+        console.log("[AI-WS] Nueva conexión WebSocket establecida");
 
         ws.on("message", async (message: WebSocket.Data) => {
           try {
             const data = JSON.parse(message.toString());
             console.log(
-              "[GEMINI-WS] Mensaje recibido:",
+              "[AI-WS] Mensaje recibido:",
               JSON.stringify(data).substring(0, 200) + "..."
             );
 
@@ -76,7 +79,7 @@ export class GeminiService {
                   ws.send(JSON.stringify({ type: "complete", content: fullResponse }));
                 },
                 onError: (error) => {
-                  console.error("[GEMINI-WS] Error en streaming:", error);
+                  console.error("[AI-WS] Error en streaming:", error);
                   ws.send(
                     JSON.stringify({
                       type: "error",
@@ -98,7 +101,7 @@ export class GeminiService {
               }
             }
           } catch (error) {
-            console.error("[GEMINI-WS] Error procesando mensaje WebSocket:", error);
+            console.error("[AI-WS] Error procesando mensaje WebSocket:", error);
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -109,17 +112,17 @@ export class GeminiService {
         });
 
         ws.on("close", () => {
-          console.log("[GEMINI-WS] Conexión WebSocket cerrada");
+          console.log("[AI-WS] Conexión WebSocket cerrada");
         });
 
         ws.on("error", (error: Error) => {
-          console.error("[GEMINI-WS] Error en conexión WebSocket:", error);
+          console.error("[AI-WS] Error en conexión WebSocket:", error);
         });
       });
 
-      console.log("[GEMINI-WS] Servidor WebSocket inicializado correctamente");
+      console.log("[AI-WS] Servidor WebSocket inicializado correctamente");
     } catch (error) {
-      console.error("[GEMINI-WS] Error inicializando servidor WebSocket:", error);
+      console.error("[AI-WS] Error inicializando servidor WebSocket:", error);
     }
   }
 
@@ -128,36 +131,28 @@ export class GeminiService {
     callbacks: StreamCallbacks,
     options: GenerateOptions = {}
   ): Promise<void> {
+    const modelName = options.model || DEFAULT_MODEL;
     console.log(
-      `[GEMINI-STREAM] Iniciando generación en streaming con Gemini. Modelo: ${
-        options.model || DEFAULT_MODEL
-      }, Temperatura: ${options.temperature ?? 0.7}`
+      `[AI-STREAM] Iniciando generación en streaming. Modelo: ${modelName}, Temperatura: ${options.temperature ?? 0.7}`
     );
 
     try {
-      const model = this.getModel(options.model);
-      const generationConfig: Record<string, unknown> = {
+      const client = this.getClient();
+
+      const stream = await client.chat.completions.create({
+        model: modelName,
+        messages: [{ role: "user", content: prompt }],
         temperature: options.temperature ?? 0.7,
-        maxOutputTokens: options.maxTokens ?? 2000,
-      };
-
-      if (options.responseFormat === "json") {
-        generationConfig.responseMimeType = "application/json";
-      }
-
-      const streamResult = await model.generateContentStream({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig,
+        max_tokens: options.maxTokens ?? 2000,
+        stream: true,
+        ...(options.responseFormat === "json" && {
+          response_format: { type: "json_object" },
+        }),
       });
 
       let aggregated = "";
-      for await (const chunk of streamResult.stream) {
-        const chunkText = chunk.text();
+      for await (const chunk of stream) {
+        const chunkText = chunk.choices[0]?.delta?.content || "";
         if (chunkText) {
           aggregated += chunkText;
           callbacks.onMessage(chunkText);
@@ -166,7 +161,7 @@ export class GeminiService {
 
       callbacks.onComplete(aggregated);
     } catch (error: any) {
-      console.error("[GEMINI-STREAM] Error durante el streaming:", error);
+      console.error("[AI-STREAM] Error durante el streaming:", error);
       const mapped = this.mapError(error);
       callbacks.onError(mapped);
       throw mapped;
@@ -175,36 +170,29 @@ export class GeminiService {
 
   async generateText(prompt: string, options: GenerateOptions = {}): Promise<string> {
     const maxRetries = options.retryCount || 1;
+    const modelName = options.model || DEFAULT_MODEL;
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         if (maxRetries > 1) {
-          console.log(`[GEMINI] Intento ${attempt}/${maxRetries} para generación de texto`);
+          console.log(`[AI] Intento ${attempt}/${maxRetries} para generación de texto`);
         }
 
-        const model = this.getModel(options.model);
-        const generationConfig: Record<string, unknown> = {
+        const client = this.getClient();
+
+        const response = await client.chat.completions.create({
+          model: modelName,
+          messages: [{ role: "user", content: prompt }],
           temperature: options.temperature ?? 0.7,
-          maxOutputTokens: options.maxTokens ?? 2000,
-        };
-
-        if (options.responseFormat === "json") {
-          generationConfig.responseMimeType = "application/json";
-        }
-
-        const result = await model.generateContent({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig,
+          max_tokens: options.maxTokens ?? 2000,
+          ...(options.responseFormat === "json" && {
+            response_format: { type: "json_object" },
+          }),
         });
 
-        const text = result.response.text();
-        console.log(`[GEMINI] Respuesta recibida. Longitud: ${text.length} caracteres`);
+        const text = response.choices[0]?.message?.content || "";
+        console.log(`[AI] Respuesta recibida. Longitud: ${text.length} caracteres`);
         return text;
       } catch (error: any) {
         const mapped = this.mapError(error);
@@ -216,8 +204,7 @@ export class GeminiService {
           );
 
         console.error(
-          `[GEMINI] Error en intento ${attempt}/${maxRetries}: ${mapped.message}. Reintentar: ${
-            shouldRetry ? "sí" : "no"
+          `[AI] Error en intento ${attempt}/${maxRetries}: ${mapped.message}. Reintentar: ${shouldRetry ? "sí" : "no"
           }`
         );
 
@@ -232,7 +219,7 @@ export class GeminiService {
 
     throw (
       lastError ||
-      Object.assign(new Error("Error desconocido al generar con Gemini"), {
+      Object.assign(new Error("Error desconocido al generar con IA"), {
         errorType: "UNKNOWN",
       })
     );
@@ -244,37 +231,36 @@ export class GeminiService {
     options: GenerateOptions = {}
   ): Promise<string> {
     try {
-      const model = this.getModel(options.model);
-      const generationConfig: Record<string, unknown> = {
-        temperature: options.temperature ?? 0.7,
-        maxOutputTokens: options.maxTokens ?? 2000,
-      };
+      const client = this.getClient();
+      const modelName = options.model || DEFAULT_MODEL;
 
       const cleanedBase64 = imageBase64.includes(",")
         ? imageBase64.split(",").pop() || imageBase64
         : imageBase64;
 
-      const result = await model.generateContent({
-        contents: [
+      const response = await client.chat.completions.create({
+        model: modelName,
+        messages: [
           {
             role: "user",
-            parts: [
-              { text: prompt },
+            content: [
+              { type: "text", text: prompt },
               {
-                inlineData: {
-                  mimeType: "image/jpeg",
-                  data: cleanedBase64,
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${cleanedBase64}`,
                 },
               },
             ],
           },
         ],
-        generationConfig,
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 2000,
       });
 
-      const text = result.response.text();
+      const text = response.choices[0]?.message?.content || "";
       console.log(
-        `[GEMINI] Respuesta multimodal recibida. Longitud: ${text.length} caracteres`
+        `[AI] Respuesta multimodal recibida. Longitud: ${text.length} caracteres`
       );
       return text;
     } catch (error: any) {
@@ -283,33 +269,33 @@ export class GeminiService {
   }
 
   private mapError(error: any): Error {
-    if (error?.message?.includes("API key not valid")) {
-      return Object.assign(new Error("Error de autenticación con la API de Gemini."), {
+    if (error?.message?.includes("API key") || error?.status === 401) {
+      return Object.assign(new Error("Error de autenticación con la API de IA."), {
         errorType: "AUTH",
       });
     }
 
-    if (error?.message?.includes("quota") || error?.response?.status === 429) {
+    if (error?.message?.includes("quota") || error?.status === 429) {
       return Object.assign(
         new Error(
-          "Se alcanzó el límite de peticiones a Gemini. Intenta nuevamente en unos minutos."
+          "Se alcanzó el límite de peticiones. Intenta nuevamente en unos minutos."
         ),
         { errorType: "RATE_LIMIT" }
       );
     }
 
-    if (error?.response?.status >= 500) {
+    if (error?.status >= 500) {
       return Object.assign(
         new Error(
-          `Servicio de Gemini temporalmente no disponible (Error ${error.response.status}).`
+          `Servicio de IA temporalmente no disponible (Error ${error.status}).`
         ),
         { errorType: "UNAVAILABLE" }
       );
     }
 
-    if (error?.code === "FETCH_ERROR" || error?.message?.includes("network")) {
+    if (error?.code === "FETCH_ERROR" || error?.message?.includes("network") || error?.message?.includes("ECONNREFUSED")) {
       return Object.assign(
-        new Error("No se pudo conectar con Gemini. Verifica tu conexión a internet."),
+        new Error("No se pudo conectar con el servicio de IA. Verifica tu conexión a internet."),
         { errorType: "NETWORK" }
       );
     }
@@ -319,13 +305,11 @@ export class GeminiService {
     }
 
     return Object.assign(
-      new Error("Error inesperado al utilizar el servicio de Gemini."),
+      new Error("Error inesperado al utilizar el servicio de IA."),
       { errorType: "UNKNOWN" }
     );
   }
 }
 
-export const geminiService = new GeminiService(
-  process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ""
-);
-
+// Mantener el nombre de export "geminiService" para compatibilidad con los consumers
+export const geminiService = new GeminiService();

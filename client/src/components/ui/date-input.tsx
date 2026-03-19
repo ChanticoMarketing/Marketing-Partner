@@ -46,7 +46,7 @@ export function DateInput({ value, onChange, placeholder = "Seleccionar fecha" }
           value={value || ''}
           onChange={handleChange}
         />
-        <div className="h-11 w-full flex items-center border rounded-md px-3 pl-10 relative z-0 bg-black/20 border-white/10 text-white placeholder:text-gray-600 hover:border-primary/30 focus-within:border-primary/50 transition-all duration-200">
+        <div className="h-11 w-full flex items-center border rounded-md px-3 pl-10 relative z-0 bg-muted/50 border-border text-foreground placeholder:text-gray-600 hover:border-primary/30 focus-within:border-primary/50 transition-all duration-200">
           {getFormattedDate()}
         </div>
       </div>

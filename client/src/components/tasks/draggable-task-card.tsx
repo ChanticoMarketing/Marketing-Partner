@@ -69,17 +69,17 @@ export function DraggableTaskCard({
       {...attributes}
       {...listeners}
     >
-      <Card className={`glass-panel-dark border-white/5 hover:border-primary/30 transition-all duration-300 cursor-grab active:cursor-grabbing group ${isDragging ? 'opacity-50' : ''}`}>
+      <Card className={`bg-card border-border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-grab active:cursor-grabbing group ${isDragging ? 'opacity-50' : ''}`}>
         <CardContent className="p-3 space-y-2">
           <div className="flex justify-between items-start">
-            <div className="font-medium text-white">{task.title}</div>
+            <div className="font-medium text-foreground">{task.title}</div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/80">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-black/90 border-white/10 text-white">
+              <DropdownMenuContent align="end" className="bg-black/90 border-border text-foreground">
                 {/* COMMENTED OUT: TaskDetailModal not found */}
                 {/* <TaskDetailModal taskId={task.id}>
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -87,11 +87,11 @@ export function DraggableTaskCard({
                     Ver detalles
                   </DropdownMenuItem>
                 </TaskDetailModal> */}
-                <DropdownMenuItem onClick={() => onEdit(task.id)} className="focus:bg-white/10 focus:text-white">
+                <DropdownMenuItem onClick={() => onEdit(task.id)} className="focus:bg-muted/80 focus:text-foreground">
                   <Eye className="mr-2 h-4 w-4" />
                   Ver detalles
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(task.id)} className="focus:bg-white/10 focus:text-white">
+                <DropdownMenuItem onClick={() => onEdit(task.id)} className="focus:bg-muted/80 focus:text-foreground">
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar
                 </DropdownMenuItem>
@@ -106,7 +106,7 @@ export function DraggableTaskCard({
             </DropdownMenu>
           </div>
 
-          <p className="text-sm text-gray-400 line-clamp-2">{task.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
 
           <div className="flex flex-wrap gap-2">
             {renderPriorityBadge && renderPriorityBadge(task.priority)}
@@ -114,8 +114,8 @@ export function DraggableTaskCard({
           </div>
         </CardContent>
 
-        <CardFooter className="p-3 pt-0 flex items-center justify-between border-t border-white/5 mt-2 pt-2">
-          <div className="flex items-center text-sm text-gray-400">
+        <CardFooter className="p-3 pt-0 flex items-center justify-between border-t border-border/50 mt-2 pt-2">
+          <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="mr-1 h-3 w-3 text-primary/70" />
             {formattedDate}
           </div>
@@ -123,30 +123,30 @@ export function DraggableTaskCard({
           {assignedUser ? (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white/5">
-                  <Avatar className="h-7 w-7 border border-white/10">
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
+                  <Avatar className="h-7 w-7 border border-border">
                     <AvatarFallback className="bg-primary/20 text-primary text-xs">
                       {assignedUser.fullName?.substring(0, 2).toUpperCase() || 'NA'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-2 bg-black/90 border-white/10 text-white" align="end">
+              <PopoverContent className="w-80 p-2 bg-black/90 border-border text-foreground" align="end">
                 <div className="flex items-center space-x-2">
-                  <Avatar className="border border-white/10">
+                  <Avatar className="border border-border">
                     <AvatarFallback className="bg-primary/20 text-primary">
                       {assignedUser.fullName?.substring(0, 2).toUpperCase() || 'NA'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium text-white">{assignedUser.fullName}</div>
-                    <div className="text-sm text-gray-400">{assignedUser.username}</div>
+                    <div className="font-medium text-foreground">{assignedUser.fullName}</div>
+                    <div className="text-sm text-muted-foreground">{assignedUser.username}</div>
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
           ) : (
-            <UserCircle2 className="h-5 w-5 text-gray-500" />
+            <UserCircle2 className="h-5 w-5 text-muted-foreground" />
           )}
         </CardFooter>
       </Card>
