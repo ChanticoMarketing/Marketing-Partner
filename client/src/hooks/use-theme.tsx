@@ -118,20 +118,10 @@ export function ThemeProvider({
     // Aplicar el nuevo esquema de color
     root.classList.add(`color-${colorScheme}`);
 
-    // Actualizar variables CSS para el esquema de color
-    if (colorScheme === "brand") {
-      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan
-    } else if (colorScheme === "amber") {
-      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan Fallback
-    } else if (colorScheme === "blue") {
-      document.documentElement.style.setProperty('--primary', '184 100% 50%'); // Neon Cyan Fallback
-    } else if (colorScheme === "green") {
-      document.documentElement.style.setProperty('--primary', '162 47% 50%'); // Muted Sage
-    } else if (colorScheme === "purple") {
-      document.documentElement.style.setProperty('--primary', '255 45% 60%'); // Muted Lavender
-    } else if (colorScheme === "red") {
-      document.documentElement.style.setProperty('--primary', '0 50% 60%'); // Muted Coral
-    }
+    // Delegation to index.css - No hardcoded overrides for Carbon & Quartz
+    document.documentElement.style.removeProperty('--primary');
+    // Si necesitas diferenciar los temas sutilmente a futuro, hazlo aquí, 
+    // pero para el estilo Linear, la paleta es estricta.
   }, [colorScheme]);
 
   // Aplicar tamaño de fuente
