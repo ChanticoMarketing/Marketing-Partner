@@ -2,7 +2,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useCallback, useEffect } from "react";
 import { Schedule, ScheduleEntry } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient, getDownloadUrl } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 // Components
 import { Loader2, Share2, Download, Copy, Clipboard, Calendar, Clock, ImageIcon, Save, MessageSquare, Edit, AlertCircle, CheckCircle, RefreshCw, Sparkles } from "lucide-react";
@@ -30,6 +33,13 @@ export default function ScheduleDetail({ id }: { id: number }) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState<string>("");
   const [isSavingComments, setIsSavingComments] = useState(false);
+
+  // ponytail: realtime sync para schedule entries
+  useRealtimeSync({
+    table: 'schedule_entries',
+    filter: `schedule_id=eq.${id}`,
+    queryKey: ["schedules", id]
+  });
   
   // Estados para el modo de revisión
   const [isReviewMode, setIsReviewMode] = useState(false);
@@ -65,11 +75,19 @@ export default function ScheduleDetail({ id }: { id: number }) {
   
   // Fetch schedule data
   const { data: schedule, isLoading, error, refetch } = useQuery<Schedule & { entries: ScheduleEntry[] }>({
-    queryKey: [`/api/schedules/${id}`],
+    queryKey: ["schedules", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*, schedule_entries(*)")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return fromDb<Schedule & { entries: ScheduleEntry[] }>("schedules", data);
+    },
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-    staleTime: 0, // Los datos siempre se consideran obsoletos
-    // Aseguramos que se carguen los datos cada vez que se monta el componente
+    staleTime: 0,
   });
   
   // Efecto para inicializar las instrucciones adicionales cuando se cargan los datos
@@ -116,12 +134,13 @@ export default function ScheduleDetail({ id }: { id: number }) {
   const generateImageMutation = useMutation({
     mutationFn: async (entryId: number) => {
       setIsGeneratingImage(entryId);
-      const response = await apiRequest("POST", `/api/schedule-entries/${entryId}/generate-image`, {});
-      return response.json();
+      const { data, error } = await supabase.functions.invoke('generate-entry-image', { body: { entryId } });
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       // Actualiza la caché para reflejar la nueva imagen
-      queryClient.invalidateQueries({ queryKey: [`/api/schedules/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", id] });
       
       toast({
         title: "Imagen generada",
@@ -211,12 +230,10 @@ export default function ScheduleDetail({ id }: { id: number }) {
   // Mutation para guardar comentarios
   const updateCommentsMutation = useMutation({
     mutationFn: async ({ entryId, comments }: { entryId: number, comments: string }) => {
-      const response = await apiRequest("PATCH", `/api/schedule-entries/${entryId}/comments`, { comments });
-      return response.json();
+      return dbQuery("schedule_entries").updateSingle({ comments }, { id: entryId });
     },
     onSuccess: () => {
-      // Actualiza la caché para reflejar los nuevos comentarios
-      queryClient.invalidateQueries({ queryKey: [`/api/schedules/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", id] });
       
       toast({
         title: "Comentarios guardados",
@@ -314,23 +331,17 @@ export default function ScheduleDetail({ id }: { id: number }) {
   // Mutation para guardar comentarios en modo de revisión
   const submitReviewMutation = useMutation({
     mutationFn: async (data: { generalComments: string, entryComments: Record<number, string> }) => {
-      // Primero actualizamos las instrucciones adicionales del cronograma
-      const scheduleResponse = await apiRequest("PATCH", `/api/schedules/${id}/additional-instructions`, { 
-        additionalInstructions: data.generalComments 
-      });
-      
-      // Luego actualizamos los comentarios de cada entrada
+      await dbQuery("schedules").updateSingle(
+        { additionalInstructions: data.generalComments },
+        { id }
+      );
       const entryPromises = Object.entries(data.entryComments).map(([entryId, comments]) => {
-        return apiRequest("PATCH", `/api/schedule-entries/${entryId}/comments`, { comments });
+        return dbQuery("schedule_entries").updateSingle({ comments }, { id: parseInt(entryId) });
       });
-      
       await Promise.all(entryPromises);
-      
-      return scheduleResponse.json();
     },
     onSuccess: () => {
-      // Actualiza la caché para reflejar los nuevos comentarios
-      queryClient.invalidateQueries({ queryKey: [`/api/schedules/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", id] });
       
       toast({
         title: "Revisión guardada",
@@ -359,14 +370,13 @@ export default function ScheduleDetail({ id }: { id: number }) {
   // Mutation para guardar instrucciones adicionales
   const saveInstructionsMutation = useMutation({
     mutationFn: async (instructions: string) => {
-      const response = await apiRequest("PATCH", `/api/schedules/${id}/additional-instructions`, {
-        additionalInstructions: instructions
-      });
-      return response.json();
+      return dbQuery("schedules").updateSingle(
+        { additionalInstructions: instructions },
+        { id }
+      );
     },
     onSuccess: () => {
-      // Actualiza la caché para reflejar las nuevas instrucciones
-      queryClient.invalidateQueries({ queryKey: [`/api/schedules/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", id] });
       
       toast({
         title: "Instrucciones guardadas",
@@ -397,21 +407,23 @@ export default function ScheduleDetail({ id }: { id: number }) {
   // Mutation para regenerar el cronograma con las instrucciones adicionales
   const regenerateScheduleMutation = useMutation({
     mutationFn: async () => {
-      // Enviamos una solicitud para regenerar el cronograma con las áreas seleccionadas e instrucciones específicas
-      const response = await apiRequest("POST", `/api/schedules/${id}/regenerate`, {
-        additionalInstructions,
-        selectedAreas: Object.values(selectedAreas).some(Boolean) ? selectedAreas : null,
-        specificInstructions: Object.values(selectedAreas).some(Boolean) ? specificInstructions : null
+      const { data, error } = await supabase.functions.invoke('regenerate-schedule', {
+        body: {
+          scheduleId: id,
+          additionalInstructions,
+          selectedAreas: Object.values(selectedAreas).some(Boolean) ? selectedAreas : null,
+          specificInstructions: Object.values(selectedAreas).some(Boolean) ? specificInstructions : null
+        }
       });
-      return response.json();
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       // Forzar actualización inmediata de los datos
-      queryClient.setQueryData([`/api/schedules/${id}`], data);
+      queryClient.setQueryData(["schedules", id], data);
       
-      // Invalidar y refrescar todas las queries relacionadas
-      queryClient.invalidateQueries({ queryKey: [`/api/schedules/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/schedules/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", id] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", "recent"] });
       
       // Forzar re-fetch inmediato para asegurar datos actualizados
       refetch();
@@ -510,14 +522,20 @@ export default function ScheduleDetail({ id }: { id: number }) {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => window.open(`/api/schedules/${id}/download?format=excel`, '_blank')}
+            onClick={async () => {
+              const url = await getDownloadUrl(`/api/schedules/${id}/download?format=excel`);
+              window.open(url, '_blank');
+            }}
           >
             <Download className="w-4 h-4 mr-2" />
             Descargar Excel
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => window.open(`/api/schedules/${id}/download?format=pdf`, '_blank')}
+            onClick={async () => {
+              const url = await getDownloadUrl(`/api/schedules/${id}/download?format=pdf`);
+              window.open(url, '_blank');
+            }}
           >
             <Download className="w-4 h-4 mr-2" />
             Descargar PDF

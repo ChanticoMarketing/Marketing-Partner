@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useParams } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -48,18 +49,9 @@ export default function ImageAnalysisPanel() {
   // Mutation para subir y analizar la imagen
   const analyzeImageMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch(`/api/projects/${projectId}/analyze-image`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || response.statusText);
-      }
-      
-      return await response.json();
+      const { data, error } = await supabase.functions.invoke('analyze-image', { body: formData });
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data: any) => {
       setAnalysisResult(data as ImageAnalysisResult);
@@ -125,6 +117,7 @@ export default function ImageAnalysisPanel() {
     const formData = new FormData();
     formData.append('image', selectedFile);
     formData.append('analysisType', analysisType);
+    formData.append('projectId', projectId);
     
     // Ejecutar la mutación
     analyzeImageMutation.mutate(formData);

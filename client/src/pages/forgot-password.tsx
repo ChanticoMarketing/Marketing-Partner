@@ -9,12 +9,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-// Form schema
 const forgotPasswordSchema = z.object({
-  identifier: z.string().min(1, "Usuario o correo electrónico requerido"),
+  email: z.string().email("Email inválido"),
 });
 
 export default function ForgotPasswordPage() {
@@ -22,38 +21,25 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Define form
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      identifier: "",
-    },
+    defaultValues: { email: "" },
   });
 
-  // Handle form submission
   const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
     setIsSubmitting(true);
     try {
-      const response = await apiRequest("POST", "/api/request-password-reset", data);
-      const result = await response.json();
-      
-      if (response.ok) {
-        setIsSubmitted(true);
-        // Si estamos en modo desarrollo, mostramos el token para facilitar pruebas
-        if (result.debugToken && process.env.NODE_ENV !== 'production') {
-          console.log("Token para pruebas:", result.debugToken);
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: result.message || "Ocurrió un error al procesar tu solicitud",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Ha ocurrido un problema al conectar con el servidor",
+        description: error.message || "Ocurrió un error al procesar tu solicitud",
         variant: "destructive",
       });
     } finally {
@@ -73,7 +59,7 @@ export default function ForgotPasswordPage() {
             </div>
             <CardTitle className="text-2xl">Recuperar Contraseña</CardTitle>
             <CardDescription>
-              Ingresa tu nombre de usuario y te enviaremos instrucciones para restablecer tu contraseña
+              Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -82,7 +68,7 @@ export default function ForgotPasswordPage() {
                 <Check className="h-4 w-4 text-primary" />
                 <AlertTitle>Solicitud enviada</AlertTitle>
                 <AlertDescription>
-                  Si el usuario existe en nuestro sistema, recibirás instrucciones para restablecer tu contraseña. 
+                  Si el email existe en nuestro sistema, recibirás instrucciones para restablecer tu contraseña.
                   Por favor, revisa tu correo electrónico.
                 </AlertDescription>
               </Alert>
@@ -91,22 +77,18 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="identifier"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Usuario</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ingresa tu nombre de usuario" {...field} />
+                          <Input type="email" placeholder="Ingresa tu email" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isSubmitting}
-                  >
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? "Enviando..." : "Enviar instrucciones"}
                   </Button>
                 </form>

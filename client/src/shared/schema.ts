@@ -127,9 +127,15 @@ export type Document = {
     projectId: number;
     name: string;
     type: string;
+    category: string;
+    subcategory: string;
+    status: "draft" | "processing" | "review" | "approved" | "failed" | "archived";
+    sourceKind: "upload" | "manual";
     content: string | null;
     metadata: any;
     uploadedBy: string | null;
+    approvedBy: string | null;
+    approvedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -147,6 +153,7 @@ export type Schedule = {
     name: string;
     description: string | null;
     additionalInstructions: string | null;
+    startDate: Date | null;
     createdBy: string | null;
     createdAt: Date;
     updatedAt: Date;
@@ -173,6 +180,8 @@ export type ScheduleEntry = {
     postTime: string;
     hashtags: string | null;
     comments: string | null;
+    referenceImageUrl: string | null;
+    referenceImagePrompt: string | null;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -257,7 +266,7 @@ export type ProjectView = {
     id: number;
     projectId: number;
     name: string;
-    type: "list" | "kanban" | "calendar" | "gantt" | "table";
+    type: "list" | "kanban" | "calendar" | "gantt" | "table" | "board";
     config: any;
     isDefault: boolean | null;
     createdBy: string | null;
@@ -474,7 +483,7 @@ export type UpdateProfile = {
 // These are plain objects, not Drizzle ORM enums, to avoid bundling Node.js modules
 
 export const viewTypeEnum = {
-    enumValues: ["list", "kanban", "calendar", "gantt", "table"] as const
+    enumValues: ["list", "kanban", "calendar", "gantt", "table", "board"] as const
 };
 
 export const taskStatusEnum = {

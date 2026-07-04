@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,20 +8,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
-// Esquemas de validación
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Usuario o email es requerido"),
+  email: z.string().email("Email invalido"),
   password: z.string().min(1, "Contraseña es requerida"),
 });
 
 const registerSchema = z.object({
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  email: z.string().email("Email inválido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
   confirmPassword: z.string().min(6, "Confirma tu contraseña"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -34,116 +34,79 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const [isLoading, setIsLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isLoading: isAuthLoading, loginMutation, registerMutation } = useAuth();
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      identifier: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: "",
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/login", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Éxito",
-        description: "Has iniciado sesión correctamente",
-      });
-      window.location.href = "/";
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Error al iniciar sesión",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterForm) => {
-      const response = await apiRequest("POST", "/api/register", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Éxito",
-        description: "Tu cuenta ha sido creada correctamente",
-      });
-      window.location.href = "/";
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Error al crear la cuenta",
-        variant: "destructive",
-      });
-    },
+    defaultValues: { fullName: "", username: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onLoginSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      await loginMutation.mutateAsync(data);
-    } finally {
-      setIsLoading(false);
-    }
+    await loginMutation.mutateAsync({ email: data.email, password: data.password });
   };
 
   const onRegisterSubmit = async (data: RegisterForm) => {
-    setIsLoading(true);
-    try {
-      await registerMutation.mutateAsync(data);
-    } finally {
-      setIsLoading(false);
+    await registerMutation.mutateAsync({
+      fullName: data.fullName,
+      username: data.username,
+      email: data.email,
+      password: data.password,
+    });
+  };
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    window.location.href = "/api/auth/google";
-  };
+  const isLoading = loginMutation.isPending || registerMutation.isPending;
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      setLocation("/");
+    }
+  }, [isAuthLoading, setLocation, user]);
+
+  if (!isAuthLoading && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Redirigiendo al dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div 
-      className="w-full bg-muted/30" 
-      style={{ 
-        minHeight: '100vh',
-        height: 'auto',
-        overflow: 'visible',
-        position: 'relative'
-      }}
+    <div
+      className="w-full bg-muted/30"
+      style={{ minHeight: '100vh', height: 'auto', overflow: 'visible', position: 'relative' }}
     >
-      <div 
-        className="container mx-auto py-8 px-4" 
-        style={{ 
-          height: 'auto',
-          minHeight: '100vh',
-          overflow: 'visible'
-        }}
+      <div
+        className="container mx-auto py-8 px-4"
+        style={{ height: 'auto', minHeight: '100vh', overflow: 'visible' }}
       >
         <div className="grid w-full max-w-5xl mx-auto grid-cols-1 md:grid-cols-2 gap-8" style={{ height: 'auto' }}>
-          {/* Auth Forms */}
           <Card className="w-full">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-2">
@@ -162,18 +125,18 @@ export default function AuthPage() {
                   <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
                   <TabsTrigger value="register">Registrarse</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="login">
                   <Form {...loginForm}>
                     <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                       <FormField
                         control={loginForm.control}
-                        name="identifier"
+                        name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Usuario o Email</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ingresa tu usuario o email" {...field} />
+                              <Input type="email" placeholder="Ingresa tu email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -187,10 +150,10 @@ export default function AuthPage() {
                             <FormLabel>Contraseña</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Input 
-                                  type={showLoginPassword ? "text" : "password"} 
-                                  placeholder="Ingresa tu contraseña" 
-                                  {...field} 
+                                <Input
+                                  type={showLoginPassword ? "text" : "password"}
+                                  placeholder="Ingresa tu contraseña"
+                                  {...field}
                                 />
                                 <Button
                                   type="button"
@@ -200,11 +163,7 @@ export default function AuthPage() {
                                   onClick={() => setShowLoginPassword(!showLoginPassword)}
                                   aria-label={showLoginPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                 >
-                                  {showLoginPassword ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
+                                  {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -213,7 +172,7 @@ export default function AuthPage() {
                         )}
                       />
                       <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? (
+                        {loginMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Iniciando sesión...
@@ -292,7 +251,7 @@ export default function AuthPage() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email (opcional)</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input type="email" placeholder="Ingresa tu email" {...field} />
                             </FormControl>
@@ -308,10 +267,10 @@ export default function AuthPage() {
                             <FormLabel>Contraseña</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Input 
-                                  type={showRegisterPassword ? "text" : "password"} 
-                                  placeholder="Crea una contraseña" 
-                                  {...field} 
+                                <Input
+                                  type={showRegisterPassword ? "text" : "password"}
+                                  placeholder="Crea una contraseña"
+                                  {...field}
                                 />
                                 <Button
                                   type="button"
@@ -321,11 +280,7 @@ export default function AuthPage() {
                                   onClick={() => setShowRegisterPassword(!showRegisterPassword)}
                                   aria-label={showRegisterPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                 >
-                                  {showRegisterPassword ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
+                                  {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -341,10 +296,10 @@ export default function AuthPage() {
                             <FormLabel>Confirmar Contraseña</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Input 
-                                  type={showConfirmPassword ? "text" : "password"} 
-                                  placeholder="Confirma tu contraseña" 
-                                  {...field} 
+                                <Input
+                                  type={showConfirmPassword ? "text" : "password"}
+                                  placeholder="Confirma tu contraseña"
+                                  {...field}
                                 />
                                 <Button
                                   type="button"
@@ -354,11 +309,7 @@ export default function AuthPage() {
                                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                   aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                 >
-                                  {showConfirmPassword ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
+                                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                               </div>
                             </FormControl>
@@ -367,7 +318,7 @@ export default function AuthPage() {
                         )}
                       />
                       <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? (
+                        {registerMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Creando cuenta...
@@ -420,17 +371,14 @@ export default function AuthPage() {
             </CardFooter>
           </Card>
 
-          {/* Marketing Copy */}
           <div className="hidden md:flex flex-col justify-center">
             <div className="space-y-6">
-              <h1 className="text-3xl font-bold">
-                Impulsa tu Marketing Digital
-              </h1>
+              <h1 className="text-3xl font-bold">Impulsa tu Marketing Digital</h1>
               <p className="text-lg text-muted-foreground">
-                Cohete Workflow es tu plataforma integral para gestionar proyectos de marketing digital 
+                Cohete Workflow es tu plataforma integral para gestionar proyectos de marketing digital
                 con herramientas avanzadas de inteligencia artificial y colaboración en tiempo real.
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
@@ -443,7 +391,7 @@ export default function AuthPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                     <Users className="h-4 w-4 text-primary" />
@@ -455,7 +403,7 @@ export default function AuthPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                     <TrendingUp className="h-4 w-4 text-primary" />

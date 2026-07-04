@@ -1,9 +1,23 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UpdateProfile, User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
+
+type UpdateProfile = {
+  fullName?: string;
+  bio?: string;
+  jobTitle?: string;
+  department?: string;
+  phoneNumber?: string;
+  preferredLanguage?: string;
+  theme?: string;
+  profileImage?: string;
+  coverImage?: string;
+  nickname?: string;
+  firstName?: string;
+  lastName?: string;
+};
 
 export function useProfile() {
   const { toast } = useToast();
@@ -13,24 +27,36 @@ export function useProfile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateProfile) => {
-      const res = await apiRequest("/api/user/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: "Error de conexión" }));
-        throw new Error(errorData.message || "Error al actualizar el perfil");
-      }
-      return res.json() as Promise<User>;
+      if (!user) throw new Error("No hay usuario autenticado");
+
+      const { data: updated, error } = await supabase
+        .from("users")
+        .update({
+          full_name: data.fullName,
+          bio: data.bio,
+          job_title: data.jobTitle,
+          department: data.department,
+          phone_number: data.phoneNumber,
+          preferred_language: data.preferredLanguage,
+          theme: data.theme,
+          profile_image: data.profileImage,
+          cover_image: data.coverImage,
+          nickname: data.nickname,
+          first_name: data.firstName,
+          last_name: data.lastName,
+        })
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updated;
     },
     onSuccess: (data) => {
       toast({
         title: "Perfil actualizado",
         description: "Tus datos de perfil se han actualizado correctamente",
       });
-      
-      // Actualizar la caché del usuario actual
       queryClient.setQueryData(["/api/user"], data);
     },
     onError: (error: Error) => {
@@ -43,17 +69,11 @@ export function useProfile() {
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
-      const res = await apiRequest("/api/profile/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
+    mutationFn: async ({ newPassword }: { currentPassword?: string; newPassword: string }) => {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error al cambiar la contraseña");
-      }
-      return res.json();
+      if (error) throw error;
     },
     onSuccess: () => {
       toast({
@@ -70,35 +90,32 @@ export function useProfile() {
     },
   });
 
-  // Esta función maneja la carga de imágenes de perfil
   const uploadProfileImage = async (file: File) => {
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("profileImage", file);
+      if (!user) throw new Error("No hay usuario autenticado");
 
-      // Enviar la imagen al endpoint
-      const response = await fetch('/api/user/profile-image', {
-        method: 'POST',
-        body: formData,
-      });
+      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("profile-images")
+        .upload(filePath, file, { upsert: true });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al subir la imagen");
-      }
+      if (uploadError) throw uploadError;
 
-      const data = await response.json();
-      
-      // Actualizamos el perfil con la nueva URL de imagen
-      await updateProfileMutation.mutateAsync({ profileImage: data.profileImage });
-      
+      const { data: urlData } = supabase.storage
+        .from("profile-images")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+
+      await updateProfileMutation.mutateAsync({ profileImage: publicUrl });
+
       toast({
         title: "Imagen actualizada",
         description: "Tu foto de perfil se ha actualizado correctamente",
       });
-      
-      return data.profileImage;
+
+      return publicUrl;
     } catch (error) {
       toast({
         title: "Error al subir imagen",
@@ -120,6 +137,6 @@ export function useProfile() {
     isUpdating: updateProfileMutation.isPending,
     isChangingPassword: changePasswordMutation.isPending,
     isUploading,
-    user
+    user,
   };
 }

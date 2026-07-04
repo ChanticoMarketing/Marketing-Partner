@@ -1,5 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -16,7 +18,15 @@ interface Project {
 
 export default function RecentProjects() {
   const { data: projects = [] } = useQuery<any[]>({
-    queryKey: ["/api/projects"],
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data);
+    },
     staleTime: 30000,
   });
   const [, setLocation] = useLocation();

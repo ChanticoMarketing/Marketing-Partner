@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Project } from "@shared/schema";
 import { Bot, SendHorizontal, Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -29,16 +32,41 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Sincronización en tiempo real para mensajes de chat
+  useRealtimeSync({
+    table: 'chat_messages',
+    filter: selectedProject ? `project_id=eq.${selectedProject}` : undefined,
+    queryKey: ['projects', selectedProject, 'chat'],
+    enabled: isOpen && !!selectedProject
+  });
   
   // Fetch all projects
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ["/api/projects"],
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Project>("projects", data);
+    },
     enabled: isOpen,
   });
 
   // Fetch chat history for selected project
   const { data: chatHistory, isLoading: isChatHistoryLoading } = useQuery({
-    queryKey: ['/api/projects', selectedProject, 'chat'],
+    queryKey: ['projects', selectedProject, 'chat'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("project_id", selectedProject)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<ChatMessage>("chat_messages", data);
+    },
     enabled: isOpen && selectedProject !== null,
     retry: false,
     refetchOnWindowFocus: false,
@@ -69,12 +97,13 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
   // Mutation for sending chat messages
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { message: string; projectId: number }) => {
-      const response = await apiRequest("POST", "/api/chat", data);
-      return await response.json();
+      const { data: result, error } = await supabase.functions.invoke('chat', { body: { message: data.message, projectId: data.projectId } });
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/projects', selectedProject, 'chat'] 
+        queryKey: ['projects', selectedProject, 'chat'] 
       });
     },
     onError: (error) => {

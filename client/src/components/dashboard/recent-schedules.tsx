@@ -1,5 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -16,7 +18,16 @@ interface Schedule {
 
 export default function RecentSchedules() {
   const { data: schedules = [] } = useQuery<any[]>({
-    queryKey: ["/api/schedules/recent"],
+    queryKey: ["schedules", "recent"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return fromDbArray("schedules", data);
+    },
     staleTime: 30000,
   });
   const [, setLocation] = useLocation();

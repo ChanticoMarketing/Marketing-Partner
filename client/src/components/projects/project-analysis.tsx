@@ -3,7 +3,9 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -58,13 +60,11 @@ const analysisSchema = z.object({
   // Strategy
   objectives: z.string().optional(),
   marketingStrategies: z.string().optional(),
-  competitorAnalysis: z.string().optional(), // Using string for text area input, could be JSON later
 
   // Communication
   brandTone: z.string().optional(),
   brandCommunicationStyle: z.string().optional(),
   keywords: z.string().optional(),
-  contentThemes: z.string().optional(), // JSON in DB, string here for simple edit
 
   // Policies
   responsePolicyPositive: z.string().optional(),
@@ -165,8 +165,17 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
   // Update analysis mutation
   const updateAnalysisMutation = useMutation({
     mutationFn: async (values: z.infer<typeof analysisSchema>) => {
-      const res = await apiRequest("PATCH", `/api/projects/${project.id}/analysis`, values);
-      return await res.json();
+      const payload = { ...values, projectId: project.id };
+      // Check if analysis exists, then update or insert
+      const { data: existing } = await supabase
+        .from("analysis_results")
+        .select("id")
+        .eq("project_id", project.id)
+        .maybeSingle();
+      if (existing) {
+        return dbQuery("analysis_results").updateSingle(payload, { projectId: project.id });
+      }
+      return dbQuery("analysis_results").insertSingle(payload);
     },
     onSuccess: () => {
       toast({
@@ -174,7 +183,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
         description: "El cerebro de la marca ha sido actualizado correctamente.",
       });
       // Invalidate project query to refresh data
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${project.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["projects", project.id] });
       setIsEditing(false);
     },
     onError: (error) => {

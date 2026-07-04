@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -53,7 +55,15 @@ export default function QuickCalendar() {
   });
 
   const { data: projects } = useQuery<any[]>({
-    queryKey: ["/api/projects"],
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data);
+    },
     staleTime: 30000,
   });
 
@@ -77,25 +87,22 @@ export default function QuickCalendar() {
         additionalInstructions: `Este es un calendario RÁPIDO y simple. IMPORTANTE: NO uses cantidad fija de publicaciones. Debes ADAPTARTE completamente a las especificaciones del proyecto y sus redes sociales configuradas. Si el proyecto define frecuencias mensuales (ej: 20 publicaciones/mes), calcula proporcionalmente para el período de ${data.duration} días. Mantén el contenido directo y efectivo pero respeta siempre las características específicas de cada proyecto.`,
       };
 
-      const response = await fetch(`/api/projects/${data.projectId}/schedule`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
+      const { data: result, error: invokeError } = await supabase.functions.invoke('generate-schedule', {
+        body: requestData
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "Error al generar el cronograma");
+      if (invokeError) {
+        throw new Error(invokeError.message || "Error al generar el cronograma");
       }
 
-      return response.json();
+      return result;
     },
     onSuccess: (schedule) => {
       toast({
         title: "¡Cronograma generado exitosamente!",
         description: `Se creó "${schedule.name}" con ${schedule.entries?.length || 0} entradas`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["schedules"] });
       setLocation(`/schedules/${schedule.id}`);
     },
     onError: (error: any) => {

@@ -1,4 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -7,13 +9,30 @@ import { CalendarDays, CalendarPlus, Clock, LayoutDashboard, ListTodo, Rocket } 
 export default function QuickActions() {
   // Fetch project count
   const { data: projects } = useQuery<any[]>({
-    queryKey: ["/api/projects"],
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data);
+    },
     staleTime: 30000,
   });
 
   // Fetch recent schedules
   const { data: schedules } = useQuery<any[]>({
-    queryKey: ["/api/schedules/recent"],
+    queryKey: ["schedules", "recent"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return fromDbArray("schedules", data);
+    },
     staleTime: 30000,
   });
 

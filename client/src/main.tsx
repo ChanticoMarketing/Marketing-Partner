@@ -6,56 +6,8 @@ import { StrictMode } from "react";
 import App from "./App";
 // Estilos globales de la aplicación
 import "./index.css";
-// Utilidad para corregir problemas de WebSocket en Replit (YA NO SE USA)
-// import { fixViteWebsocketInReplit } from "./lib/vite-websocket-fix";
 // Provider para tours guiados (importado aquí para configuración global)
 import { AppTourProvider } from "./hooks/use-app-tour";
-
-// ===== CORRECCIÓN DE WEBSOCKET PARA REPLIT (DESACTIVADO) =====
-// Arreglar el problema de WebSocket en Replit
-// Esta implementación corrige los problemas básicos sin desactivar funcionalidad
-// fixViteWebsocketInReplit();
-
-// ===== INTERCEPTORES DE ERRORES =====
-// Interceptor robusto para filtrar errores conocidos de DOMException y WebSocket
-if (typeof window !== 'undefined') {
-  // ===== INTERCEPTOR DE ERRORES DE CONSOLA =====
-  // Guardar referencia al método original de console.error
-  const originalConsoleError = console.error;
-
-  // Sobrescribir console.error para filtrar errores específicos
-  console.error = function (...args) {
-    const errorStr = args.join(' ');
-
-    // Filtrar errores conocidos que no son críticos en Replit
-    if (errorStr.includes('DOMException') ||
-      errorStr.includes('WebSocket') ||
-      errorStr.includes('INVALID_STATE_ERR') ||
-      errorStr.includes('[vite] ws connection failed')) {
-      return; // No mostrar estos errores en consola
-    }
-
-    // Mostrar todos los demás errores normalmente
-    originalConsoleError.apply(console, args);
-  };
-
-  // ===== INTERCEPTOR DE PROMESAS RECHAZADAS =====
-  // Manejar promesas rechazadas no capturadas
-  window.addEventListener('unhandledrejection', function (event) {
-    // Filtrar errores específicos de DOMException y WebSocket
-    if (event.reason &&
-      (event.reason.name === 'DOMException' ||
-        (event.reason.message && (
-          event.reason.message.includes('WebSocket') ||
-          event.reason.message.includes('INVALID_STATE_ERR')
-        ))
-      )
-    ) {
-      // Prevenir que estos errores aparezcan en la consola
-      event.preventDefault();
-    }
-  });
-}
 
 // ===== DEBUG Y VERIFICACIÓN =====
 // Confirmar que el script se está ejecutando correctamente

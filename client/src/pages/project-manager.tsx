@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -112,22 +114,24 @@ export default function ProjectManager() {
 
   // Consulta para obtener todos los proyectos
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Project>("projects", data);
+    },
   });
 
   // Crear nueva tarea
   const createTaskMutation = useMutation({
     mutationFn: async (taskData: Partial<Task>) => {
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData),
-      });
-      if (!response.ok) throw new Error('Error al crear tarea');
-      return response.json();
+      return dbQuery("tasks").insertSingle(taskData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks-with-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-with-groups'] });
       toast({ title: 'Tarea creada exitosamente' });
     },
   });
@@ -135,16 +139,10 @@ export default function ProjectManager() {
   // Actualizar tarea
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Task> & { id: number }) => {
-      const response = await fetch(`/api/tasks/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-      if (!response.ok) throw new Error('Error al actualizar tarea');
-      return response.json();
+      return dbQuery("tasks").updateSingle(updates, { id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks-with-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-with-groups'] });
       toast({ title: 'Tarea actualizada exitosamente' });
     },
   });

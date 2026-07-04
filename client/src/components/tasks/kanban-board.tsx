@@ -66,7 +66,6 @@ const createColumns = (tasks: Task[], groupBy: string) => {
         columns: [
           { id: 'pending', title: 'Pendiente' },
           { id: 'in_progress', title: 'En Progreso' },
-          { id: 'review', title: 'Revisión' },
           { id: 'completed', title: 'Completada' }
         ],
         getGroupForTask: (task: Task) => task.status || 'pending'
@@ -201,7 +200,6 @@ export function KanbanBoard({
         className = "bg-blue-500/20 text-blue-500 border-blue-500/30 hover:bg-blue-500/30";
         break;
       case 'revision':
-      case 'review':
         className = "bg-purple-500/20 text-purple-500 border-purple-500/30 hover:bg-purple-500/30";
         break;
       case 'completada':

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,7 +106,15 @@ export default function AnalyticsPage() {
 
   // Obtener proyectos
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Project>("projects", data);
+    },
     staleTime: 30000,
   });
 

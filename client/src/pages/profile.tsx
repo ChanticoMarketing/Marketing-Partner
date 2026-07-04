@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, uploadFile } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Camera, Upload, User, Loader2, Settings, Plus, X, MapPin, Briefcase, Heart, Award, Lock, Activity, Bell, Shield, BarChart3, Calendar, Clock, CheckCircle2, Eye, EyeOff, Edit, Save, Trash2, Image as ImageIcon, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -135,7 +137,18 @@ export default function ProfilePage() {
 
   // Fetch user profile
   const { data: user, isLoading } = useQuery<UserProfile>({
-    queryKey: ["/api/user"],
+    queryKey: ["user"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      if (error) throw error;
+      return fromDb<UserProfile>("users", data);
+    },
   });
 
   useEffect(() => {
@@ -181,13 +194,31 @@ export default function ProfilePage() {
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: Partial<UserProfile>) => {
-      console.log("Ejecutando mutación con datos:", data);
-      return apiRequest("PATCH", "/api/user/profile", data);
+    mutationFn: async (data: Partial<UserProfile> & Record<string, any>) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("No hay usuario autenticado");
+      const { data: updated, error } = await supabase
+        .from("users")
+        .update({
+          full_name: data.fullName,
+          bio: data.bio,
+          job_title: data.jobTitle,
+          department: data.department,
+          phone_number: data.phoneNumber,
+          profile_image: data.profileImage,
+          cover_image: data.coverImage,
+          nickname: data.nickname,
+          first_name: data.firstName,
+          last_name: data.lastName,
+        })
+        .eq("id", session.user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return updated;
     },
     onSuccess: (data) => {
-      console.log("Mutación exitosa:", data);
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       setPendingChanges({}); // Limpiar cambios pendientes
       setIsEditModalOpen(false); // Cerrar modal de edición
@@ -234,12 +265,34 @@ export default function ProfilePage() {
   // Upload cover image mutation
   const uploadCoverMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("coverImage", file);
-      return uploadFile("/api/user/cover-image", formData);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("No hay sesión activa");
+
+      const filePath = `${session.user.id}/cover-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("cover-images")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("cover-images")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Update user profile with new cover image URL
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ cover_image: publicUrl })
+        .eq("id", session.user.id);
+
+      if (updateError) throw updateError;
+
+      return publicUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       setCoverImagePreview("");
       setCoverImageFile(null);
       toast({
@@ -265,7 +318,6 @@ export default function ProfilePage() {
   const handleCustomImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Error",
@@ -275,7 +327,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // Validar tamaño (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "Error",
@@ -286,21 +337,35 @@ export default function ProfilePage() {
       }
 
       try {
-        const formData = new FormData();
-        formData.append('profileImage', file);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) throw new Error("No hay sesión activa");
 
-        // Hacer la petición al endpoint con autenticación usando uploadFile
-        const response = await uploadFile('/api/user/profile-image', formData);
+        const filePath = `${session.user.id}/profile-${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("profile-images")
+          .upload(filePath, file, { upsert: true });
 
-        if (response.profileImage) {
-          // Invalidar cache y actualizar UI
-          queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-          setIsAvatarDialogOpen(false);
-          toast({
-            title: "Imagen actualizada",
-            description: "Tu foto de perfil se ha actualizado correctamente",
-          });
-        }
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("profile-images")
+          .getPublicUrl(filePath);
+
+        const publicUrl = urlData.publicUrl;
+
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({ profile_image: publicUrl })
+          .eq("id", session.user.id);
+
+        if (updateError) throw updateError;
+
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+        setIsAvatarDialogOpen(false);
+        toast({
+          title: "Imagen actualizada",
+          description: "Tu foto de perfil se ha actualizado correctamente",
+        });
       } catch (error) {
         console.error('Error uploading image:', error);
         toast({
@@ -500,14 +565,21 @@ export default function ProfilePage() {
     // Si hay una imagen de portada preparada, subirla primero
     if (coverImageFile) {
       try {
-        const formData = new FormData();
-        formData.append("coverImage", coverImageFile);
-        const response = await uploadFile("/api/user/cover-image", formData);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) throw new Error("No hay sesión activa");
 
-        if (response.ok) {
-          const result = await response.json();
-          allChanges.coverImage = result.coverImage;
-        }
+        const filePath = `${session.user.id}/cover-${Date.now()}-${coverImageFile.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("cover-images")
+          .upload(filePath, coverImageFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("cover-images")
+          .getPublicUrl(filePath);
+
+        allChanges.coverImage = urlData.publicUrl;
       } catch (error) {
         console.error("Error uploading cover image:", error);
         toast({
@@ -931,7 +1003,7 @@ export default function ProfilePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => document.querySelector('input[type="file"]')?.click()}
+                            onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement | null)?.click()}
                           >
                             <Camera className="h-4 w-4 mr-2" />
                             Cambiar Foto
@@ -1038,7 +1110,7 @@ export default function ProfilePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => document.querySelectorAll('input[type="file"]')[1]?.click()}
+                          onClick={() => (document.querySelectorAll('input[type="file"]')[1] as HTMLInputElement | undefined)?.click()}
                         >
                           <Camera className="h-4 w-4 mr-2" />
                           Cambiar Portada

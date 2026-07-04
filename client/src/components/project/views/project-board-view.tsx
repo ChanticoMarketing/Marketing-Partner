@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { DndContext, DragEndEvent, DragOverEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, MoreHorizontal, Users, Calendar, Flag, BarChart3, Tag, Settings, MessageCircle, UserPlus } from 'lucide-react';
+import { Plus, MoreHorizontal, Users, Calendar, Flag, Settings, MessageCircle, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { queryClient } from '@/lib/queryClient';
-import { apiRequest } from '@/lib/queryClient';
 import { TaskGroup, InsertTaskGroup, Task, ProjectColumnSetting, User } from '@shared/schema';
 import TaskComments from '@/components/collaboration/task-comments';
 import TaskAssignment from '@/components/collaboration/task-assignment';
 import NewTaskModal from '@/components/tasks/new-task-modal';
+import { useRealtimeSync } from '@/hooks/use-realtime-sync';
 
 interface ProjectBoardViewProps {
   projectId: number;
@@ -77,7 +78,6 @@ function ConfigurableCell({
   const statusColors = {
     pending: 'bg-gray-100 text-gray-800',
     in_progress: 'bg-blue-100 text-blue-800',
-    review: 'bg-purple-100 text-purple-800',
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
     blocked: 'bg-orange-100 text-orange-800',
@@ -117,7 +117,6 @@ function ConfigurableCell({
           <SelectContent>
             <SelectItem value="pending">Pendiente</SelectItem>
             <SelectItem value="in_progress">En Progreso</SelectItem>
-            <SelectItem value="review">En Revisión</SelectItem>
             <SelectItem value="completed">Completado</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
             <SelectItem value="blocked">Bloqueado</SelectItem>
@@ -126,7 +125,7 @@ function ConfigurableCell({
         </Select>
       );
 
-    case 'person':
+    case 'people':
       return (
         <div className="flex -space-x-1">
           {task.assignee && (
@@ -168,14 +167,6 @@ function ConfigurableCell({
         </Popover>
       );
 
-    case 'progress':
-      return (
-        <div className="flex items-center space-x-2">
-          <Progress value={value || 0} className="flex-1 h-2" />
-          <span className="text-xs text-muted-foreground w-8">{value || 0}%</span>
-        </div>
-      );
-
     case 'dropdown':
       const priorityValue = value || task.priority || 'medium';
       return (
@@ -196,18 +187,6 @@ function ConfigurableCell({
             <SelectItem value="critical">Crítica</SelectItem>
           </SelectContent>
         </Select>
-      );
-
-    case 'tags':
-      return (
-        <div className="flex flex-wrap gap-1">
-          {task.tags?.map((tag, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
-              <Tag className="h-2 w-2 mr-1" />
-              {tag}
-            </Badge>
-          ))}
-        </div>
       );
 
     default:
@@ -302,16 +281,12 @@ function getTaskValue(task: TaskWithDetails, columnType: string): any {
       return task.title;
     case 'status':
       return task.status;
-    case 'person':
+    case 'people':
       return task.assignee;
     case 'date':
       return task.dueDate;
-    case 'progress':
-      return task.progress;
     case 'dropdown':
       return task.priority;
-    case 'tags':
-      return task.tags;
     default:
       return null;
   }
@@ -325,6 +300,13 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
   const [showTaskComments, setShowTaskComments] = useState(false);
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [selectedGroupForNewTask, setSelectedGroupForNewTask] = useState<number | null>(null);
+
+  // Sincronización en tiempo real para tareas
+  useRealtimeSync({
+    table: 'tasks',
+    filter: `project_id=eq.${projectId}`,
+    queryKey: ['/api/tasks-with-groups']
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -352,31 +334,39 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
 
   // Obtener configuración de columnas del proyecto
   const { data: columns, isLoading: isLoadingColumns } = useQuery({
-    queryKey: ['/api/projects', projectId, 'columns'],
+    queryKey: ['projects', projectId, 'columns'],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/projects/${projectId}/columns`);
-      return await res.json() as ProjectColumnSetting[];
+      const { data, error } = await supabase
+        .from("project_column_settings")
+        .select("*")
+        .eq("project_id", projectId);
+      if (error) throw error;
+      return fromDbArray<ProjectColumnSetting>("project_column_settings", data);
     },
   });
 
   // Obtener grupos de tareas
   const { data: taskGroups } = useQuery({
-    queryKey: ['/api/projects', projectId, 'task-groups'],
+    queryKey: ['projects', projectId, 'task-groups'],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/projects/${projectId}/task-groups`);
-      return await res.json() as TaskGroup[];
+      const { data, error } = await supabase
+        .from("task_groups")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<TaskGroup>("task_groups", data);
     },
   });
 
   // Mutación para crear grupo
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: Partial<InsertTaskGroup>) => {
-      const res = await apiRequest('POST', `/api/projects/${projectId}/task-groups`, groupData);
-      return await res.json();
+      return dbQuery("task_groups").insertSingle({ ...groupData, projectId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'task-groups'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks-with-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'task-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-with-groups'] });
       setIsCreatingGroup(false);
       setNewGroupName('');
     },
@@ -385,22 +375,20 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
   // Mutación para actualizar tarea
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, updates }: { taskId: number; updates: any }) => {
-      const res = await apiRequest('PATCH', `/api/tasks/${taskId}`, updates);
-      return await res.json();
+      return dbQuery("tasks").updateSingle(updates, { id: taskId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks-with-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-with-groups'] });
     },
   });
 
   // Mutación para crear nueva tarea
   const createTaskMutation = useMutation({
     mutationFn: async (taskData: any) => {
-      const res = await apiRequest('POST', '/api/tasks', taskData);
-      return await res.json();
+      return dbQuery("tasks").insertSingle(taskData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks-with-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks-with-groups'] });
       setShowNewTaskModal(false);
     },
   });
@@ -429,9 +417,7 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
     if (newGroupName.trim()) {
       createGroupMutation.mutate({
         name: newGroupName.trim(),
-        description: '',
         color: '#4285f4',
-        type: 'custom',
         position: (taskGroups?.length || 0),
       });
     }
@@ -504,12 +490,10 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
             {columns.map((column) => (
               <div key={column.id} className="text-sm font-medium flex items-center text-[#f8fafc]">
-                {column.columnType === 'person' && <Users className="h-4 w-4 mr-1" />}
+                {column.columnType === 'people' && <Users className="h-4 w-4 mr-1" />}
                 {column.columnType === 'date' && <Calendar className="h-4 w-4 mr-1" />}
                 {column.columnType === 'dropdown' && <Flag className="h-4 w-4 mr-1" />}
-                {column.columnType === 'progress' && <BarChart3 className="h-4 w-4 mr-1" />}
-                {column.columnType === 'tags' && <Tag className="h-4 w-4 mr-1" />}
-                {column.name}
+                {column.columnName}
               </div>
             ))}
           </div>
@@ -544,11 +528,6 @@ export default function ProjectBoardView({ projectId, viewId }: ProjectBoardView
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
-                  {groupData.group?.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {groupData.group.description}
-                    </p>
-                  )}
                 </div>
 
                 {/* Lista de tareas */}

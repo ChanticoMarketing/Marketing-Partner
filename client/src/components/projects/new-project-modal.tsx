@@ -4,7 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import {
   Dialog,
   DialogClose,
@@ -317,8 +319,14 @@ export default function NewProjectModal({ isOpen, onClose }: NewProjectModalProp
         })) : undefined
       };
 
-      const res = await apiRequest("POST", "/api/projects", formattedValues);
-      const projectData = await res.json();
+      const projectData = await dbQuery("projects").insertSingle({
+        name: values.name,
+        client: values.client,
+        description: values.description,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        status: values.status,
+      });
 
       // Si el proyecto se creó exitosamente y hay productos con imágenes, subir las imágenes
       if (projectData && projectData.id && values.initialProducts?.length) {
@@ -328,19 +336,34 @@ export default function NewProjectModal({ isOpen, onClose }: NewProjectModalProp
         for (let i = 0; i < values.initialProducts.length; i++) {
           const product = values.initialProducts[i];
           const file = productFiles[i];
+          let imageUrl: string | null = null;
+
+          // Subir imagen a Storage si existe
+          if (file) {
+            const filePath = `${projectId}/${Date.now()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+              .from('product-images')
+              .upload(filePath, file, { upsert: true });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+              imageUrl = urlData.publicUrl;
+            }
+          }
 
           if (product.name) {
-            // Crear FormData para enviar la imagen junto con los datos del producto
-            const formData = new FormData();
-            formData.append('name', product.name);
-            if (product.description) formData.append('description', product.description);
-            if (file) formData.append('image', file);
+            const productData: Record<string, any> = {
+              name: product.name,
+              project_id: projectId,
+            };
+            if (product.description) productData.description = product.description;
+            if (imageUrl) productData.image_url = imageUrl;
 
-            // Crear producto con imagen
-            await fetch(`/api/projects/${projectId}/products`, {
-              method: 'POST',
-              body: formData
-            });
+            await supabase
+              .from('products')
+              .insert(productData);
           }
         }
       }
@@ -353,7 +376,7 @@ export default function NewProjectModal({ isOpen, onClose }: NewProjectModalProp
         description: "Tu nuevo proyecto ha sido creado exitosamente",
       });
       // Invalidate projects query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       // Reset form and close modal
       form.reset();
       setProductFiles({});

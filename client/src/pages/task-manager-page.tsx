@@ -1,4 +1,6 @@
 import React from "react";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,7 +23,7 @@ interface Project {
 }
 
 export default function TaskManagerPage() {
-  const { projectId } = useParams();
+  const { projectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
   
   // Obtener detalles del proyecto
@@ -30,7 +32,16 @@ export default function TaskManagerPage() {
     isLoading: isLoadingProject,
     error 
   } = useQuery<Project>({
-    queryKey: ["/api/projects", projectId],
+    queryKey: ["projects", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      if (error) throw error;
+      return fromDb<Project>("projects", data);
+    },
     enabled: !!projectId,
   });
 

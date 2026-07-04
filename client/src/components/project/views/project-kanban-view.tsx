@@ -1,6 +1,9 @@
 import React, { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Task, taskStatusEnum, taskPriorityEnum } from "@shared/schema";
 import { Loader2, Plus, MoreHorizontal, Edit, Check, Clock, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -251,6 +254,13 @@ export default function ProjectKanbanView({ projectId, viewId }: ProjectKanbanVi
   const [taskIdForTimeTracking, setTaskIdForTimeTracking] = useState<number | null>(null);
   const [newTaskStatus, setNewTaskStatus] = useState<string | null>(null);
 
+  // Sincronización en tiempo real para tareas
+  useRealtimeSync({
+    table: 'tasks',
+    filter: `project_id=eq.${projectId}`,
+    queryKey: ["projects", projectId, "tasks"]
+  });
+
   // Sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -265,37 +275,38 @@ export default function ProjectKanbanView({ projectId, viewId }: ProjectKanbanVi
 
   // Obtener tareas del proyecto
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "tasks"],
+    queryKey: ["projects", projectId, "tasks"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET",
-        `/api/projects/${projectId}/tasks`
-      );
-      return (await res.json()) as Task[];
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<Task>("tasks", data);
     },
   });
   
   // Obtener usuarios para asignar tareas
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["users"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/users");
-      return await res.json();
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, full_name, username, profile_image, role")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("users", data);
     },
   });
 
   // Actualizar tarea (cambio de estado)
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, data }: { taskId: number; data: Partial<Task> }) => {
-      const res = await apiRequest(
-        "PATCH",
-        `/api/tasks/${taskId}`,
-        data
-      );
-      return await res.json();
+      return dbQuery("tasks").updateSingle(data, { id: taskId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "tasks"] });
       toast({
         title: "Tarea actualizada",
         description: "La tarea ha sido actualizada exitosamente.",
@@ -313,14 +324,11 @@ export default function ProjectKanbanView({ projectId, viewId }: ProjectKanbanVi
   // Eliminar tarea
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      const res = await apiRequest(
-        "DELETE",
-        `/api/tasks/${taskId}`
-      );
+      await dbQuery("tasks").delete({ id: taskId });
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "tasks"] });
       toast({
         title: "Tarea eliminada",
         description: "La tarea ha sido eliminada exitosamente.",
@@ -338,15 +346,10 @@ export default function ProjectKanbanView({ projectId, viewId }: ProjectKanbanVi
   // Crear nueva tarea
   const createTaskMutation = useMutation({
     mutationFn: async (taskData: Partial<Task>) => {
-      const res = await apiRequest(
-        "POST",
-        `/api/projects/${projectId}/tasks`,
-        taskData
-      );
-      return await res.json();
+      return dbQuery("tasks").insertSingle({ ...taskData, projectId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "tasks"] });
       toast({
         title: "Tarea creada",
         description: "La tarea ha sido creada exitosamente.",

@@ -20,6 +20,7 @@ import CreateAccount from "@/pages/create-account";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 import CreatePrimaryUser from "@/pages/create-primary-user";
+import AuthCallback from "@/pages/auth-callback";
 // Páginas principales de la aplicación
 import Dashboard from "@/pages/dashboard";
 import Projects from "@/pages/projects";
@@ -81,6 +82,7 @@ function App() {
                 <Route path="/reset-password" component={ResetPassword} />
                 {/* Página especial para crear el primer usuario administrador */}
                 <Route path="/create-primary-user" component={CreatePrimaryUser} />
+                <Route path="/auth/callback" component={AuthCallback} />
 
                 {/* ===== RUTAS PROTEGIDAS ===== */}
                 {/* Todas estas rutas requieren autenticación válida */}
@@ -106,7 +108,7 @@ function App() {
                 {/* Página de detalle específico de un proyecto */}
                 {/* Recibe el ID del proyecto como parámetro de URL */}
                 <Route path="/projects/:id">
-                  {(params) => (
+                  {(params: { id: string } | undefined) => (
                     <ProtectedRoute>
                       <MainLayout>
                         <ProjectDetail id={params ? parseInt(params.id) : 0} />
@@ -118,7 +120,7 @@ function App() {
                 {/* Página de detalle de un cronograma específico dentro de un proyecto */}
                 {/* Recibe tanto el ID del proyecto como el ID del cronograma */}
                 <Route path="/projects/:projectId/schedule/:id">
-                  {(params) => (
+                  {(params: { projectId: string; id: string } | undefined) => (
                     <ProtectedRoute>
                       <MainLayout>
                         <ScheduleDetail

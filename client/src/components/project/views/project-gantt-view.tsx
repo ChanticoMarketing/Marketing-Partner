@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Task, taskStatusEnum, taskPriorityEnum } from "@shared/schema";
 import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,13 +65,15 @@ export default function ProjectGanttView({ projectId, viewId }: ProjectGanttView
 
   // Obtener tareas del proyecto
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "tasks"],
+    queryKey: ["projects", projectId, "tasks"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET",
-        `/api/projects/${projectId}/tasks`
-      );
-      return (await res.json()) as Task[];
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<Task>("tasks", data);
     },
   });
 

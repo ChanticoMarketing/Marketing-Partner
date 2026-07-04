@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, PlayCircle, PauseCircle, Clock, Save, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow, format, formatDistance, formatDuration, intervalToDuration } from "date-fns";
 import { es } from "date-fns/locale";
@@ -21,6 +24,7 @@ interface TimeTrackingDialogProps {
 
 export default function TimeTrackingDialog({ isOpen, onClose, taskId, projectId }: TimeTrackingDialogProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0); // en segundos
@@ -31,10 +35,15 @@ export default function TimeTrackingDialog({ isOpen, onClose, taskId, projectId 
 
   // Obtener entradas de tiempo existentes
   const { data: timeEntries = [], isLoading, refetch } = useQuery({
-    queryKey: ["/api/tasks", taskId, "time-entries"],
+    queryKey: ["tasks", taskId, "time-entries"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/tasks/${taskId}/time-entries`);
-      return await res.json();
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("time_entries", data);
     },
   });
 
@@ -47,8 +56,15 @@ export default function TimeTrackingDialog({ isOpen, onClose, taskId, projectId 
       duration?: number;
       description: string;
     }) => {
-      const res = await apiRequest("POST", `/api/tasks/${taskId}/time-entries`, data);
-      return await res.json();
+      return dbQuery("time_entries").insertSingle({
+        taskId: data.taskId,
+        userId: user?.id,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        duration: data.duration,
+        description: data.description,
+        isRunning: false,
+      });
     },
     onSuccess: () => {
       refetch();
@@ -73,7 +89,7 @@ export default function TimeTrackingDialog({ isOpen, onClose, taskId, projectId 
   // Eliminar entrada de tiempo
   const deleteTimeEntryMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/time-entries/${id}`);
+      await dbQuery("time_entries").delete({ id });
       return id;
     },
     onSuccess: () => {

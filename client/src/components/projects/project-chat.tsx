@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
@@ -27,6 +29,13 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // ponytail: realtime sync para mensajes de chat
+  useRealtimeSync({
+    table: 'chat_messages',
+    filter: `project_id=eq.${projectId}`,
+    queryKey: ['projects', projectId, 'chat']
+  });
   
   // Fetch chat messages
   const { 
@@ -35,18 +44,27 @@ export default function ProjectChat({ projectId }: ProjectChatProps) {
     error,
     refetch 
   } = useQuery<ChatMessage[]>({
-    queryKey: [`/api/projects/${projectId}/chat`],
+    queryKey: ["projects", projectId, "chat"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<ChatMessage>("chat_messages", data);
+    },
     staleTime: 10000,
   });
 
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      const res = await apiRequest("POST", "/api/chat", {
-        message: content,
-        projectId
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: { message: content, projectId }
       });
-      return await res.json();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       setMessage("");

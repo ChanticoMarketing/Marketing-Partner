@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient, getDownloadUrl } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import {
@@ -68,7 +70,16 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
 
   // Fetch schedules for the project
   const { data: schedules, isLoading, error } = useQuery<Schedule[]>({
-    queryKey: [`/api/projects/${projectId}/schedules`],
+    queryKey: ["projects", projectId, "schedules"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*, schedule_entries(*)")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Schedule>("schedules", data);
+    },
     staleTime: 60000,
   });
 
@@ -151,7 +162,10 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
                 variant="outline" 
                 size="sm"
                 className="gap-2"
-                onClick={() => window.open(`/api/schedules/${selectedSchedule.id}/download?format=excel`, '_blank')}
+                onClick={async () => {
+                  const url = await getDownloadUrl(`/api/schedules/${selectedSchedule.id}/download?format=excel`);
+                  window.open(url, '_blank');
+                }}
               >
                 <Download className="h-4 w-4" />
                 Excel
@@ -160,7 +174,10 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
                 variant="outline" 
                 size="sm"
                 className="gap-2"
-                onClick={() => window.open(`/api/schedules/${selectedSchedule.id}/download?format=pdf`, '_blank')}
+                onClick={async () => {
+                  const url = await getDownloadUrl(`/api/schedules/${selectedSchedule.id}/download?format=pdf`);
+                  window.open(url, '_blank');
+                }}
               >
                 <Download className="h-4 w-4" />
                 PDF
@@ -314,7 +331,10 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
                     variant="outline" 
                     size="sm"
                     className="gap-1"
-                    onClick={() => window.open(`/api/schedules/${schedule.id}/download?format=excel`, '_blank')}
+                    onClick={async () => {
+                      const url = await getDownloadUrl(`/api/schedules/${schedule.id}/download?format=excel`);
+                      window.open(url, '_blank');
+                    }}
                   >
                     <Download className="h-3 w-3" />
                     Excel
@@ -323,7 +343,10 @@ export default function ProjectWorkflows({ projectId }: ProjectWorkflowsProps) {
                     variant="outline" 
                     size="sm"
                     className="gap-1"
-                    onClick={() => window.open(`/api/schedules/${schedule.id}/download?format=pdf`, '_blank')}
+                    onClick={async () => {
+                      const url = await getDownloadUrl(`/api/schedules/${schedule.id}/download?format=pdf`);
+                      window.open(url, '_blank');
+                    }}
                   >
                     <Download className="h-3 w-3" />
                     PDF

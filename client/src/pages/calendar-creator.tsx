@@ -12,7 +12,9 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 // Hook para notificaciones toast
 import { useToast } from "@/hooks/use-toast";
 // Utilidades para peticiones API y cliente de query
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 // Hook para navegación
 import { useLocation } from "wouter";
 // Componente personalizado para entrada de fechas
@@ -208,11 +210,15 @@ type FormValues = z.infer<typeof formSchema>;
 
 function StrategyContextCard({ projectId }: { projectId: string }) {
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: ["projects", projectId],
     queryFn: async () => {
-      const res = await fetch(`/api/projects/${projectId}`);
-      if (!res.ok) throw new Error('Error al cargar proyecto');
-      return res.json();
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*, analysis:analysis_results(*)")
+        .eq("id", projectId)
+        .single();
+      if (error) throw error;
+      return fromDb("projects", data);
     },
     enabled: !!projectId
   });
@@ -339,11 +345,14 @@ export default function CalendarCreator() {
 
   // Fetch projects
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
     queryFn: async () => {
-      const res = await fetch('/api/projects');
-      if (!res.ok) throw new Error('Error al cargar proyectos');
-      return res.json();
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Project>("projects", data);
     },
   });
 
@@ -391,14 +400,16 @@ export default function CalendarCreator() {
       setShowConceptsDialog(true);
       setConcepts([]); // Clear previous
 
-      const response = await apiRequest('POST', `/api/projects/${values.projectId}/schedule/concepts`, {
-        amount: 12,
-        additionalInstructions: values.additionalInstructions
+      const { data, error } = await supabase.functions.invoke('generate-concepts', {
+        body: {
+          projectId: parseInt(values.projectId),
+          amount: 12,
+          additionalInstructions: values.additionalInstructions
+        }
       });
 
-      if (!response.ok) throw new Error("Error generating concepts");
+      if (error) throw new Error("Error generating concepts");
 
-      const data = await response.json();
       setConcepts(data);
       // Select all by default
       setSelectedConcepts(data.map((c: any) => c.title));
@@ -454,22 +465,23 @@ export default function CalendarCreator() {
     try {
       setIsGenerating(true);
 
-      // Make API request to create schedule
-      const response = await apiRequest('POST', `/api/projects/${values.projectId}/schedule`, {
-        ...values,
-        endDate: values.endDate || endDate.toISOString().split('T')[0],
-        isAdvanced: true
+      // Invoke edge function to create schedule
+      const { data, error } = await supabase.functions.invoke('generate-schedule', {
+        body: {
+          ...values,
+          projectId: parseInt(values.projectId),
+          endDate: values.endDate || endDate.toISOString().split('T')[0],
+          isAdvanced: true
+        }
       });
 
-      if (!response.ok) {
+      if (error) {
         throw new Error('Error al crear el calendario');
       }
 
-      const data = await response.json();
-
       // Invalidate schedules cache to refresh lists
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${values.projectId}/schedules`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/schedules/recent'] });
+      queryClient.invalidateQueries({ queryKey: ["projects", values.projectId, "schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["schedules", "recent"] });
 
       // Show success message
       toast({

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,13 +24,13 @@ import { UserPlus, User, X } from "lucide-react";
 interface TaskAssignmentProps {
   taskId: number;
   currentAssignee?: {
-    id: number;
+    id: string;
     fullName: string;
     username: string;
     profileImage?: string;
   } | null;
   additionalAssignees?: {
-    id: number;
+    id: string;
     fullName: string;
     username: string;
     profileImage?: string;
@@ -37,7 +39,7 @@ interface TaskAssignmentProps {
 }
 
 interface User {
-  id: number;
+  id: string;
   fullName: string;
   username: string;
   profileImage?: string;
@@ -54,19 +56,28 @@ export default function TaskAssignment({
 
   // Obtener usuarios disponibles
   const { data: users = [] } = useQuery({
-    queryKey: ['/api/users'],
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, full_name, username, profile_image")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("users", data);
+    },
   });
 
   // Mutación para asignar usuario principal
   const assignUserMutation = useMutation({
-    mutationFn: (userId: number | null) =>
-      apiRequest(`/api/tasks/${taskId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ assigneeId: userId })
-      }),
+    mutationFn: async (userId: string | null) => {
+      return dbQuery("tasks").updateSingle(
+        { assignedToId: userId },
+        { id: taskId }
+      );
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       onAssignmentChange?.();
       toast({
         title: "Asignación actualizada",
@@ -84,14 +95,15 @@ export default function TaskAssignment({
 
   // Mutación para agregar asignado adicional
   const addAssigneeMutation = useMutation({
-    mutationFn: (userId: number) =>
-      apiRequest(`/api/tasks/${taskId}/assignees`, {
-        method: 'POST',
-        body: JSON.stringify({ userId })
-      }),
+    mutationFn: async (userId: string) => {
+      return dbQuery("task_assignees").insertSingle({
+        taskId,
+        userId,
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       onAssignmentChange?.();
       setIsAssigning(false);
       toast({
@@ -110,13 +122,15 @@ export default function TaskAssignment({
 
   // Mutación para remover asignado adicional
   const removeAssigneeMutation = useMutation({
-    mutationFn: (userId: number) =>
-      apiRequest(`/api/tasks/${taskId}/assignees/${userId}`, {
-        method: 'DELETE'
-      }),
+    mutationFn: async (userId: string) => {
+      await dbQuery("task_assignees").delete({
+        taskId,
+        userId,
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       onAssignmentChange?.();
       toast({
         title: "Colaborador removido",
@@ -133,19 +147,17 @@ export default function TaskAssignment({
   });
 
   const handleAssignUser = (userId: string) => {
-    const numericUserId = userId === "unassign" ? null : parseInt(userId);
-    assignUserMutation.mutate(numericUserId);
+    const assigneeId = userId === "unassign" ? null : userId;
+    assignUserMutation.mutate(assigneeId as any);
   };
 
   const handleAddAssignee = (userId: string) => {
     if (userId && userId !== "select") {
-      const numericUserId = parseInt(userId);
-      // Verificar que no esté ya asignado
-      const isAlreadyAssigned = currentAssignee?.id === numericUserId ||
-        additionalAssignees.some(a => a.id === numericUserId);
+      const isAlreadyAssigned = currentAssignee?.id === userId ||
+        additionalAssignees.some(a => a.id === userId);
       
       if (!isAlreadyAssigned) {
-        addAssigneeMutation.mutate(numericUserId);
+        addAssigneeMutation.mutate(userId as any);
       } else {
         toast({
           title: "Usuario ya asignado",
@@ -156,8 +168,8 @@ export default function TaskAssignment({
     }
   };
 
-  const handleRemoveAssignee = (userId: number) => {
-    removeAssigneeMutation.mutate(userId);
+  const handleRemoveAssignee = (userId: string) => {
+    removeAssigneeMutation.mutate(userId as any);
   };
 
   const getAvailableUsers = () => {

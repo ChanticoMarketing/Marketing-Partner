@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useToast } from "@/hooks/use-toast";
-import { ProjectView, InsertProjectView, viewTypeEnum } from "@shared/schema";
+import { ProjectView, viewTypeEnum } from "@shared/schema";
 import { Loader2, PlusCircle, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -34,8 +36,17 @@ interface ProjectViewContainerProps {
   projectId?: number;
 }
 
+type ViewType = (typeof viewTypeEnum.enumValues)[number];
+
+type ViewFormData = {
+  name: string;
+  type: ViewType;
+  isDefault: boolean;
+  config: Record<string, unknown>;
+};
+
 export default function ProjectViewContainer({ projectId: propProjectId }: ProjectViewContainerProps) {
-  const params = useParams();
+  const params = useParams<{ projectId: string }>();
   const urlProjectId = params.projectId;
   const [, navigate] = useLocation();
   
@@ -45,7 +56,7 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
   const [isCreatingView, setIsCreatingView] = useState(false);
   const [isEditingView, setIsEditingView] = useState(false);
   const [selectedViewId, setSelectedViewId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<Partial<InsertProjectView>>({
+  const [formData, setFormData] = useState<ViewFormData>({
     name: "",
     type: "list",
     isDefault: false,
@@ -54,18 +65,17 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
 
   // Obtener vistas del proyecto
   const { data: views, isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "views"],
-    queryFn: getProjectViews,
+    queryKey: ["projects", projectId, "views"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_views")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<ProjectView>("project_views", data);
+    },
   });
-
-  async function getProjectViews() {
-    const res = await apiRequest(
-      "GET",
-      `/api/projects/${projectId}/views`
-    );
-    const data = await res.json();
-    return data as ProjectView[];
-  }
 
   // Obtener la vista activa o predeterminada
   const activeView = React.useMemo(() => {
@@ -87,16 +97,17 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
 
   // Crear una nueva vista
   const createViewMutation = useMutation({
-    mutationFn: async (view: InsertProjectView) => {
-      const res = await apiRequest(
-        "POST",
-        `/api/projects/${projectId}/views`,
-        view
-      );
-      return await res.json();
+    mutationFn: async (view: ViewFormData) => {
+      return dbQuery("project_views").insertSingle({
+        projectId: parseInt(projectId!),
+        name: view.name,
+        type: view.type,
+        isDefault: view.isDefault,
+        config: view.config,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "views"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "views"] });
       toast({
         title: "Vista creada",
         description: "La vista ha sido creada exitosamente.",
@@ -106,7 +117,7 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
         name: "",
         type: "list",
         isDefault: false,
-        configuration: {},
+        config: {},
       });
     },
     onError: (error: Error) => {
@@ -121,15 +132,10 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
   // Actualizar una vista existente
   const updateViewMutation = useMutation({
     mutationFn: async (viewData: { id: number; data: Partial<ProjectView> }) => {
-      const res = await apiRequest(
-        "PATCH",
-        `/api/project-views/${viewData.id}`,
-        viewData.data
-      );
-      return await res.json();
+      return dbQuery("project_views").updateSingle(viewData.data, { id: viewData.id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "views"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "views"] });
       toast({
         title: "Vista actualizada",
         description: "La vista ha sido actualizada exitosamente.",
@@ -148,14 +154,11 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
   // Eliminar una vista
   const deleteViewMutation = useMutation({
     mutationFn: async (viewId: number) => {
-      const res = await apiRequest(
-        "DELETE",
-        `/api/project-views/${viewId}`
-      );
-      return res.ok;
+      await dbQuery("project_views").delete({ id: viewId });
+      return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "views"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "views"] });
       toast({
         title: "Vista eliminada",
         description: "La vista ha sido eliminada exitosamente.",
@@ -182,11 +185,10 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
     }
 
     createViewMutation.mutate({
-      projectId: parseInt(projectId!),
       name: formData.name,
-      type: formData.type as any, // Convertir a enum
-      isDefault: formData.isDefault || false,
-      config: formData.config || {},
+      type: formData.type,
+      isDefault: formData.isDefault,
+      config: formData.config,
     });
   };
 
@@ -197,7 +199,7 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
       id: selectedViewId,
       data: {
         name: formData.name,
-        type: formData.type as any,
+        type: formData.type,
         isDefault: formData.isDefault,
         config: formData.config,
       },
@@ -323,7 +325,6 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
                     <SelectItem value="kanban">Kanban</SelectItem>
                     <SelectItem value="gantt">Gantt</SelectItem>
                     <SelectItem value="calendar">Calendario</SelectItem>
-                    <SelectItem value="timeline">Línea de tiempo</SelectItem>
                     <SelectItem value="board">Tablero Monday</SelectItem>
                   </SelectContent>
                 </Select>
@@ -385,7 +386,6 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
                     <SelectItem value="kanban">Kanban</SelectItem>
                     <SelectItem value="gantt">Gantt</SelectItem>
                     <SelectItem value="calendar">Calendario</SelectItem>
-                    <SelectItem value="timeline">Línea de tiempo</SelectItem>
                     <SelectItem value="board">Tablero Monday</SelectItem>
                   </SelectContent>
                 </Select>
@@ -425,7 +425,6 @@ export default function ProjectViewContainer({ projectId: propProjectId }: Proje
           {activeView.type === "kanban" && <ProjectKanbanView projectId={parseInt(projectId!)} viewId={activeView.id} />}
           {activeView.type === "gantt" && <ProjectGanttView projectId={parseInt(projectId!)} viewId={activeView.id} />}
           {activeView.type === "calendar" && <ProjectCalendarView projectId={parseInt(projectId!)} viewId={activeView.id} />}
-          {activeView.type === "timeline" && <div className="p-6 text-center text-muted-foreground">Vista de línea de tiempo (En desarrollo)</div>}
           {activeView.type === "board" && <ProjectBoardView projectId={parseInt(projectId!)} viewId={activeView.id} />}
         </div>
       ) : (

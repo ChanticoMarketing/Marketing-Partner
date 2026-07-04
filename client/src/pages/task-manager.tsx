@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -110,11 +113,11 @@ const taskSchema = z.object({
     message: "El título debe tener al menos 3 caracteres",
   }),
   description: z.string().optional(),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
+  priority: z.enum(["low", "medium", "high", "urgent", "critical"]),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled", "blocked", "deferred"]).optional(),
   dueDate: z.date().optional().nullable(),
   projectId: z.number(),
-  assignedToId: z.number().optional().nullable(),
+  assignedToId: z.string().optional().nullable(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -131,6 +134,14 @@ const TaskManager = () => {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
+  // Sincronización en tiempo real para tareas (solo si hay un proyecto seleccionado)
+  useRealtimeSync({
+    table: 'tasks',
+    filter: selectedProject ? `project_id=eq.${selectedProject}` : undefined,
+    queryKey: ['projects', selectedProject, 'tasks'],
+    enabled: !!selectedProject
+  });
+
   // Configuración de sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -145,17 +156,29 @@ const TaskManager = () => {
 
   // Consultar proyectos
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery<any[]>({
-    queryKey: ['/api/projects'],
-    select: (data) => data || [],
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data) || [];
+    },
   });
 
   // Consultar tareas del proyecto seleccionado
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
-    queryKey: ['/api/projects', selectedProject, 'tasks'],
+    queryKey: ['projects', selectedProject, 'tasks'],
     queryFn: async () => {
       if (!selectedProject) return [];
-      const res = await apiRequest('GET', `/api/projects/${selectedProject}/tasks`);
-      return await res.json();
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", selectedProject)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("tasks", data);
     },
     enabled: !!selectedProject,
   });
@@ -163,15 +186,14 @@ const TaskManager = () => {
   // Crear nueva tarea
   const createTaskMutation = useMutation({
     mutationFn: async (data: TaskFormValues) => {
-      const res = await apiRequest('POST', `/api/projects/${data.projectId}/tasks`, data);
-      return await res.json();
+      return dbQuery("tasks").insertSingle(data);
     },
     onSuccess: () => {
       toast({
         title: "Tarea creada",
         description: "La tarea ha sido creada exitosamente",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedProject, 'tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', selectedProject, 'tasks'] });
       setIsNewTaskDialogOpen(false);
     },
     onError: (error) => {
@@ -186,15 +208,14 @@ const TaskManager = () => {
   // Actualizar tarea
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, updates }: { taskId: number; updates: any }) => {
-      const res = await apiRequest('PATCH', `/api/tasks/${taskId}`, updates);
-      return await res.json();
+      return dbQuery("tasks").updateSingle(updates, { id: taskId });
     },
     onSuccess: () => {
       toast({
         title: "Tarea actualizada",
         description: "La tarea ha sido actualizada exitosamente",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedProject, 'tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', selectedProject, 'tasks'] });
       setIsEditTaskDialogOpen(false);
     },
     onError: (error) => {
@@ -209,14 +230,14 @@ const TaskManager = () => {
   // Eliminar tarea
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      await apiRequest('DELETE', `/api/tasks/${taskId}`);
+      await dbQuery("tasks").delete({ id: taskId });
     },
     onSuccess: () => {
       toast({
         title: "Tarea eliminada",
         description: "La tarea ha sido eliminada exitosamente",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedProject, 'tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', selectedProject, 'tasks'] });
     },
     onError: (error) => {
       toast({
@@ -228,6 +249,7 @@ const TaskManager = () => {
   });
 
   // Generar tareas con IA
+  // TODO: migrar a Edge Function cuando exista generate-tasks
   const generateTasksMutation = useMutation({
     mutationFn: async (projectId: number) => {
       const res = await apiRequest('POST', `/api/projects/${projectId}/generate-tasks`);
@@ -238,7 +260,7 @@ const TaskManager = () => {
         title: "Tareas generadas",
         description: `Se han generado ${data.length} tareas con IA`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedProject, 'tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', selectedProject, 'tasks'] });
     },
     onError: (error) => {
       toast({
@@ -311,11 +333,15 @@ const TaskManager = () => {
 
   // Obtener usuarios para asignar tareas
   const { data: users = [] } = useQuery<any[]>({
-    queryKey: ['/api/users'],
+    queryKey: ['users'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/users');
-        return await res.json();
+        const { data, error } = await supabase
+          .from("users")
+          .select("id, full_name, username, profile_image, role")
+          .order("full_name", { ascending: true });
+        if (error) throw error;
+        return fromDbArray("users", data);
       } catch (error) {
         return [];
       }
@@ -397,7 +423,7 @@ const TaskManager = () => {
             </Select>
 
             {selectedProject && (
-              <CreateTaskDialog projectId={selectedProject}>
+              <CreateTaskDialog>
                 <Button className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 uppercase tracking-wider font-bold w-full sm:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Nueva Tarea
@@ -546,18 +572,19 @@ const TaskManager = () => {
               <KanbanBoard
                 tasks={tasks}
                 users={users}
-                onEdit={handleEditTask}
-                onDelete={(taskId: number) => {
+                onEditTask={handleEditTask}
+                onDeleteTask={(taskId: number) => {
                   if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
                     deleteTaskMutation.mutate(taskId);
                   }
                 }}
-                onUpdateTaskStatus={(taskId: number, newStatus: string) => {
+                onTaskMove={(taskId: number, newStatus: string) => {
                   updateTaskMutation.mutate({
                     taskId,
                     updates: { status: newStatus }
                   });
                 }}
+                groupBy={groupBy}
               />
             </div>
           )}

@@ -1,6 +1,8 @@
 // ===== IMPORTACIONES PARA PÁGINA DE PROYECTOS =====
 // React hooks para manejo de estado
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 // TanStack Query para manejo de datos del servidor
 import { useQuery, QueryClient } from "@tanstack/react-query";
 // Hook de autenticación
@@ -35,6 +37,7 @@ import { Badge } from "@/components/ui/badge"; // Badges para estados
 import { Eye, Pencil, Plus, Rocket } from "lucide-react"; // Iconos de acciones
 import NewProjectModal from "@/components/projects/new-project-modal"; // Modal para crear proyecto
 import { formatRelative } from "date-fns"; // Formateo de fechas
+import { cn } from "@/lib/utils";
 
 // ===== COMPONENTE DE BADGE DE ESTADO =====
 // Componente que muestra el estado del proyecto con colores específicos
@@ -86,7 +89,15 @@ export default function Projects() {
 
   // Fetch projects
   const { data: projects, isLoading, error } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data);
+    },
     staleTime: 60000,
   });
 

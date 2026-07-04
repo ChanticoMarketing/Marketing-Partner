@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -33,12 +35,24 @@ export default function ProjectCalendarView({ projectId, viewId }: ProjectCalend
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
+  // Sincronización en tiempo real para tareas
+  useRealtimeSync({
+    table: 'tasks',
+    filter: `project_id=eq.${projectId}`,
+    queryKey: ["projects", projectId, "tasks"]
+  });
+
   // Obtener tareas del proyecto
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "tasks"],
+    queryKey: ["projects", projectId, "tasks"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/projects/${projectId}/tasks`);
-      return await res.json();
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("tasks", data);
     },
   });
 

@@ -21,14 +21,11 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             external: [
-                "drizzle-orm",
-                "postgres",
-                "pg",
                 /^node:.*/,
             ],
         },
     },
     optimizeDeps: {
-        exclude: ["drizzle-orm", "postgres", "pg"],
+        exclude: [],
     },
 });

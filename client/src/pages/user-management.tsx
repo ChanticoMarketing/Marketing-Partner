@@ -6,6 +6,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -52,6 +54,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const roleOptions = [
+  { value: "admin", label: "Administrador" },
+  { value: "project_manager", label: "Project Manager" },
+  { value: "designer", label: "Diseñador" },
+  { value: "content_creator", label: "Creador de Contenido" },
+  { value: "developer", label: "Desarrollador" },
+  { value: "stakeholder", label: "Stakeholder" },
+] as const;
+
+const roleValues = roleOptions.map((role) => role.value) as [
+  (typeof roleOptions)[number]["value"],
+  ...(typeof roleOptions)[number]["value"][],
+];
+
 // Form schema for creating new users
 const createUserSchema = z.object({
   fullName: z.string()
@@ -63,7 +79,7 @@ const createUserSchema = z.object({
   password: z.string()
     .min(6, "La contraseña debe tener al menos 6 caracteres"),
   isPrimary: z.boolean().default(false),
-  role: z.enum(['admin', 'manager', 'designer', 'content_creator', 'analyst']).default('content_creator'),
+  role: z.enum(roleValues).default('content_creator'),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -80,14 +96,15 @@ const changePasswordSchema = z.object({
 });
 
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+type UserRole = (typeof roleOptions)[number]["value"];
 
 // Types for users
 type User = {
-  id: number;
+  id: string;
   fullName: string;
   username: string;
   isPrimary: boolean;
-  role?: string;
+  role?: UserRole | null;
   createdAt: string;
 };
 
@@ -95,7 +112,7 @@ const UserManagementPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -117,8 +134,16 @@ const UserManagementPage = () => {
 
   // Query for fetching users
   const { data: users, isLoading, isError, error } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
-    staleTime: 30000, // 30 seconds
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<User>("users", data);
+    },
+    staleTime: 30000,
   });
 
   // Form for creating users
@@ -164,7 +189,7 @@ const UserManagementPage = () => {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
         title: "Usuario creado",
         description: "El usuario ha sido creado exitosamente",
@@ -183,16 +208,16 @@ const UserManagementPage = () => {
 
   // Mutation for updating users
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, data }: { userId: number, data: Partial<CreateUserFormValues> }) => {
-      const res = await apiRequest("PATCH", `/api/admin/users/${userId}`, data);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error al actualizar usuario");
-      }
-      return await res.json();
+    mutationFn: async ({ userId, data }: { userId: string, data: Partial<CreateUserFormValues> }) => {
+      return dbQuery("users").updateSingle({
+        fullName: data.fullName,
+        username: data.username,
+        isPrimary: data.isPrimary,
+        role: data.role,
+      }, { id: userId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
         title: "Usuario actualizado",
         description: "Los permisos del usuario han sido actualizados exitosamente",
@@ -212,16 +237,12 @@ const UserManagementPage = () => {
 
   // Mutation for deleting users
   const deleteUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      const res = await apiRequest("DELETE", `/api/admin/users/${userId}`);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error al eliminar usuario");
-      }
+    mutationFn: async (userId: string) => {
+      await dbQuery("users").delete({ id: userId });
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
         title: "Usuario eliminado",
         description: "El usuario ha sido eliminado exitosamente",
@@ -241,7 +262,7 @@ const UserManagementPage = () => {
 
   // Mutation for changing user password
   const changePasswordMutation = useMutation({
-    mutationFn: async ({ userId, newPassword }: { userId: number, newPassword: string }) => {
+    mutationFn: async ({ userId, newPassword }: { userId: string, newPassword: string }) => {
       const res = await apiRequest("POST", `/api/admin/users/${userId}/change-password`, { newPassword });
       if (!res.ok) {
         const errorData = await res.json();
@@ -601,11 +622,11 @@ const UserManagementPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
-                        <SelectItem value="designer">Diseñador</SelectItem>
-                        <SelectItem value="content_creator">Creador de Contenido</SelectItem>
-                        <SelectItem value="analyst">Analista</SelectItem>
+                        {roleOptions.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            {role.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -726,11 +747,11 @@ const UserManagementPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
-                        <SelectItem value="designer">Diseñador</SelectItem>
-                        <SelectItem value="content_creator">Creador de Contenido</SelectItem>
-                        <SelectItem value="analyst">Analista</SelectItem>
+                        {roleOptions.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            {role.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormDescription>

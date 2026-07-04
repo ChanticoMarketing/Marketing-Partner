@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Task, taskStatusEnum, taskPriorityEnum } from "@shared/schema";
 import { Loader2, Plus, ArrowUpDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,15 +42,24 @@ export default function ProjectListView({ projectId, viewId }: ProjectListViewPr
   const [sortBy, setSortBy] = useState<keyof Task>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
+  // Sincronización en tiempo real para tareas
+  useRealtimeSync({
+    table: 'tasks',
+    filter: `project_id=eq.${projectId}`,
+    queryKey: ["projects", projectId, "tasks"]
+  });
+
   // Obtener tareas del proyecto
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "tasks"],
+    queryKey: ["projects", projectId, "tasks"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET",
-        `/api/projects/${projectId}/tasks`
-      );
-      return (await res.json()) as Task[];
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray<Task>("tasks", data);
     },
   });
 

@@ -6,7 +6,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 // Módulo para configurar Vite en desarrollo y servir archivos estáticos
 import { setupVite, serveStatic, log } from "./vite";
-// Servicio de integración con Gemini para generación de contenido
 // CORS: Middleware para manejar políticas de mismo origen
 import cors from 'cors';
 // Utilitarios para manejo de rutas de archivos
@@ -145,9 +144,9 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Permitir cookies y credenciales
+  credentials: false, // JWT en header Authorization, no cookies
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Métodos HTTP permitidos
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'] // Headers permitidos
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'] // Headers permitidos
 }));
 
 // ===== MIDDLEWARE DE PARSEO =====
@@ -316,6 +315,11 @@ app.use((req, res, next) => {
 
     // Detailed status endpoint for debugging (separate from health checks)
     app.get('/api/status', (req, res) => {
+      const supabaseConfigured = !!(
+        process.env.SUPABASE_URL &&
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+
       res.status(200).json({
         status: 'OK',
         timestamp: new Date().toISOString(),
@@ -330,18 +334,11 @@ app.use((req, res, next) => {
           id: process.env.REPL_ID || 'unknown'
         },
         database: {
-          connected: !!process.env.DATABASE_URL,
-          url_configured: !!process.env.DATABASE_URL,
-          provider: process.env.DATABASE_URL?.includes('supabase')
-            ? 'supabase'
-            : process.env.DATABASE_URL?.includes('neon')
-              ? 'neon'
-              : 'postgres'
+          provider: 'supabase',
+          configured: supabaseConfigured
         },
         features: {
-          ai: !!process.env.XAI_API_KEY,
-          oauth: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-          email: !!process.env.SENDGRID_API_KEY
+          ai: !!(process.env.XAI_API_KEY || process.env.GROK_API_KEY)
         },
         startup: {
           timestamp: new Date().toISOString(),
@@ -417,8 +414,9 @@ app.use((req, res, next) => {
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
 
-    const serverInstance = server.listen(port, "0.0.0.0", () => {
-      log(`🚀 Server is running on http://0.0.0.0:${port}`);
+    const listenHost = isProduction ? "0.0.0.0" : "127.0.0.1";
+    const serverInstance = server.listen(port, listenHost, () => {
+      log(`🚀 Server is running on http://${listenHost}:${port}`);
       log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
       log(`🔗 API endpoints available at /api/*`);
     });

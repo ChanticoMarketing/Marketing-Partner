@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import type { Product } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import {
@@ -82,26 +83,62 @@ export default function ProductList({ projectId }: ProductListProps) {
 
   // Cargar la lista de productos
   const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['/api/projects', projectId, 'products'],
+    queryKey: ['projects', projectId, 'products'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}/products`);
-      return response.json();
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray<Product>("products", data);
     },
   });
 
   // Mutación para crear productos
   const createProductMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest(
-        'POST',
-        `/api/projects/${projectId}/products`,
-        data,
-        { isFormData: true }
-      );
-      return response.json();
+      const imageFile = data.get('image') as File | null;
+      let imageUrl: string | null = null;
+
+      // Subir imagen a Storage si existe
+      if (imageFile) {
+        const filePath = `${projectId}/${Date.now()}-${imageFile.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, imageFile, { upsert: true });
+
+        if (uploadError) throw new Error('Error al subir la imagen: ' + uploadError.message);
+
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      }
+
+      // Crear producto en la base de datos
+      const productData: Record<string, any> = {
+        name: data.get('name'),
+        project_id: projectId,
+      };
+
+      if (data.get('description')) productData.description = data.get('description');
+      if (data.get('sku')) productData.sku = data.get('sku');
+      if (data.get('price')) productData.price = parseFloat(data.get('price') as string);
+      if (imageUrl) productData.image_url = imageUrl;
+
+      const { data: product, error } = await supabase
+        .from('products')
+        .insert(productData)
+        .select()
+        .single();
+
+      if (error) throw new Error('Error al crear el producto: ' + error.message);
+      return product;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
       toast({
         title: 'Producto creado',
         description: 'El producto se ha creado correctamente',
@@ -122,16 +159,47 @@ export default function ProductList({ projectId }: ProductListProps) {
   // Mutación para actualizar productos
   const updateProductMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: FormData }) => {
-      const response = await apiRequest(
-        'PATCH',
-        `/api/products/${id}`,
-        data,
-        { isFormData: true }
-      );
-      return response.json();
+      const imageFile = data.get('image') as File | null;
+      let imageUrl: string | null = null;
+
+      // Subir nueva imagen a Storage si existe
+      if (imageFile) {
+        const filePath = `${projectId}/${Date.now()}-${imageFile.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, imageFile, { upsert: true });
+
+        if (uploadError) throw new Error('Error al subir la imagen: ' + uploadError.message);
+
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      }
+
+      // Actualizar producto en la base de datos
+      const productData: Record<string, any> = {
+        name: data.get('name'),
+      };
+
+      if (data.get('description')) productData.description = data.get('description');
+      if (data.get('sku')) productData.sku = data.get('sku');
+      if (data.get('price')) productData.price = parseFloat(data.get('price') as string);
+      if (imageUrl) productData.image_url = imageUrl;
+
+      const { data: product, error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw new Error('Error al actualizar el producto: ' + error.message);
+      return product;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
       toast({
         title: 'Producto actualizado',
         description: 'El producto se ha actualizado correctamente',
@@ -152,10 +220,10 @@ export default function ProductList({ projectId }: ProductListProps) {
   // Mutación para eliminar productos
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: number) => {
-      await apiRequest('DELETE', `/api/products/${productId}`);
+      await dbQuery("products").delete({ id: productId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
       toast({
         title: 'Producto eliminado',
         description: 'El producto se ha eliminado correctamente',
@@ -387,7 +455,7 @@ export default function ProductList({ projectId }: ProductListProps) {
                 {product.imageUrl && (
                   <div className="relative h-40 w-full overflow-hidden rounded-md">
                     <img
-                      src={`/uploads/${product.imageUrl}`}
+                      src={product.imageUrl}
                       alt={product.name}
                       className="h-full w-full object-cover"
                     />

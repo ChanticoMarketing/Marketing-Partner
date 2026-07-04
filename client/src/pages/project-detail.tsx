@@ -28,7 +28,9 @@ import {
 } from "@/components/ui/select";
 import { Loader2, ArrowLeft, ArrowRight, Download, Pencil } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import ProjectAnalysis from "@/components/projects/project-analysis";
 import ProjectWorkflows from "@/components/projects/project-workflows";
 import ProjectDocuments from "@/components/projects/project-documents";
@@ -63,7 +65,7 @@ interface ProjectWithAnalysis {
   startDate?: string;
   endDate?: string;
   status: string;
-  createdBy?: number;
+  createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
   analysis?: ProjectAnalysis | null;
@@ -87,11 +89,11 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
   // Mutation for updating project
   const updateProjectMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/projects/${id}`, "PATCH", data);
+      return dbQuery("projects").updateSingle(data, { id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", id] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       setIsEditDialogOpen(false);
       toast({
         title: "Proyecto actualizado",
@@ -139,7 +141,17 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
     isLoading,
     error
   } = useQuery<ProjectWithAnalysis>({
-    queryKey: [`/api/projects/${id}`],
+    queryKey: ["projects", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*, analysis:analysis_results(*)")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      const result = fromDb<ProjectWithAnalysis>("projects", data);
+      return result;
+    },
     retry: 3,
     retryDelay: 1000,
   });
@@ -248,7 +260,7 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
                 value="documents"
                 className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
               >
-                Documentos
+                Centro de conocimiento
               </TabsTrigger>
               <TabsTrigger
                 value="products"
@@ -274,7 +286,15 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
           </TabsContent>
 
           <TabsContent value="documents" className="mt-0 pt-4">
-            <ProjectDocuments projectId={projectData.id} />
+            <ProjectDocuments
+              projectId={projectData.id}
+              projectName={projectData.name}
+              canApprove={Boolean(
+                user?.isPrimary ||
+                user?.role === "admin" ||
+                project.createdBy === user?.id
+              )}
+            />
           </TabsContent>
 
           <TabsContent value="products" className="mt-0 pt-4">

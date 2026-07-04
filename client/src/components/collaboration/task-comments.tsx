@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,10 +25,10 @@ interface TaskCommentsProps {
 interface Comment {
   id: number;
   content: string;
-  userId: number;
+  userId: string;
   createdAt: string;
   user: {
-    id: number;
+    id: string;
     fullName: string;
     username: string;
     profileImage?: string;
@@ -47,27 +50,54 @@ export default function TaskComments({ taskId, isOpen, onClose }: TaskCommentsPr
   const [showMentions, setShowMentions] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
 
+  // ponytail: realtime sync para comentarios de tareas
+  useRealtimeSync({
+    table: 'task_comments',
+    filter: `task_id=eq.${taskId}`,
+    queryKey: ['tasks', taskId, 'comments'],
+    enabled: isOpen && !!taskId
+  });
+
   // Obtener comentarios de la tarea
   const { data: comments = [], isLoading } = useQuery({
-    queryKey: ['/api/tasks', taskId, 'comments'],
+    queryKey: ['tasks', taskId, 'comments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("task_comments")
+        .select("*, user:users(id, full_name, username, profile_image)")
+        .eq("task_id", taskId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("task_comments", data);
+    },
     enabled: isOpen && !!taskId,
   });
 
   // Obtener usuarios para menciones
   const { data: users = [] } = useQuery({
-    queryKey: ['/api/users'],
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, full_name, username, profile_image")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("users", data);
+    },
     enabled: isOpen,
   });
 
   // Mutación para crear comentario
   const createCommentMutation = useMutation({
-    mutationFn: (commentData: { content: string; taskId: number }) =>
-      apiRequest(`/api/tasks/${taskId}/comments`, {
-        method: 'POST',
-        body: JSON.stringify(commentData)
-      }),
+    mutationFn: async (commentData: { content: string; taskId: number }) => {
+      return dbQuery("task_comments").insertSingle({
+        taskId,
+        userId: user?.id,
+        content: commentData.content,
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tasks', taskId, 'comments'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', taskId, 'comments'] });
       setNewComment("");
       toast({
         title: "Comentario agregado",

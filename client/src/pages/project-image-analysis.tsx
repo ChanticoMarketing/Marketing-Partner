@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -19,7 +21,16 @@ export default function ProjectImageAnalysisPage() {
   
   // Obtener información del proyecto
   const { data: project, isLoading, error } = useQuery({
-    queryKey: ['/api/projects', parseInt(projectId || '0')],
+    queryKey: ['projects', parseInt(projectId || '0')],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", parseInt(projectId || '0'))
+        .single();
+      if (error) throw error;
+      return fromDb("projects", data);
+    },
     enabled: !!projectId,
   });
 

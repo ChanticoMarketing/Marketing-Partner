@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Task, Project, User } from '@shared/schema';
+import { Task, Project, User, taskPriorityEnum, taskStatusEnum } from '@shared/schema';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -38,11 +38,11 @@ const taskFormSchema = z.object({
     message: "El título debe tener al menos 3 caracteres",
   }),
   description: z.string().optional(),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  status: z.enum(["pending", "in_progress", "review", "completed", "cancelled"]).optional(),
+  priority: z.enum(taskPriorityEnum.enumValues),
+  status: z.enum(taskStatusEnum.enumValues).optional(),
   dueDate: z.date().optional().nullable(),
   projectId: z.number(),
-  assignedToId: z.number().optional().nullable(),
+  assignedToId: z.string().optional().nullable(),
   taskGroup: z.enum(["planificacion", "creacion", "revision", "publicacion"]).optional(),
 });
 
@@ -171,9 +171,10 @@ export function TaskForm({
                     <SelectContent>
                       <SelectItem value="pending">Pendiente</SelectItem>
                       <SelectItem value="in_progress">En Progreso</SelectItem>
-                      <SelectItem value="review">En Revisión</SelectItem>
                       <SelectItem value="completed">Completada</SelectItem>
                       <SelectItem value="cancelled">Cancelada</SelectItem>
+                      <SelectItem value="blocked">Bloqueada</SelectItem>
+                      <SelectItem value="deferred">Diferida</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -189,7 +190,7 @@ export function TaskForm({
               <FormItem>
                 <FormLabel>Asignado a</FormLabel>
                 <Select
-                  onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
+                  onValueChange={(value) => field.onChange(value === "unassigned" ? null : value)}
                   defaultValue={field.value?.toString()}
                 >
                   <FormControl>
@@ -198,9 +199,9 @@ export function TaskForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="0">Sin asignar</SelectItem>
+                    <SelectItem value="unassigned">Sin asignar</SelectItem>
                     {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
+                      <SelectItem key={user.id} value={user.id}>
                         {user.fullName || user.username}
                       </SelectItem>
                     ))}

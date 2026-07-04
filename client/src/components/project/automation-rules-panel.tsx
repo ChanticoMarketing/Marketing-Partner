@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { 
   Card, 
   CardContent, 
@@ -98,38 +100,51 @@ export default function AutomationRulesPanel({ projectId }: AutomationRulesPanel
 
   // Obtener las reglas de automatización
   const { data: rules = [], isLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "automation-rules"],
+    queryKey: ["projects", projectId, "automation-rules"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/projects/${projectId}/automation-rules`);
-      return await res.json();
+      const { data, error } = await supabase
+        .from("automation_rules")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("automation_rules", data);
     },
   });
 
   // Obtener tareas y usuarios para las configuraciones
   const { data: tasks = [] } = useQuery({
-    queryKey: ["/api/projects", projectId, "tasks"],
+    queryKey: ["projects", projectId, "tasks"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/projects/${projectId}/tasks`);
-      return await res.json();
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("tasks", data);
     },
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["users"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/users");
-      return await res.json();
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, full_name, username, profile_image, role")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return fromDbArray("users", data);
     },
   });
 
   // Crear regla de automatización
   const createRuleMutation = useMutation({
     mutationFn: async (ruleData: any) => {
-      const res = await apiRequest("POST", `/api/projects/${projectId}/automation-rules`, ruleData);
-      return await res.json();
+      return dbQuery("automation_rules").insertSingle({ ...ruleData, projectId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "automation-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "automation-rules"] });
       toast({
         title: "Regla creada",
         description: "La regla de automatización ha sido creada exitosamente.",
@@ -157,11 +172,10 @@ export default function AutomationRulesPanel({ projectId }: AutomationRulesPanel
   // Editar regla de automatización
   const updateRuleMutation = useMutation({
     mutationFn: async (data: { id: number; ruleData: any }) => {
-      const res = await apiRequest("PATCH", `/api/automation-rules/${data.id}`, data.ruleData);
-      return await res.json();
+      return dbQuery("automation_rules").updateSingle(data.ruleData, { id: data.id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "automation-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "automation-rules"] });
       toast({
         title: "Regla actualizada",
         description: "La regla de automatización ha sido actualizada exitosamente.",
@@ -181,11 +195,11 @@ export default function AutomationRulesPanel({ projectId }: AutomationRulesPanel
   // Eliminar regla de automatización
   const deleteRuleMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/automation-rules/${id}`);
+      await dbQuery("automation_rules").delete({ id });
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "automation-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "automation-rules"] });
       toast({
         title: "Regla eliminada",
         description: "La regla de automatización ha sido eliminada exitosamente.",
@@ -203,11 +217,10 @@ export default function AutomationRulesPanel({ projectId }: AutomationRulesPanel
   // Togglear estado de regla (activa/inactiva)
   const toggleRuleStateMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
-      const res = await apiRequest("PATCH", `/api/automation-rules/${id}`, { isActive });
-      return await res.json();
+      return dbQuery("automation_rules").updateSingle({ isActive }, { id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "automation-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", projectId, "automation-rules"] });
       toast({
         title: "Estado actualizado",
         description: "El estado de la regla ha sido actualizado exitosamente.",

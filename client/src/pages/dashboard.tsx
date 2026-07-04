@@ -1,6 +1,8 @@
 // ===== IMPORTACIONES DEL DASHBOARD =====
 // TanStack Query: Para consultas de datos del servidor
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 // Hook para mostrar notificaciones
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,37 +25,50 @@ export default function Dashboard() {
   // ===== CONSULTA DE DATOS DEL USUARIO =====
   // Obtiene información del usuario autenticado
   const { data: user } = useQuery({
-    queryKey: ['user'], // Clave para el cache
+    queryKey: ['user'],
     queryFn: async () => {
-      const res = await fetch('/api/user');
-      if (!res.ok) throw new Error('Error al cargar datos del usuario');
-      return res.json();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      if (error) throw error;
+      return fromDb("users", data);
     },
-    retry: 1 // Solo reintentar una vez en caso de error
+    retry: 1
   });
 
   // ===== CONSULTA DE PROYECTOS =====
   // Obtiene lista de todos los proyectos del usuario
   const { data: projects } = useQuery({
-    queryKey: ['projects'], // Clave para el cache
+    queryKey: ['projects'],
     queryFn: async () => {
-      const res = await fetch('/api/projects');
-      if (!res.ok) throw new Error('Error al cargar proyectos');
-      return res.json();
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return fromDbArray("projects", data);
     },
-    retry: 1 // Solo reintentar una vez en caso de error
+    retry: 1
   });
 
   // ===== CONSULTA DE CRONOGRAMAS RECIENTES =====
   // Obtiene cronogramas de contenido recientes
   const { data: schedules } = useQuery({
-    queryKey: ['schedules', 'recent'], // Clave compuesta para el cache
+    queryKey: ['schedules', 'recent'],
     queryFn: async () => {
-      const res = await fetch('/api/schedules/recent');
-      if (!res.ok) throw new Error('Error al cargar horarios');
-      return res.json();
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return fromDbArray("schedules", data);
     },
-    retry: 1 // Solo reintentar una vez en caso de error
+    retry: 1
   });
 
   // ===== RENDERIZADO DEL DASHBOARD =====
