@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import ProjectDocuments from "@/components/projects/project-documents";
+import { type BrandBrainCardKey } from "@/lib/brand-brain-cards";
 import {
   Select,
   SelectContent,
@@ -43,7 +45,28 @@ import {
 
 interface ProjectAnalysisProps {
   project: any;
-  isPrimary: boolean;
+  canEdit: boolean;
+}
+
+function CardSources({
+  cardKey,
+  isEditing,
+  onOpen,
+}: {
+  cardKey: BrandBrainCardKey;
+  isEditing: boolean;
+  onOpen: (card: BrandBrainCardKey) => void;
+}) {
+  if (!isEditing) return null;
+
+  return (
+    <div className="border-t px-6 py-4">
+      <Button type="button" size="sm" variant="outline" onClick={() => onOpen(cardKey)}>
+        <Plus className="mr-2 h-4 w-4" />
+        Documentos de apoyo
+      </Button>
+    </div>
+  );
 }
 
 // Extended Analysis schema including all fields from DB schema
@@ -103,10 +126,11 @@ const analysisSchema = z.object({
   })).optional(),
 });
 
-export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisProps) {
+export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("identity");
+  const [activeTab, setActiveTab] = useState("brand");
+  const [documentCard, setDocumentCard] = useState<BrandBrainCardKey | "unclassified" | null>(null);
 
   // Get analysis data from project
   const analysisData = project?.analysis || {};
@@ -207,19 +231,19 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold gradient-text-amber">Cerebro de la Marca</h2>
-          <p className="text-muted-foreground text-sm">Define la identidad, estrategia y voz para guiar a la IA.</p>
+          <p className="text-muted-foreground text-sm">Lo esencial de la marca, el cliente y la guía para la IA.</p>
         </div>
-        {isPrimary && !isEditing && (
+        {canEdit && !isEditing && (
           <Button
             variant="outline"
             onClick={() => setIsEditing(true)}
             className="gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary"
           >
             <Pencil className="h-4 w-4" />
-            <span>Editar Estrategia</span>
+            <span>Editar Cerebro</span>
           </Button>
         )}
-        {isPrimary && isEditing && (
+        {canEdit && isEditing && (
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -244,52 +268,29 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          {/* ponytail: group the existing cards without changing their data contract. */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 h-auto bg-muted/20 p-1 mb-4">
-              <TabsTrigger value="identity" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 h-auto bg-muted/20 p-1 mb-4">
+              <TabsTrigger value="brand" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <Shield className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Identidad</span>
+                <span className="text-[10px] sm:text-xs">Marca</span>
               </TabsTrigger>
-              <TabsTrigger value="uvp" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <Sparkles className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">UVP</span>
-              </TabsTrigger>
-              <TabsTrigger value="audience" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="customer" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <Users className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Público</span>
+                <span className="text-[10px] sm:text-xs">Cliente</span>
               </TabsTrigger>
-              <TabsTrigger value="voc" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <Quote className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">VoC</span>
-              </TabsTrigger>
-              <TabsTrigger value="strategy" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <Target className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Estrategia</span>
-              </TabsTrigger>
-              <TabsTrigger value="pillars" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="content" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Pilares</span>
+                <span className="text-[10px] sm:text-xs">Contenido</span>
               </TabsTrigger>
-              <TabsTrigger value="communication" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Comunicación</span>
-              </TabsTrigger>
-              <TabsTrigger value="competitors" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="context" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <BarChart className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Competencia</span>
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <CalendarIcon className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Calendario</span>
-              </TabsTrigger>
-              <TabsTrigger value="policies" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <Lightbulb className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Políticas</span>
+                <span className="text-[10px] sm:text-xs">Contexto</span>
               </TabsTrigger>
             </TabsList>
 
             {/* IDENTITY TAB */}
-            <TabsContent value="identity" className="space-y-4">
+            <TabsContent value="brand" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -339,6 +340,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </>
                     )}
                   </CardContent>
+                  <CardSources cardKey="identity-purpose" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
 
                 <Card>
@@ -373,12 +375,13 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </div>
                     )}
                   </CardContent>
+                  <CardSources cardKey="identity-values" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
               </div>
             </TabsContent>
 
             {/* AUDIENCE TAB */}
-            <TabsContent value="audience" className="space-y-4">
+            <TabsContent value="customer" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -405,6 +408,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </div>
                     )}
                   </CardContent>
+                  <CardSources cardKey="audience-persona" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
 
                 <Card>
@@ -430,12 +434,13 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       <p className="whitespace-pre-wrap text-sm">{analysisData.targetAudience || "No definida"}</p>
                     )}
                   </CardContent>
+                  <CardSources cardKey="audience-general" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
               </div>
             </TabsContent>
 
             {/* VOC TAB (New) */}
-            <TabsContent value="voc" className="space-y-4">
+            <TabsContent value="customer" id="brand-brain-customer-voc" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -502,6 +507,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </div>
                     )}
                   </CardContent>
+                  <CardSources cardKey="voice-customer" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
 
                 <Card>
@@ -552,12 +558,13 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </>
                     )}
                   </CardContent>
+                  <CardSources cardKey="voice-vocabulary" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
               </div>
             </TabsContent>
 
             {/* STRATEGY TAB */}
-            <TabsContent value="strategy" className="space-y-4">
+            <TabsContent value="context" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Objetivos y Estrategias</CardTitle>
@@ -610,12 +617,13 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                     )}
                   </div>
                 </CardContent>
+                <CardSources cardKey="strategy" isEditing={isEditing} onOpen={setDocumentCard} />
               </Card>
 
             </TabsContent>
 
             {/* UVP TAB (New) */}
-            <TabsContent value="uvp" className="space-y-4">
+            <TabsContent value="brand" id="brand-brain-uvp" className="space-y-4">
               <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/10">
                 <CardHeader>
                   <CardTitle className="text-amber-700 dark:text-primary/80">Propuesta de Valor Única (UVP)</CardTitle>
@@ -648,11 +656,12 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                     </div>
                   )}
                 </CardContent>
+                <CardSources cardKey="uvp" isEditing={isEditing} onOpen={setDocumentCard} />
               </Card>
             </TabsContent>
 
             {/* PILLARS TAB (New) */}
-            <TabsContent value="pillars" className="space-y-4">
+            <TabsContent value="content" className="space-y-4">
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -734,11 +743,12 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                     )}
                   </div>
                 </CardContent>
+                <CardSources cardKey="pillars" isEditing={isEditing} onOpen={setDocumentCard} />
               </Card>
             </TabsContent>
 
             {/* COMMUNICATION TAB */}
-            <TabsContent value="communication" className="space-y-4">
+            <TabsContent value="content" id="brand-brain-content-communication" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -799,6 +809,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </>
                     )}
                   </CardContent>
+                  <CardSources cardKey="communication-style" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
 
                 <Card>
@@ -833,12 +844,13 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       </div>
                     )}
                   </CardContent>
+                  <CardSources cardKey="communication-keywords" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
               </div>
             </TabsContent>
 
             {/* COMPETITORS TAB (New) */}
-            <TabsContent value="competitors" className="space-y-4">
+            <TabsContent value="context" id="brand-brain-context-competitors" className="space-y-4">
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -931,11 +943,12 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                     )}
                   </div>
                 </CardContent>
+                <CardSources cardKey="competitors" isEditing={isEditing} onOpen={setDocumentCard} />
               </Card>
             </TabsContent>
 
             {/* CALENDAR TAB (New) */}
-            <TabsContent value="calendar" className="space-y-4">
+            <TabsContent value="context" id="brand-brain-context-calendar" className="space-y-4">
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -1007,11 +1020,12 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                     </div>
                   )}
                 </CardContent>
+                <CardSources cardKey="calendar" isEditing={isEditing} onOpen={setDocumentCard} />
               </Card>
             </TabsContent>
 
             {/* POLICIES TAB */}
-            <TabsContent value="policies" className="space-y-4">
+            <TabsContent value="content" id="brand-brain-content-policies" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="border-green-200 dark:border-green-900 bg-green-50/10">
                   <CardHeader>
@@ -1036,6 +1050,7 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       <p className="whitespace-pre-wrap text-sm">{analysisData.responsePolicyPositive || "No definida"}</p>
                     )}
                   </CardContent>
+                  <CardSources cardKey="policies-positive" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
 
                 <Card className="border-red-200 dark:border-red-900 bg-red-50/10">
@@ -1061,12 +1076,32 @@ export default function ProjectAnalysis({ project, isPrimary }: ProjectAnalysisP
                       <p className="whitespace-pre-wrap text-sm">{analysisData.responsePolicyNegative || "No definida"}</p>
                     )}
                   </CardContent>
+                  <CardSources cardKey="policies-negative" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
               </div>
             </TabsContent>
           </Tabs>
+          {isEditing && (
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle>Fuentes sin clasificar</CardTitle>
+                <CardDescription>Documentos existentes que todavía no pertenecen a una tarjeta.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button type="button" variant="outline" onClick={() => setDocumentCard("unclassified")}>
+                  Revisar y reubicar fuentes
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </form>
       </Form>
+      <ProjectDocuments
+        projectId={project.id}
+        cardKey={documentCard}
+        canEdit={canEdit}
+        onOpenChange={(open) => !open && setDocumentCard(null)}
+      />
     </div >
   );
 }

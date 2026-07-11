@@ -242,7 +242,6 @@ ${sanitizedText || "Sin contenido extraíble"}
 `;
 
   const raw = await generateText(prompt, {
-    model: "grok-3-mini",
     temperature: 0.3,
     maxTokens: 1800,
     responseFormat: "json",
@@ -274,7 +273,6 @@ Además del summary y structuredData, incluye opcionalmente:
 `;
 
   const raw = await generateTextWithImage(prompt, toBase64(bytes), {
-    model: "grok-3-mini",
     temperature: 0.3,
     maxTokens: 1500,
   });

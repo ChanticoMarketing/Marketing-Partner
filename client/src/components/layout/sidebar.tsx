@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import {
-  Rocket,
   LayoutDashboard,
   Grid2X2,
   LineChart,
@@ -52,12 +51,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-5 mb-2 border-b">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Rocket className="h-4 w-4" />
+            <div className="relative flex h-10 w-10 items-center justify-center shrink-0 overflow-hidden">
+              <img src="/chantia-isotype-light.png" alt="Chantia Logo" className="h-full w-full object-cover dark:hidden scale-[1.3]" />
+              <img src="/chantia-isotype-dark.png" alt="Chantia Logo" className="h-full w-full object-cover hidden dark:block scale-[1.3]" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-sm font-semibold tracking-tight">Cohete Workflow</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Command Center</p>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-base font-heading font-bold tracking-tight text-foreground truncate">Chantia</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Chispa Contenida</p>
             </div>
             {/* Close button - mobile only */}
             <Button
@@ -86,7 +86,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               isActive={location === "/projects" || (location.startsWith("/projects/") && !location.includes("/tasks"))}
               onClick={onClose}
             />
-
             <NavItem
               href="/calendars"
               icon={<CalendarPlus className="mr-3 h-5 w-5" />}

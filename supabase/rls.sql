@@ -133,17 +133,17 @@ CREATE POLICY analysis_results_select ON analysis_results
 
 DROP POLICY IF EXISTS analysis_results_insert ON analysis_results;
 CREATE POLICY analysis_results_insert ON analysis_results
-  FOR INSERT TO authenticated WITH CHECK (can_access_project(project_id));
+  FOR INSERT TO authenticated WITH CHECK (can_approve_project_knowledge(project_id));
 
 DROP POLICY IF EXISTS analysis_results_update ON analysis_results;
 CREATE POLICY analysis_results_update ON analysis_results
   FOR UPDATE TO authenticated
-  USING (can_access_project(project_id))
-  WITH CHECK (can_access_project(project_id));
+  USING (can_approve_project_knowledge(project_id))
+  WITH CHECK (can_approve_project_knowledge(project_id));
 
 DROP POLICY IF EXISTS analysis_results_delete ON analysis_results;
 CREATE POLICY analysis_results_delete ON analysis_results
-  FOR DELETE TO authenticated USING (can_access_project(project_id));
+  FOR DELETE TO authenticated USING (can_approve_project_knowledge(project_id));
 
 -- ===== documents =====
 DROP POLICY IF EXISTS documents_select ON documents;
@@ -152,29 +152,13 @@ CREATE POLICY documents_select ON documents
 
 DROP POLICY IF EXISTS documents_insert ON documents;
 CREATE POLICY documents_insert ON documents
-  FOR INSERT TO authenticated WITH CHECK (can_access_project(project_id));
+  FOR INSERT TO authenticated WITH CHECK (can_approve_project_knowledge(project_id));
 
 DROP POLICY IF EXISTS documents_update ON documents;
 CREATE POLICY documents_update ON documents
   FOR UPDATE TO authenticated
-  USING (
-    can_access_project(project_id)
-    AND (
-      status IN ('draft', 'processing', 'review', 'failed')
-      OR can_approve_project_knowledge(project_id)
-    )
-  )
-  WITH CHECK (
-    can_access_project(project_id)
-    AND (
-      can_approve_project_knowledge(project_id)
-      OR (
-        status IN ('draft', 'processing', 'review', 'failed')
-        AND approved_at IS NULL
-        AND approved_by IS NULL
-      )
-    )
-  );
+  USING (can_approve_project_knowledge(project_id))
+  WITH CHECK (can_approve_project_knowledge(project_id));
 
 DROP POLICY IF EXISTS documents_delete ON documents;
 CREATE POLICY documents_delete ON documents
@@ -622,3 +606,30 @@ CREATE POLICY activity_log_select ON activity_log
   );
 
 -- activity_log: INSERT y UPDATE solo desde service role (sin policy = bloqueado para anon/authenticated)
+
+-- ===== project-images Storage =====
+DROP POLICY IF EXISTS project_images_insert ON storage.objects;
+CREATE POLICY project_images_insert ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'project-images'
+    AND EXISTS (
+      SELECT 1
+      FROM public.projects p
+      WHERE p.id::text = (storage.foldername(storage.objects.name))[1]
+        AND public.can_access_project(p.id)
+    )
+  );
+
+DROP POLICY IF EXISTS project_images_delete ON storage.objects;
+CREATE POLICY project_images_delete ON storage.objects
+  FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'project-images'
+    AND EXISTS (
+      SELECT 1
+      FROM public.projects p
+      WHERE p.id::text = (storage.foldername(storage.objects.name))[1]
+        AND public.can_access_project(p.id)
+    )
+  );

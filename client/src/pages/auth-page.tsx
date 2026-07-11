@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Rocket, Users, Zap, TrendingUp, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { AuthLayout } from "@/components/auth/auth-layout";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,7 +39,7 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, isLoading: isAuthLoading, loginMutation, registerMutation } = useAuth();
+  const { user, isLoading: isAuthLoading, error: authError, loginMutation, registerMutation } = useAuth();
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -88,338 +88,257 @@ export default function AuthPage() {
 
   if (!isAuthLoading && user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Redirigiendo al dashboard...</p>
+      <AuthLayout>
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground font-sans">Redirigiendo a tu espacio...</p>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div
-      className="w-full bg-muted/30"
-      style={{ minHeight: '100vh', height: 'auto', overflow: 'visible', position: 'relative' }}
-    >
-      <div
-        className="container mx-auto py-8 px-4"
-        style={{ height: 'auto', minHeight: '100vh', overflow: 'visible' }}
-      >
-        <div className="grid w-full max-w-5xl mx-auto grid-cols-1 md:grid-cols-2 gap-8" style={{ height: 'auto' }}>
-          <Card className="w-full">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-                  <Rocket className="h-6 w-6 text-primary-foreground" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl">Cohete Workflow</CardTitle>
-              <CardDescription>
-                Inicia sesión o crea una cuenta para gestionar tus proyectos de marketing
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
-                  <TabsTrigger value="register">Registrarse</TabsTrigger>
-                </TabsList>
+    <AuthLayout>
+      <div className="flex flex-col space-y-6">
+        <div className="text-center space-y-2 mb-2">
+          <h1 className="text-2xl font-heading font-bold text-foreground">Bienvenido</h1>
+          <p className="text-sm text-muted-foreground font-sans">
+            Accede a tu cuenta para continuar
+          </p>
+        </div>
 
-                <TabsContent value="login">
-                  <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                      <FormField
-                        control={loginForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="Ingresa tu email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contraseña</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  type={showLoginPassword ? "text" : "password"}
-                                  placeholder="Ingresa tu contraseña"
-                                  {...field}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                                  aria-label={showLoginPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                >
-                                  {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full" disabled={isLoading}>
-                        {loginMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Iniciando sesión...
-                          </>
-                        ) : (
-                          "Iniciar sesión"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleLogin}
-                    disabled={isLoading}
-                  >
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      aria-hidden="true"
-                      focusable="false"
-                      data-prefix="fab"
-                      data-icon="google"
-                      role="img"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 488 512"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h240z"
-                      />
-                    </svg>
-                    Continuar con Google
-                  </Button>
-                </TabsContent>
+        {authError && (
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive font-sans">
+            {authError.message}
+          </div>
+        )}
 
-                <TabsContent value="register">
-                  <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nombre Completo</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ingresa tu nombre completo" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nombre de Usuario</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Elige un nombre de usuario" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="Ingresa tu email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contraseña</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  type={showRegisterPassword ? "text" : "password"}
-                                  placeholder="Crea una contraseña"
-                                  {...field}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                                  aria-label={showRegisterPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                >
-                                  {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirmar Contraseña</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input
-                                  type={showConfirmPassword ? "text" : "password"}
-                                  placeholder="Confirma tu contraseña"
-                                  {...field}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                >
-                                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full" disabled={isLoading}>
-                        {registerMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creando cuenta...
-                          </>
-                        ) : (
-                          "Crear cuenta"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleLogin}
-                    disabled={isLoading}
-                  >
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      aria-hidden="true"
-                      focusable="false"
-                      data-prefix="fab"
-                      data-icon="google"
-                      role="img"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 488 512"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h240z"
-                      />
-                    </svg>
-                    Continuar con Google
-                  </Button>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-            <CardFooter className="flex flex-col text-center text-sm text-muted-foreground">
-              <p>
-                Al continuar, aceptas los Términos de Servicio y la Política de Privacidad de Cohete Workflow.
-              </p>
-            </CardFooter>
-          </Card>
+        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+            <TabsTrigger value="login" className="rounded-lg font-sans">Iniciar sesión</TabsTrigger>
+            <TabsTrigger value="register" className="rounded-lg font-sans">Registrarse</TabsTrigger>
+          </TabsList>
 
-          <div className="hidden md:flex flex-col justify-center">
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Impulsa tu Marketing Digital</h1>
-              <p className="text-lg text-muted-foreground">
-                Cohete Workflow es tu plataforma integral para gestionar proyectos de marketing digital
-                con herramientas avanzadas de inteligencia artificial y colaboración en tiempo real.
-              </p>
+          <TabsContent value="login" className="space-y-4">
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-5">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="tu@email.com" className="bg-transparent border-black/10 dark:border-white/10" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="font-sans text-foreground/80">Contraseña</FormLabel>
+                        <Button variant="link" className="p-0 h-auto text-xs font-sans text-muted-foreground hover:text-primary" onClick={(e) => { e.preventDefault(); setLocation("/forgot-password"); }}>¿Olvidaste tu contraseña?</Button>
+                      </div>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showLoginPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            className="bg-transparent border-black/10 dark:border-white/10"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground"
+                            onClick={() => setShowLoginPassword(!showLoginPassword)}
+                            aria-label={showLoginPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          >
+                            {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-sans rounded-xl h-11 transition-all" disabled={isLoading}>
+                  {loginMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Iniciando sesión...
+                    </>
+                  ) : (
+                    "Iniciar sesión"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                    <Zap className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Automatización Inteligente</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Genera contenido y cronogramas automáticamente con IA
-                    </p>
-                  </div>
-                </div>
+          <TabsContent value="register" className="space-y-4">
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                <FormField
+                  control={registerForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Nombre Completo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Tu nombre" className="bg-transparent border-black/10 dark:border-white/10" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Nombre de Usuario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="tu_usuario" className="bg-transparent border-black/10 dark:border-white/10" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="tu@email.com" className="bg-transparent border-black/10 dark:border-white/10" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Contraseña</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showRegisterPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            className="bg-transparent border-black/10 dark:border-white/10"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground"
+                            onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                            aria-label={showRegisterPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          >
+                            {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-sans text-foreground/80">Confirmar Contraseña</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            className="bg-transparent border-black/10 dark:border-white/10"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-sans rounded-xl h-11 transition-all mt-6" disabled={isLoading}>
+                  {registerMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando cuenta...
+                    </>
+                  ) : (
+                    "Crear cuenta"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+        </Tabs>
 
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                    <Users className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Colaboración en Equipo</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Trabaja con tu equipo en tiempo real y mantén organizados todos los proyectos
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Análisis y Métricas</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Analiza el rendimiento de tus campañas y optimiza tus estrategias
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-black/10 dark:border-white/10" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-[#F7F2E9] dark:bg-[#151312] px-4 text-muted-foreground font-sans tracking-wider">
+              O continúa con
+            </span>
           </div>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full bg-transparent border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-sans h-11 rounded-xl transition-all"
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+        >
+          <svg
+            className="mr-2 h-4 w-4"
+            aria-hidden="true"
+            focusable="false"
+            data-prefix="fab"
+            data-icon="google"
+            role="img"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 488 512"
+          >
+            <path
+              fill="currentColor"
+              d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h240z"
+            />
+          </svg>
+          Continuar con Google
+        </Button>
+
+        <p className="text-center text-xs text-muted-foreground font-sans pt-4">
+          Al continuar, aceptas los Términos de Servicio y la Política de Privacidad de Chantia.
+        </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

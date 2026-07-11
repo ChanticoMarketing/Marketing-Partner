@@ -100,7 +100,6 @@ Deno.serve(async (req) => {
     const prompt = getAnalysisPrompt(analysisType);
 
     const analysisResult = await generateTextWithImage(prompt, base64, {
-      model: "grok-3-mini",
       temperature: 0.5,
       maxTokens: 1500,
     });

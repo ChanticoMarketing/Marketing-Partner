@@ -52,8 +52,8 @@ function isValidUrl(value) {
     errors.push("VITE_SUPABASE_ANON_KEY is required.");
   }
 
-  if (!process.env.XAI_API_KEY && !process.env.GROK_API_KEY) {
-    warn("No AI API key detected (XAI_API_KEY / GROK_API_KEY). AI features will fail.");
+  if (!process.env.GROQ_API_KEY) {
+    warn("No AI API key detected (GROQ_API_KEY). AI features will fail.");
   }
 
   if (!process.env.PRIMARY_ACCOUNT_SECRET) {

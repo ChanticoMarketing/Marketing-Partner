@@ -1,6 +1,6 @@
 // ===== IMPORTACIONES DE ROUTING =====
 // Wouter: Librería de routing ligera para React
-import { Switch, Route } from "wouter";
+import { Redirect, Switch, Route } from "wouter";
 
 // ===== IMPORTACIONES DE GESTIÓN DE ESTADO =====
 // React Query: Para manejo de estado del servidor y cache
@@ -46,7 +46,7 @@ import MainLayout from "./layouts/main-layout";
 // Providers para contextos globales
 import { AuthProvider } from "./hooks/use-auth";
 import { ThemeProvider } from "./hooks/use-theme";
-import { AppTourProvider } from "./hooks/use-app-tour";
+import { AppTourProvider } from "@/hooks/use-app-tour";
 import CopilotButton from "@/components/copilot/copilot-button";
 import { Preloader } from "@/components/ui/preloader";
 
@@ -112,6 +112,26 @@ function App() {
                     <ProtectedRoute>
                       <MainLayout>
                         <ProjectDetail id={params ? parseInt(params.id) : 0} />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  )}
+                </Route>
+
+                <Route path="/projects/:id/knowledge">
+                  {(params: { id: string } | undefined) => (
+                    <Redirect to={`/projects/${params?.id ?? ""}`} />
+                  )}
+                </Route>
+
+                <Route path="/projects/:id/logs">
+                  {(params: { id: string } | undefined) => (
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <ProjectDetail
+                          id={params ? parseInt(params.id) : 0}
+                          initialTab="logs"
+                          backPath="/projects"
+                        />
                       </MainLayout>
                     </ProtectedRoute>
                   )}

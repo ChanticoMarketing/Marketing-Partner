@@ -336,7 +336,7 @@ export default function QuickCalendar() {
                   </div>
                   <div>
                     <h3 className="font-semibold">IA Avanzada</h3>
-                    <p className="text-sm text-muted-foreground">Contenido optimizado por Gemini 3 Pro.</p>
+                    <p className="text-sm text-muted-foreground">Contenido optimizado por Groq.</p>
                   </div>
                 </CardContent>
               </Card>

@@ -4,6 +4,7 @@ import {
   getErrorStatus,
   getUser,
   hasProjectAccess,
+  assertProjectKnowledgeEditor,
   jsonResponse,
   supabaseAdmin,
 } from "../_shared/supabase.ts";
@@ -30,6 +31,7 @@ Deno.serve(async (req) => {
     const projectId = Number(formData.get("projectId"));
     const category = String(formData.get("category") || "").trim();
     const subcategory = String(formData.get("subcategory") || "").trim();
+    const brandBrainCard = String(formData.get("brandBrainCard") || "").trim();
     const customName = String(formData.get("name") || "").trim();
 
     if (!file) return errorResponse("Archivo no proporcionado", 400);
@@ -42,6 +44,7 @@ Deno.serve(async (req) => {
     }
 
     await hasProjectAccess(projectId, user.id);
+    await assertProjectKnowledgeEditor(projectId, user.id);
 
     const itemName = customName || file.name;
     const filePath = `${projectId}/${Date.now()}-${file.name}`;
@@ -74,6 +77,7 @@ Deno.serve(async (req) => {
           originalName: file.name,
           mimeType: file.type,
           fileSize: file.size,
+          ...(brandBrainCard ? { brandBrainCard } : {}),
         },
       })
       .select()

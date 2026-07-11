@@ -99,6 +99,13 @@ export async function assertProjectKnowledgeApproval(projectId: number, userId: 
   }
 }
 
+export async function assertProjectKnowledgeEditor(projectId: number, userId: string) {
+  const allowed = await canApproveProjectKnowledge(projectId, userId);
+  if (!allowed) {
+    throw createHttpError("No tienes permiso para editar el Cerebro de Marca", 403);
+  }
+}
+
 // CORS headers
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

@@ -2,9 +2,9 @@
 // React hooks para manejo de estado
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { fromDbArray } from "@/lib/supabase-helpers";
 // TanStack Query para manejo de datos del servidor
-import { useQuery, QueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 // Hook de autenticación
 import { useAuth } from "@/hooks/use-auth";
 // Router para navegación
@@ -38,6 +38,7 @@ import { Eye, Pencil, Plus, Rocket } from "lucide-react"; // Iconos de acciones
 import NewProjectModal from "@/components/projects/new-project-modal"; // Modal para crear proyecto
 import { formatRelative } from "date-fns"; // Formateo de fechas
 import { cn } from "@/lib/utils";
+import { getProjectColor, getProjectInitial } from "@/lib/project-identity";
 
 // ===== COMPONENTE DE BADGE DE ESTADO =====
 // Componente que muestra el estado del proyecto con colores específicos
@@ -129,7 +130,6 @@ export default function Projects() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalProjects);
   const currentProjects = projects?.slice(startIndex, endIndex) || [];
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -139,15 +139,13 @@ export default function Projects() {
           </h2>
           <p className="text-sm text-muted-foreground">Gestión de campañas y misiones activas</p>
         </div>
-        {user?.isPrimary && (
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wide shadow-md transition-all duration-300 hover:scale-105"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            NUEVO PROYECTO
-          </Button>
-        )}
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-wide shadow-md transition-all duration-300 hover:scale-105"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          NUEVO PROYECTO
+        </Button>
       </div>
 
       <div className="bg-card border-border border-border rounded-xl overflow-hidden">
@@ -177,8 +175,23 @@ export default function Projects() {
                   <TableRow key={project.id} className="border-border/50 hover:bg-muted transition-colors">
                     <TableCell className="font-medium text-foreground">
                       <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-primary shadow-md"></div>
-                        {project.name}
+                        {project.imageUrl ? (
+                          <img
+                            src={project.imageUrl}
+                            alt={project.name}
+                            className="h-9 w-9 rounded-full object-cover shadow-sm"
+                          />
+                        ) : (
+                          <div
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+                            style={{ backgroundColor: getProjectColor(project.color) }}
+                          >
+                            {getProjectInitial(project.name)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="truncate">{project.name}</div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{project.client}</TableCell>

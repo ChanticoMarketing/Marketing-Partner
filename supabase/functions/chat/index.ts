@@ -65,7 +65,6 @@ ${promptBlock}`;
     promptText += `Usuario: ${safeMessage}\n\nAsistente:`;
 
     const response = await generateText(promptText, {
-      model: "grok-3-mini",
       temperature: 0.7,
       maxTokens: 1000,
     });

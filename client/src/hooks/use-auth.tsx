@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { UseMutationResult } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +50,9 @@ type AuthContextType = {
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
+
+const PROFILE_SYNC_ERROR_MESSAGE =
+  "No se pudo terminar de cargar tu perfil. Vuelve a iniciar sesion.";
 
 async function fetchProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
@@ -136,6 +139,13 @@ async function ensureProfile(
   return syncedProfile;
 }
 
+async function clearBrokenSession() {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Error clearing broken auth session:", error);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -155,12 +165,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (session?.user) {
           const profile = await ensureProfile(session.user);
-          if (mounted) setUser(profile);
+          if (mounted) {
+            setUser(profile);
+            setError(null);
+          }
         } else {
           setUser(null);
+          setError(null);
         }
       } catch (err) {
-        if (mounted) setError(err instanceof Error ? err : new Error(String(err)));
+        await clearBrokenSession();
+        if (mounted) {
+          setUser(null);
+          setError(
+            err instanceof Error
+              ? new Error(`${PROFILE_SYNC_ERROR_MESSAGE} ${err.message}`)
+              : new Error(PROFILE_SYNC_ERROR_MESSAGE)
+          );
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -176,12 +198,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         if (session?.user) {
           const profile = await ensureProfile(session.user);
-          if (mounted) setUser(profile);
+          if (mounted) {
+            setUser(profile);
+            setError(null);
+          }
         } else {
           setUser(null);
+          setError(null);
         }
       } catch (err) {
-        if (mounted) setError(err instanceof Error ? err : new Error(String(err)));
+        await clearBrokenSession();
+        if (mounted) {
+          setUser(null);
+          setError(
+            err instanceof Error
+              ? new Error(`${PROFILE_SYNC_ERROR_MESSAGE} ${err.message}`)
+              : new Error(PROFILE_SYNC_ERROR_MESSAGE)
+          );
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -202,12 +236,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (signInError) throw signInError;
       if (!data.user) throw new Error("No se pudo iniciar sesión");
-
-      return ensureProfile(data.user);
+      try {
+        return await ensureProfile(data.user);
+      } catch (err) {
+        await clearBrokenSession();
+        throw err instanceof Error
+          ? new Error(`${PROFILE_SYNC_ERROR_MESSAGE} ${err.message}`)
+          : new Error(PROFILE_SYNC_ERROR_MESSAGE);
+      }
     },
     {
       onSuccess: (profile) => {
         setUser(profile);
+        setError(null);
         toast({
           title: "Login successful",
           description: `Welcome back, ${profile.fullName}!`,
@@ -244,6 +285,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     {
       onSuccess: (profile) => {
         setUser(profile);
+        setError(null);
         toast({
           title: "Registration successful",
           description: `Welcome, ${profile.fullName}!`,
@@ -267,6 +309,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     {
       onSuccess: () => {
         setUser(null);
+        setError(null);
         toast({
           title: "Logged out",
           description: "You have been successfully logged out.",

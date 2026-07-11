@@ -40,6 +40,8 @@ export type Project = {
     id: number;
     name: string;
     client: string;
+    color: string | null;
+    imageUrl: string | null;
     description: string | null;
     startDate: Date | null;
     endDate: Date | null;

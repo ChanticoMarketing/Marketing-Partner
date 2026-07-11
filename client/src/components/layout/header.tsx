@@ -29,7 +29,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     if (location === "/") return "Dashboard";
     if (location === "/projects") return "Proyectos";
     if (location.startsWith("/projects/")) return "Detalles del Proyecto";
-    return "Cohete Workflow";
+    return "Chantia";
   };
 
   return (
@@ -44,10 +44,10 @@ export function Header({ onMenuClick }: HeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="text-lg font-semibold tracking-tight">Cohete Workflow</span>
+          <span className="text-lg font-heading font-bold tracking-tight">Chantia</span>
         </div>
         <div className="hidden md:block">
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-xl font-heading font-bold tracking-tight">
             <span className="text-primary mr-1.5">•</span> 
             {getTitle()}
           </h1>

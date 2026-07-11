@@ -11,6 +11,15 @@ interface AppTourContextType {
 
 const AppTourContext = createContext<AppTourContextType | undefined>(undefined);
 
+const fallbackAppTourContext: AppTourContextType = {
+  startTour: () => {},
+  isActive: false,
+  currentStep: 0,
+  nextStep: () => {},
+  prevStep: () => {},
+  endTour: () => {},
+};
+
 export function AppTourProvider({ children }: { children: ReactNode }) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -51,8 +60,5 @@ export function AppTourProvider({ children }: { children: ReactNode }) {
 
 export function useAppTourContext() {
   const context = useContext(AppTourContext);
-  if (context === undefined) {
-    throw new Error('useAppTourContext must be used within an AppTourProvider');
-  }
-  return context;
+  return context ?? fallbackAppTourContext;
 }

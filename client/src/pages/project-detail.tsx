@@ -30,17 +30,22 @@ import { Loader2, ArrowLeft, ArrowRight, Download, Pencil } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
-import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { dbQuery, fromDb } from "@/lib/supabase-helpers";
+import { getProjectColor, getProjectInitial } from "@/lib/project-identity";
 import ProjectAnalysis from "@/components/projects/project-analysis";
 import ProjectWorkflows from "@/components/projects/project-workflows";
-import ProjectDocuments from "@/components/projects/project-documents";
 import ProjectChat from "@/components/projects/project-chat";
+import ProjectLogs from "@/components/projects/project-logs";
 import ProductList from "@/components/products/product-list";
 
 
 interface ProjectDetailProps {
   id: number;
+  initialTab?: "analysis" | "calendars" | "products" | "chat" | "logs";
+  backPath?: string;
 }
+
+type ProjectTab = "analysis" | "calendars" | "products" | "chat" | "logs";
 
 // Define interfaces outside of component to avoid recreation on each render
 interface ProjectAnalysis {
@@ -61,6 +66,8 @@ interface ProjectWithAnalysis {
   id: number;
   name: string;
   client: string;
+  color?: string | null;
+  imageUrl?: string | null;
   description?: string;
   startDate?: string;
   endDate?: string;
@@ -71,11 +78,15 @@ interface ProjectWithAnalysis {
   analysis?: ProjectAnalysis | null;
 }
 
-export default function ProjectDetail({ id }: ProjectDetailProps) {
+export default function ProjectDetail({
+  id,
+  initialTab = "analysis",
+  backPath = "/projects",
+}: ProjectDetailProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [_, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState("analysis");
+  const [activeTab, setActiveTab] = useState<ProjectTab>(initialTab);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
@@ -171,7 +182,7 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
     return (
       <div className="p-4 border rounded-md bg-red-50 text-red-700 my-4">
         <p>Error loading project: {(error as Error).message}</p>
-        <Button variant="link" onClick={() => navigate("/projects")}>
+        <Button variant="link" onClick={() => navigate(backPath)}>
           Return to Projects
         </Button>
       </div>
@@ -183,7 +194,7 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
     return (
       <div className="p-4 border rounded-md bg-amber-50 text-amber-700 my-4">
         <p>Project not found</p>
-        <Button variant="link" onClick={() => navigate("/projects")}>
+        <Button variant="link" onClick={() => navigate(backPath)}>
           Return to Projects
         </Button>
       </div>
@@ -195,10 +206,13 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
     id: project.id,
     name: project.name || 'Proyecto sin nombre',
     client: project.client || 'Cliente no definido',
+    color: project.color ?? null,
+    imageUrl: project.imageUrl ?? null,
     description: project.description || '',
     startDate: project.startDate,
     endDate: project.endDate,
     status: project.status || 'planning',
+    createdBy: project.createdBy,
     analysis: project.analysis || null
   };
 
@@ -211,12 +225,29 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/projects")}
+            onClick={() => navigate(backPath)}
             className="mr-2"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-semibold">{projectData.name}</h1>
+          {projectData.imageUrl ? (
+            <img
+              src={projectData.imageUrl}
+              alt={projectData.name}
+              className="h-10 w-10 rounded-full object-cover shadow-sm"
+            />
+          ) : (
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+              style={{ backgroundColor: getProjectColor(projectData.color) }}
+            >
+              {getProjectInitial(projectData.name)}
+            </div>
+          )}
+          <div className="space-y-0.5">
+            <h1 className="text-xl font-semibold">{projectData.name}</h1>
+            <p className="text-sm text-muted-foreground">{projectData.client}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -241,60 +272,57 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <div className="border-b">
-            <TabsList className="bg-transparent h-auto p-0">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as ProjectTab)}
+          className="space-y-4"
+        >
+          <div className="border-b overflow-x-auto">
+            <TabsList className="bg-transparent h-auto p-0 flex-wrap">
               <TabsTrigger
                 value="analysis"
-                className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 py-3 shrink-0 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
               >
                 Estrategia
               </TabsTrigger>
               <TabsTrigger
                 value="calendars"
-                className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 py-3 shrink-0 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
               >
                 Calendarios
               </TabsTrigger>
               <TabsTrigger
-                value="documents"
-                className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
-              >
-                Centro de conocimiento
-              </TabsTrigger>
-              <TabsTrigger
                 value="products"
-                className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 py-3 shrink-0 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
               >
                 Productos
               </TabsTrigger>
               <TabsTrigger
                 value="chat"
-                className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 py-3 shrink-0 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
               >
                 Chat
+              </TabsTrigger>
+              <TabsTrigger
+                value="logs"
+                className="rounded-none border-b-2 border-transparent px-4 py-3 shrink-0 data-[state=active]:border-primary data-[state=active]:bg-transparent shadow-none"
+              >
+                Logs
               </TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="analysis" className="mt-0 pt-4">
-            <ProjectAnalysis project={projectData} isPrimary={user?.isPrimary || false} />
+            <ProjectAnalysis
+              project={projectData}
+              canEdit={Boolean(
+                user?.isPrimary || user?.role === "admin" || projectData.createdBy === user?.id
+              )}
+            />
           </TabsContent>
 
           <TabsContent value="calendars" className="mt-0 pt-4">
             <ProjectWorkflows projectId={projectData.id} />
-          </TabsContent>
-
-          <TabsContent value="documents" className="mt-0 pt-4">
-            <ProjectDocuments
-              projectId={projectData.id}
-              projectName={projectData.name}
-              canApprove={Boolean(
-                user?.isPrimary ||
-                user?.role === "admin" ||
-                project.createdBy === user?.id
-              )}
-            />
           </TabsContent>
 
           <TabsContent value="products" className="mt-0 pt-4">
@@ -303,6 +331,10 @@ export default function ProjectDetail({ id }: ProjectDetailProps) {
 
           <TabsContent value="chat" className="mt-0 pt-4">
             <ProjectChat projectId={projectData.id} />
+          </TabsContent>
+
+          <TabsContent value="logs" className="mt-0 pt-4">
+            <ProjectLogs projectId={projectData.id} />
           </TabsContent>
         </Tabs>
       </div>

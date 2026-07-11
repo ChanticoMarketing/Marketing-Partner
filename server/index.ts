@@ -101,7 +101,7 @@ if (isProduction) {
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'", "https://api.x.ai"]
+        connectSrc: ["'self'"]
       }
     }
   }));
@@ -338,7 +338,7 @@ app.use((req, res, next) => {
           configured: supabaseConfigured
         },
         features: {
-          ai: !!(process.env.XAI_API_KEY || process.env.GROK_API_KEY)
+          ai: !!process.env.GROQ_API_KEY
         },
         startup: {
           timestamp: new Date().toISOString(),

@@ -55,6 +55,8 @@ const columnMaps: Record<string, Record<string, string>> = {
     id: "id",
     name: "name",
     client: "client",
+    color: "color",
+    imageUrl: "image_url",
     description: "description",
     startDate: "start_date",
     endDate: "end_date",

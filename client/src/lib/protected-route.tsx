@@ -2,7 +2,7 @@
 // Hook de autenticación personalizado
 import { useAuth } from "@/hooks/use-auth";
 // Icono de carga de Lucide React
-import { Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 // Componente de redirección de Wouter
 import { Redirect } from "wouter";
 // Tipo para elementos hijo de React
@@ -17,7 +17,7 @@ import { ReactNode } from "react";
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   // ===== OBTENER ESTADO DE AUTENTICACIÓN =====
   // Extraer información de usuario y estado de carga del contexto de auth
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, error } = useAuth();
   
   // Log para debugging del estado de autenticación
   console.log("ProtectedRoute:", { user: user?.username, isLoading });
@@ -34,6 +34,38 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
         color: 'var(--foreground)' // Usar color de tema
       }}>
         Loading... {/* Mensaje de carga */}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          padding: "24px",
+          color: "var(--foreground)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "440px",
+            textAlign: "center",
+            border: "1px solid var(--border)",
+            borderRadius: "16px",
+            padding: "24px",
+            background: "var(--card)",
+          }}
+        >
+          <AlertTriangle style={{ width: "32px", height: "32px", margin: "0 auto 12px" }} />
+          <h1 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "8px" }}>
+            No pudimos abrir tu sesión
+          </h1>
+          <p style={{ color: "var(--muted-foreground)", margin: 0 }}>{error.message}</p>
+        </div>
       </div>
     );
   }

@@ -6,12 +6,12 @@ import { StrictMode } from "react";
 import App from "./App";
 // Estilos globales de la aplicación
 import "./index.css";
-// Provider para tours guiados (importado aquí para configuración global)
-import { AppTourProvider } from "./hooks/use-app-tour";
+import { installClientErrorLogger } from "./lib/client-logs";
 
 // ===== DEBUG Y VERIFICACIÓN =====
 // Confirmar que el script se está ejecutando correctamente
 console.log("Rocketflow application loading...");
+installClientErrorLogger();
 
 // ===== RENDERIZADO DE LA APLICACIÓN =====
 // Buscar el elemento HTML donde se montará React
@@ -24,11 +24,8 @@ if (rootElement) {
   createRoot(rootElement).render(
     // StrictMode: Modo estricto de React para detectar problemas
     <StrictMode>
-      {/* AppTourProvider adicional aquí para configuración global */}
-      <AppTourProvider>
-        {/* Componente principal de la aplicación */}
-        <App />
-      </AppTourProvider>
+      {/* Componente principal de la aplicación */}
+      <App />
     </StrictMode>
   );
 

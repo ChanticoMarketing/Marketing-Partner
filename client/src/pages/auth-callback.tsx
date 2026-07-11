@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
+import { AuthLayout } from "@/components/auth/auth-layout";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthCallback() {
@@ -29,20 +30,24 @@ export default function AuthCallback() {
   }, [setLocation]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30">
-      <div className="text-center">
+    <AuthLayout>
+      <div className="flex flex-col items-center justify-center space-y-4 py-12">
         {error ? (
-          <div className="space-y-2">
-            <p className="text-destructive">{error}</p>
-            <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-heading font-bold text-destructive">Error de Autenticación</h2>
+            <p className="text-sm text-destructive/80 font-sans">{error}</p>
+            <p className="text-xs text-muted-foreground font-sans mt-4">Redirigiendo a inicio de sesión...</p>
           </div>
         ) : (
-          <>
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Completing authentication...</p>
-          </>
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <h2 className="text-xl font-heading font-bold text-foreground">Preparando tu espacio...</h2>
+            <p className="text-sm text-muted-foreground font-sans">
+              Estamos configurando todo para ti.
+            </p>
+          </div>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 }

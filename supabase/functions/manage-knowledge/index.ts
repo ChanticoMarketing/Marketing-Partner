@@ -5,6 +5,7 @@ import {
   getUser,
   jsonResponse,
   assertProjectKnowledgeApproval,
+  assertProjectKnowledgeEditor,
   hasProjectAccess,
   supabaseAdmin,
 } from "../_shared/supabase.ts";
@@ -40,6 +41,7 @@ Deno.serve(async (req) => {
     await hasProjectAccess(Number(projectId), user.id);
 
     if (action === "create-manual") {
+      await assertProjectKnowledgeEditor(Number(projectId), user.id);
       const name = String(payload?.name || "").trim();
       const category = String(payload?.category || "").trim();
       const subcategory = String(payload?.subcategory || "").trim();
@@ -73,7 +75,8 @@ Deno.serve(async (req) => {
             structuredData: analysis.structuredData,
             keyPoints: analysis.keyPoints,
             keywords: analysis.keywords,
-            analysisResults: analysis,
+          analysisResults: analysis,
+          ...(typeof payload?.brandBrainCard === "string" ? { brandBrainCard: payload.brandBrainCard } : {}),
           },
         })
         .select()
@@ -102,12 +105,14 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update") {
+      await assertProjectKnowledgeEditor(Number(projectId), user.id);
       const nextMetadata = {
         ...(currentItem.metadata || {}),
         summary: payload?.summary ?? currentItem.metadata?.summary ?? "",
         structuredData: payload?.structuredData ?? currentItem.metadata?.structuredData ?? {},
         keyPoints: payload?.keyPoints ?? currentItem.metadata?.keyPoints ?? [],
         keywords: payload?.keywords ?? currentItem.metadata?.keywords ?? [],
+        brandBrainCard: payload?.brandBrainCard ?? currentItem.metadata?.brandBrainCard,
       };
 
       const nextStatus = currentItem.status === KNOWLEDGE_STATUS.approved
@@ -140,7 +145,7 @@ Deno.serve(async (req) => {
     if (action === "approve") {
       await assertProjectKnowledgeApproval(Number(projectId), user.id);
 
-      if (currentItem.category !== "examples") {
+      if (currentItem.category !== "examples" && currentItem.category !== "brand_brain") {
         await supabaseAdmin
           .from("documents")
           .update({ status: KNOWLEDGE_STATUS.archived })

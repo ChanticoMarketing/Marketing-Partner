@@ -69,7 +69,6 @@ Deno.serve(async (req) => {
     `;
 
     const imageDescription = await generateText(prompt, {
-      model: "grok-3-mini",
       temperature: 0.7,
       maxTokens: 500,
     });

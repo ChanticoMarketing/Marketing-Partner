@@ -117,7 +117,6 @@ Deno.serve(async (req) => {
 
     try {
       const responseText = await generateText(prompt, {
-        model: "grok-3-mini",
         temperature: 0.8,
         maxTokens: 2000,
         responseFormat: "json",

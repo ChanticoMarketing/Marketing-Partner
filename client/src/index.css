@@ -392,71 +392,76 @@ main.hide-scrollbar::-webkit-scrollbar {
 
 @layer base {
   :root {
-    /* Light Mode - High-Density Quartz */
-    --background: 0 0% 98%; /* Off-white #FAFAFA */
-    --foreground: 0 0% 4%;  /* Near Black */
+    /* Chantia Light Mode - Parchment & Obsidian */
+    --background: 39 41% 94%; /* Parchment #F7F2E9 */
+    --foreground: 20 9% 8%; /* Obsidian #151312 */
 
-    --card: 0 0% 100%;      /* Pure White */
-    --card-foreground: 0 0% 4%;
+    --card: 39 41% 96%; /* Slightly lighter than parchment */
+    --card-foreground: 20 9% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
+    --popover: 39 41% 96%;
+    --popover-foreground: 20 9% 8%;
 
-    --primary: 0 0% 9%;     /* Pure Black for Primary Action */
-    --primary-foreground: 0 0% 98%;
+    --primary: 11 63% 44%; /* Ember #B7432A */
+    --primary-foreground: 39 41% 94%; /* Parchment */
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 9%;
+    --secondary: 40 7% 82%; /* Graphite 200 #D5D3CF */
+    --secondary-foreground: 20 9% 8%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 40 7% 82%; /* Graphite 200 */
+    --muted-foreground: 0 0% 48%; /* Graphite 400 #7A7A7A */
 
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 38 91% 63%; /* Warm Gold #F6B94C */
+    --accent-foreground: 20 9% 8%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 39 41% 94%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 9%;
+    --border: 40 7% 82%; /* Graphite 200 */
+    --input: 40 7% 82%;
+    --ring: 11 63% 44%; /* Ember */
 
     --radius: 0.5rem;
 
     /* Light Mode Shadows */
-    --shadow-soft: 0px 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-medium: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-soft: 0px 2px 8px rgba(21, 19, 18, 0.04);
+    --shadow-medium: 0px 4px 16px rgba(21, 19, 18, 0.08);
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --title-tracking: -0.02em;
+    --title-weight: 700;
   }
 
   .dark {
-    /* Dark Mode - Carbon & Quartz (Linear Style) */
-    --background: 0 0% 0%; /* Pitch Black #000000 */
-    --foreground: 0 0% 94%; /* Crisp White */
+    /* Chantia Dark Mode - Obsidian & Parchment */
+    --background: 20 9% 8%; /* Obsidian #151312 */
+    --foreground: 39 41% 94%; /* Parchment #F7F2E9 */
 
-    --card: 0 0% 4%; /* Carbon Dark #0A0A0A */
-    --card-foreground: 0 0% 94%;
+    --card: 0 0% 16%; /* Graphite 700 #2A2A2A */
+    --card-foreground: 39 41% 94%; /* Parchment */
 
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 94%;
+    --popover: 0 0% 16%; /* Graphite 700 */
+    --popover-foreground: 39 41% 94%;
 
-    --primary: 0 0% 98%; /* White Actions */
-    --primary-foreground: 0 0% 0%; /* Black text on white */
+    --primary: 11 63% 44%; /* Ember #B7432A */
+    --primary-foreground: 39 41% 94%; /* Parchment */
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 16%; /* Graphite 700 */
+    --secondary-foreground: 39 41% 94%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 16%; /* Graphite 700 */
+    --muted-foreground: 40 7% 82%; /* Graphite 200 #D5D3CF */
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 38 91% 63%; /* Warm Gold #F6B94C */
+    --accent-foreground: 20 9% 8%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 39 41% 94%;
 
-    --border: 0 0% 12%; /* Surgical Sub-pixel Borders */
-    --input: 0 0% 12%;
-    --ring: 0 0% 98%;
+    --border: 0 0% 16%; /* Graphite 700 */
+    --input: 0 0% 16%;
+    --ring: 11 63% 44%; /* Ember */
 
     --radius: 0.5rem;
 
@@ -464,14 +469,14 @@ main.hide-scrollbar::-webkit-scrollbar {
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
     --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-    --glass-background: rgba(255, 255, 255, 0.01);
-    --glass-border: rgba(255, 255, 255, 0.04);
+    --glass-background: rgba(21, 19, 18, 0.5);
+    --glass-border: rgba(247, 242, 233, 0.1);
     --glass-blur: 16px;
-
-    /* Typography */
+    
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --title-tracking: -2%;
-    --title-weight: 600;
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --title-tracking: -0.02em;
+    --title-weight: 700;
   }
 }
 

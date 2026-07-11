@@ -1,7 +1,8 @@
-// AI client for Edge Functions — xAI (Grok) via OpenAI SDK
+// AI client for Edge Functions — Groq via OpenAI-compatible SDK
 import OpenAI from "https://esm.sh/openai@4.77.0";
 
-const DEFAULT_MODEL = Deno.env.get("AI_MODEL") || "grok-3-mini";
+const QWEN_MODEL = "qwen/qwen3.6-27b";
+const DEFAULT_MODEL = Deno.env.get("AI_MODEL") || QWEN_MODEL;
 
 interface GenerateOptions {
   model?: string;
@@ -12,11 +13,11 @@ interface GenerateOptions {
 }
 
 export function createAIClient(): OpenAI {
-  const apiKey = Deno.env.get("XAI_API_KEY") || Deno.env.get("GROK_API_KEY") || "";
+  const apiKey = Deno.env.get("GROQ_API_KEY") || "";
   if (!apiKey) {
-    throw Object.assign(new Error("XAI_API_KEY no configurado"), { errorType: "AUTH" });
+    throw Object.assign(new Error("GROQ_API_KEY no configurado"), { errorType: "AUTH" });
   }
-  return new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" });
+  return new OpenAI({ apiKey, baseURL: "https://api.groq.com/openai/v1" });
 }
 
 function mapError(error: any): Error {
@@ -51,6 +52,7 @@ export async function generateText(prompt: string, options: GenerateOptions = {}
         messages: [{ role: "user", content: prompt }],
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens ?? 2000,
+        ...(modelName === QWEN_MODEL && { reasoning_effort: "none" } as any),
         ...(options.responseFormat === "json" && { response_format: { type: "json_object" } as any }),
       });
       return response.choices[0]?.message?.content || "";
@@ -84,6 +86,7 @@ export async function generateTextWithImage(prompt: string, imageBase64: string,
     ],
     temperature: options.temperature ?? 0.7,
     max_tokens: options.maxTokens ?? 2000,
+    ...(modelName === QWEN_MODEL && { reasoning_effort: "none" } as any),
   } as any);
 
   return response.choices[0]?.message?.content || "";

@@ -95,6 +95,8 @@ CREATE TABLE IF NOT EXISTS projects (
   id          serial PRIMARY KEY,
   name        text NOT NULL,
   client      text NOT NULL,
+  color       text,
+  image_url   text,
   description text,
   start_date  timestamp,
   end_date    timestamp,
