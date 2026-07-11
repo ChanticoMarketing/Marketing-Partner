@@ -67,7 +67,7 @@ export default function RecentProjects() {
         <div className="p-2 rounded-md bg-secondary text-foreground">
           <FolderOpen className="h-4 w-4" />
         </div>
-        <h3 className="font-semibold text-sm tracking-tight text-foreground">Proyectos Recientes</h3>
+        <h3 className="font-heading font-semibold text-sm tracking-tight text-foreground">Proyectos Recientes</h3>
       </div>
       <div className="p-0">
         {recentProjects.length === 0 ? (

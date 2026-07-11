@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { Project } from "@shared/schema";
-import { Bot, SendHorizontal, Loader2, X } from "lucide-react";
+import { Sparkles, SendHorizontal, Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -83,7 +83,7 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
       setChatMessages([
         {
           role: "assistant",
-          content: "¡Hola! Soy Cohete Copilot. ¿En qué puedo ayudarte con este proyecto?"
+          content: "Hola. Soy Chantia IA. ¿En qué te puedo ayudar con este proyecto?"
         }
       ]);
     }
@@ -163,8 +163,8 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
         <div className="border-b p-4 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              <h2 className="text-lg font-semibold">Cohete Copilot</h2>
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Chantia IA</h2>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -258,10 +258,10 @@ export default function CopilotDrawer({ isOpen, onClose }: CopilotDrawerProps) {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-            <Bot className="h-16 w-16 mb-4 text-primary opacity-50" />
+            <Sparkles className="h-16 w-16 mb-4 text-primary opacity-50" />
             <h3 className="text-lg font-medium mb-2">Selecciona un proyecto</h3>
             <p className="text-muted-foreground">
-              Elige un proyecto para comenzar una conversación con Cohete Copilot.
+              Elige un proyecto para comenzar una conversación con Chantia IA.
             </p>
           </div>
         )}

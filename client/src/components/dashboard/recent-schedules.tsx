@@ -48,7 +48,7 @@ export default function RecentSchedules() {
         <div className="p-2 rounded-md bg-secondary text-foreground">
           <Calendar className="h-4 w-4" />
         </div>
-        <h3 className="font-semibold text-sm tracking-tight text-foreground">Cronogramas Recientes</h3>
+        <h3 className="font-heading font-semibold text-sm tracking-tight text-foreground">Cronogramas Recientes</h3>
       </div>
       <div className="p-0">
         {recentSchedules.length === 0 ? (

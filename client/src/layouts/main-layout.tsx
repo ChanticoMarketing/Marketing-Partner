@@ -1,12 +1,11 @@
 // ===== IMPORTACIONES DEL LAYOUT PRINCIPAL =====
 // React: Hooks para estado y efectos
 import { ReactNode, useState, useEffect } from "react";
-// Iconos de Lucide React
-import { Menu, Rocket } from "lucide-react";
 // Componentes de la interfaz de usuario
 import { Button } from "@/components/ui/button";
 // Componente de la barra lateral
 import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 
 // ===== TIPOS DE PROPS =====
 // Propiedades que acepta el componente MainLayout
@@ -58,29 +57,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* ===== ÁREA PRINCIPAL =====*/}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        {/* Contenido principal con mejoras visuales */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 bg-transparent transition-all duration-300 min-h-0 hide-scrollbar">
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden bg-background">
+        {/* Integración del Header Global */}
+        <Header onMenuClick={toggleSidebar} />
 
-          {/* ===== BOTÓN DE MENU MÓVIL =====*/}
-          {/* Solo visible en dispositivos móviles */}
-          <div className="md:hidden flex items-center mb-6">
-            <Button
-              variant="ghost"
-              onClick={toggleSidebar}
-              className="flex items-center gap-3 rounded-md p-2 hover:bg-accent interactive-element"
-            >
-              {/* Icono del menú hamburguesa */}
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
-                <Menu className="h-5 w-5" />
-              </div>
-              {/* Logo y título de la aplicación */}
-              <div className="flex items-center gap-2">
-                <Rocket className="h-5 w-5 text-primary" />
-                <span className="text-lg font-semibold tracking-tight">Cohete Workflow</span>
-              </div>
-            </Button>
-          </div>
+        {/* Contenido principal con mejoras visuales */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 transition-all duration-300 min-h-0 hide-scrollbar">
 
           {/* ===== CONTENEDOR DEL CONTENIDO =====*/}
           {/* Contenedor principal con transiciones y efectos de scroll */}

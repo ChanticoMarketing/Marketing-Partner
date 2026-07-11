@@ -138,7 +138,7 @@ export default function QuickActions() {
             </div>
 
             <p className="text-muted-foreground text-sm mt-2">
-              Control total de misión. Configura plataformas, formatos y distribución detallada.
+              Estrategia completa. Configura plataformas, formatos y distribución detallada.
             </p>
           </div>
         </Link>

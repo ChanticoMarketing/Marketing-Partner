@@ -73,17 +73,17 @@ export default function WelcomeSection({ user }: WelcomeSectionProps) {
                 {getGreeting()},
               </span>
               <span>
-                {user ? user.fullName.split(' ')[0] : 'Comandante'}
+                {user ? user.fullName.split(' ')[0] : 'Equipo'}
               </span>
             </h1>
           </div>
 
           <div ref={addToRefs}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Tus sistemas de marketing están{' '}
-              <span className="text-foreground font-medium">en línea</span>.
+              Aquí está el pulso de tu{' '}
+              <span className="text-foreground font-medium">operación de marketing</span>.
               <br className="hidden md:block" />
-              Gestiona los proyectos y cronogramas.
+              Gestiona proyectos, campañas y cronogramas.
             </p>
           </div>
 
@@ -101,7 +101,7 @@ export default function WelcomeSection({ user }: WelcomeSectionProps) {
               className="h-12 px-6"
               onClick={goToCreateProject}
             >
-              <Rocket className="mr-2 h-4 w-4" />
+              <Sparkles className="mr-2 h-4 w-4" />
               Nuevo Proyecto
             </Button>
           </div>
