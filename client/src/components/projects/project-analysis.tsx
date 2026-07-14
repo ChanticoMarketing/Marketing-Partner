@@ -237,28 +237,28 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
   const hasAnalysis = analysisData && Object.keys(analysisData).length > 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 relative">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 pb-4 border-b">
         <div>
-          <h2 className="text-2xl font-bold gradient-text-amber">Cerebro de la Marca</h2>
-          <p className="text-muted-foreground text-sm">Lo esencial de la marca, el cliente y la guía para la IA.</p>
+          <h2 className="text-2xl font-heading font-bold text-foreground">Centro de marca</h2>
+          <p className="text-muted-foreground text-sm">El contexto estratégico que guía el contenido, las decisiones y Chantia IA.</p>
         </div>
         {canEdit && !isEditing && (
           <Button
             variant="outline"
             onClick={() => setIsEditing(true)}
-            className="gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary"
+            className="gap-2 border-border hover:bg-muted"
           >
             <Pencil className="h-4 w-4" />
-            <span>Editar Cerebro</span>
+            <span>Editar estrategia</span>
           </Button>
         )}
         {canEdit && isEditing && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               onClick={() => setIsEditing(false)}
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-none"
             >
               <X className="h-4 w-4" />
               Cancelar
@@ -267,98 +267,102 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
               variant="default"
               onClick={form.handleSubmit(onSubmit)}
               disabled={updateAnalysisMutation.isPending}
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-none bg-ember-600 hover:bg-ember-700 text-white"
             >
               <Save className="h-4 w-4" />
-              {updateAnalysisMutation.isPending ? "Guardando..." : "Guardar Cambios"}
+              {updateAnalysisMutation.isPending ? "Guardando..." : "Guardar cambios"}
             </Button>
           </div>
         )}
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="pb-20">
           {/* ponytail: group the existing cards without changing their data contract. */}
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="space-y-4">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 h-auto bg-muted/20 p-1 mb-4">
-              <TabsTrigger value="brand" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="space-y-8 mt-2">
+            <TabsList className="flex overflow-x-auto w-full justify-start h-auto bg-transparent border-b rounded-none p-0 space-x-8 mb-6">
+              <TabsTrigger value="brand" className="flex items-center py-3 gap-2 h-auto rounded-none border-b-2 border-transparent data-[state=active]:border-ember-600 data-[state=active]:text-ember-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                 <Shield className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Marca</span>
+                <span className="text-sm font-medium">Marca</span>
               </TabsTrigger>
-              <TabsTrigger value="customer" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="customer" className="flex items-center py-3 gap-2 h-auto rounded-none border-b-2 border-transparent data-[state=active]:border-ember-600 data-[state=active]:text-ember-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                 <Users className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Cliente</span>
+                <span className="text-sm font-medium">Audiencia</span>
               </TabsTrigger>
-              <TabsTrigger value="content" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="content" className="flex items-center py-3 gap-2 h-auto rounded-none border-b-2 border-transparent data-[state=active]:border-ember-600 data-[state=active]:text-ember-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Contenido</span>
+                <span className="text-sm font-medium">Contenido</span>
               </TabsTrigger>
-              <TabsTrigger value="context" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TabsTrigger value="context" className="flex items-center py-3 gap-2 h-auto rounded-none border-b-2 border-transparent data-[state=active]:border-ember-600 data-[state=active]:text-ember-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                 <BarChart className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Contexto</span>
+                <span className="text-sm font-medium">Contexto</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* IDENTITY TAB */}
-            <TabsContent value="brand" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Misión y Visión</CardTitle>
-                    <CardDescription>El propósito fundamental de la marca</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {isEditing ? (
-                      <>
+            {/* MARCA TAB */}
+            <TabsContent value="brand" className="space-y-12">
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Identidad Core</h3>
+                    <p className="text-sm text-muted-foreground mt-1">El propósito fundamental y principios que guían la marca.</p>
+                  </div>
+                  <CardSources cardKey="identity-purpose" isEditing={isEditing} onOpen={setDocumentCard} />
+                </div>
+                
+                <div className="grid gap-8 md:grid-cols-2 bg-muted/10 p-6 rounded-xl border border-border/50">
+                  {/* Misión & Visión */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-medium mb-3 flex items-center gap-2">Misión</h4>
+                      {isEditing ? (
                         <FormField
                           control={form.control}
                           name="mission"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Misión</FormLabel>
                               <FormControl>
-                                <Textarea placeholder="Qué hace la empresa y para quién" className="min-h-[100px]" {...field} />
+                                <Textarea placeholder="Qué hace la empresa y para quién" className="min-h-[120px] resize-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                          {analysisData.mission || <span className="text-muted-foreground italic">Sin definir</span>}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-3 flex items-center gap-2">Visión</h4>
+                      {isEditing ? (
                         <FormField
                           control={form.control}
                           name="vision"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Visión</FormLabel>
                               <FormControl>
-                                <Textarea placeholder="A dónde quiere llegar la empresa a futuro" className="min-h-[100px]" {...field} />
+                                <Textarea placeholder="A dónde quiere llegar la empresa a futuro" className="min-h-[120px] resize-none" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                      </>
-                    ) : (
-                      <>
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-1">Misión</h4>
-                          <p className="text-sm border-l-2 border-primary/30 pl-3">{analysisData.mission || "No definida"}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-1">Visión</h4>
-                          <p className="text-sm border-l-2 border-primary/30 pl-3">{analysisData.vision || "No definida"}</p>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="identity-purpose" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                          {analysisData.vision || <span className="text-muted-foreground italic">Sin definir</span>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Valores Centrales</CardTitle>
-                    <CardDescription>Principios que guían el comportamiento</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  {/* Valores Centrales */}
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <h4 className="font-medium flex items-center gap-2">Valores Centrales</h4>
+                      <CardSources cardKey="identity-values" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
                     {isEditing ? (
                       <FormField
                         control={form.control}
@@ -366,39 +370,85 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea placeholder="Listado de valores (ej: Transparencia, Calidad, Innovación)" className="min-h-[250px]" {...field} />
+                              <Textarea placeholder="Listado de valores (ej: Transparencia, Calidad, Innovación)" className="min-h-[290px] resize-none" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3 mt-4">
                         {analysisData.coreValues ? (
-                          analysisData.coreValues.split(/[\n,]+/).map((val: string, i: number) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <Shield className="h-3 w-3 text-primary" />
-                              <span className="text-sm">{val.trim()}</span>
+                          analysisData.coreValues.split(/[\n,]+/).filter((v:string)=>v.trim()).map((val: string, i: number) => (
+                            <div key={i} className="flex items-start gap-3">
+                              <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                              <span className="text-sm leading-relaxed">{val.trim()}</span>
                             </div>
                           ))
-                        ) : <p className="text-sm text-muted-foreground">No definidos</p>}
+                        ) : <p className="text-sm text-muted-foreground italic">Sin definir</p>}
                       </div>
                     )}
-                  </CardContent>
-                  <CardSources cardKey="identity-values" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-              </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* UVP SECTION */}
+              <section id="brand-brain-uvp" className="pt-2">
+                <div className="rounded-xl border border-warm-gold/30 bg-warm-gold/5 overflow-hidden">
+                  <div className="p-6 md:p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <h3 className="text-xl font-heading font-semibold text-warm-gold-700 dark:text-warm-gold-400">Propuesta de Valor Única (UVP)</h3>
+                        <p className="text-sm text-muted-foreground mt-1">La razón principal por la que una persona elegiría esta marca.</p>
+                      </div>
+                      <CardSources cardKey="uvp" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
+                    
+                    {isEditing ? (
+                      <FormField
+                        control={form.control}
+                        name="uniqueValueProposition"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe tu diferenciador clave. Aquello que la competencia no puede copiar fácilmente."
+                                className="min-h-[120px] text-base resize-none bg-background/50 focus:bg-background"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ) : (
+                      <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground/90">
+                          {analysisData.uniqueValueProposition || <span className="text-muted-foreground italic">Sin definir</span>}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
             </TabsContent>
 
-            {/* AUDIENCE TAB */}
-            <TabsContent value="customer" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Buyer Persona</CardTitle>
-                    <CardDescription>Perfil detallado del cliente ideal</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+            {/* AUDIENCIA TAB */}
+            <TabsContent value="customer" className="space-y-12">
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Perfil de Audiencia</h3>
+                    <p className="text-sm text-muted-foreground mt-1">A quién nos dirigimos y cómo es nuestro cliente ideal.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-medium flex items-center gap-2">Buyer Persona</h4>
+                      <CardSources cardKey="audience-persona" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
                     {isEditing ? (
                       <FormField
                         control={form.control}
@@ -406,27 +456,24 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea placeholder="Descripción detallada: Datos demográficos, dolores, motivaciones, objeciones..." className="min-h-[300px]" {...field} />
+                              <Textarea placeholder="Descripción detallada: Datos demográficos, dolores, motivaciones, objeciones..." className="min-h-[250px] resize-none" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     ) : (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <p className="whitespace-pre-wrap text-sm">{analysisData.buyerPersona || "No definido"}</p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90">
+                        <p className="whitespace-pre-wrap leading-relaxed">{analysisData.buyerPersona || <span className="text-muted-foreground italic">Sin definir</span>}</p>
                       </div>
                     )}
-                  </CardContent>
-                  <CardSources cardKey="audience-persona" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
+                  </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Audiencia General</CardTitle>
-                    <CardDescription>Segmentos de mercado objetivo</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-medium flex items-center gap-2">Audiencia General</h4>
+                      <CardSources cardKey="audience-general" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
                     {isEditing ? (
                       <FormField
                         control={form.control}
@@ -434,51 +481,55 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Textarea placeholder="Segmentos generales a los que se dirige la marca" className="min-h-[300px]" {...field} />
+                              <Textarea placeholder="Segmentos generales a los que se dirige la marca" className="min-h-[250px] resize-none" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     ) : (
-                      <p className="whitespace-pre-wrap text-sm">{analysisData.targetAudience || "No definida"}</p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90">
+                        <p className="whitespace-pre-wrap leading-relaxed">{analysisData.targetAudience || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                      </div>
                     )}
-                  </CardContent>
-                  <CardSources cardKey="audience-general" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-              </div>
-            </TabsContent>
+                  </div>
+                </div>
+              </section>
 
-            {/* VOC TAB (New) */}
-            <TabsContent value="customer" id="brand-brain-customer-voc" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Voz del Cliente (VoC)</CardTitle>
-                    <CardDescription>Lo que dicen tus clientes reales</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-semibold">Frases Literales & Quotes</h4>
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Voz del Cliente (VoC)</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Cómo hablan, qué les preocupa y qué dicen sobre la marca.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 md:grid-cols-2">
+                  <Card className="flex flex-col shadow-none border-border/50">
+                    <CardHeader className="pb-4">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-base font-semibold">Frases Reales & Citas</CardTitle>
+                        <CardSources cardKey="voice-customer" isEditing={isEditing} onOpen={setDocumentCard} />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex-1">
                       {isEditing && (
-                        <Button type="button" size="sm" variant="outline" onClick={() => quotesFieldArray.append({ quote: "", context: "" })}>
-                          <Plus className="h-3 w-3 mr-1" /> Agregar
+                        <Button type="button" size="sm" variant="secondary" className="w-full mb-4" onClick={() => quotesFieldArray.append({ quote: "", context: "" })}>
+                          <Plus className="h-4 w-4 mr-2" /> Agregar frase
                         </Button>
                       )}
-                    </div>
 
-                    {isEditing ? (
-                      <div className="space-y-3">
-                        {quotesFieldArray.fields.map((field, index) => (
-                          <Card key={field.id} className="p-3 bg-muted/20">
-                            <div className="grid gap-2">
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          {quotesFieldArray.fields.map((field, index) => (
+                            <div key={field.id} className="grid gap-3 p-4 bg-muted/20 border border-border/50 rounded-lg relative group">
                               <FormField
                                 control={form.control}
                                 name={`customerQuotes.${index}.quote`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormControl>
-                                      <Textarea placeholder="Ej: 'Me ahorra 3 horas al día...'" className="min-h-[60px]" {...field} />
+                                      <Textarea placeholder="Ej: 'Me ahorra 3 horas al día...'" className="min-h-[60px] resize-none" {...field} />
                                     </FormControl>
                                   </FormItem>
                                 )}
@@ -490,403 +541,398 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                                   render={({ field }) => (
                                     <FormItem className="flex-1">
                                       <FormControl>
-                                        <Input placeholder="Contexto (ej: Review en G2)" className="h-8 text-xs" {...field} />
+                                        <Input placeholder="Contexto (ej: Review en G2)" className="h-9 text-sm" {...field} />
                                       </FormControl>
                                     </FormItem>
                                   )}
                                 />
-                                <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => quotesFieldArray.remove(index)}>
+                                <Button type="button" size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => quotesFieldArray.remove(index)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
-                          </Card>
-                        ))}
-                        {quotesFieldArray.fields.length === 0 && <p className="text-sm text-muted-foreground italic">No hay frases registradas.</p>}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {analysisData.customerQuotes && Array.isArray(analysisData.customerQuotes) && analysisData.customerQuotes.length > 0 ? (
-                          analysisData.customerQuotes.map((q: any, i: number) => (
-                            <div key={i} className="bg-muted/30 p-2 rounded text-sm italic border-l-2 border-primary">
-                              "{q.quote}" <br />
-                              <span className="text-xs not-italic text-muted-foreground">- {q.context || "Cliente"}</span>
-                            </div>
-                          ))
-                        ) : <p className="text-sm text-muted-foreground">No hay frases registradas.</p>}
-                      </div>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="voice-customer" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
+                          ))}
+                          {quotesFieldArray.fields.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">No hay frases registradas.</p>}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {analysisData.customerQuotes && Array.isArray(analysisData.customerQuotes) && analysisData.customerQuotes.length > 0 ? (
+                            analysisData.customerQuotes.map((q: any, i: number) => (
+                              <figure key={i} className="pl-4 border-l-2 border-border py-1">
+                                <blockquote className="text-sm italic text-foreground/90 leading-relaxed">"{q.quote}"</blockquote>
+                                {q.context && <figcaption className="text-xs text-muted-foreground mt-2 font-medium">— {q.context}</figcaption>}
+                              </figure>
+                            ))
+                          ) : <p className="text-sm text-muted-foreground italic">Sin definir</p>}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Vocabulario y Objeciones</CardTitle>
-                    <CardDescription>Cómo hablan y qué les preocupa</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {isEditing ? (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="customerObjections"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Objeciones Frecuentes</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Miedo al precio / Curva de aprendizaje / etc." className="min-h-[100px]" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="customerVocabulary"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vocabulario del Nicho</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Palabras clave, jerga, tecnicismos usados por ellos." className="min-h-[100px]" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <div>
-                          <h4 className="font-semibold text-sm mb-1">Objeciones Frecuentes</h4>
-                          <p className="text-sm bg-muted/30 p-2 rounded">{analysisData.customerObjections || "No definidas"}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm mb-1">Vocabulario</h4>
-                          <p className="text-sm bg-muted/30 p-2 rounded">{analysisData.customerVocabulary || "No definido"}</p>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="voice-vocabulary" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-              </div>
+                  <div className="flex flex-col gap-6 bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold">Diccionario y Barreras</h4>
+                      <CardSources cardKey="voice-vocabulary" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h5 className="text-sm font-semibold mb-2">Objeciones Frecuentes</h5>
+                        {isEditing ? (
+                          <FormField
+                            control={form.control}
+                            name="customerObjections"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea placeholder="Miedo al precio / Curva de aprendizaje / etc." className="min-h-[120px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{analysisData.customerObjections || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                        )}
+                      </div>
+                      
+                      <div className="border-t border-border/50 pt-6">
+                        <h5 className="text-sm font-semibold mb-2">Vocabulario del Nicho</h5>
+                        {isEditing ? (
+                          <FormField
+                            control={form.control}
+                            name="customerVocabulary"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea placeholder="Palabras clave, jerga, tecnicismos usados por ellos." className="min-h-[120px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{analysisData.customerVocabulary || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </TabsContent>
 
-            {/* STRATEGY TAB */}
-            <TabsContent value="context" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Objetivos y Estrategias</CardTitle>
-                  <CardDescription>Plan de acción para el crecimiento</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
+
+             {/* CONTENIDO TAB */}
+            <TabsContent value="content" className="space-y-12">
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Pilares de Contenido</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Temas principales para generar autoridad y conectar.</p>
+                  </div>
+                  <CardSources cardKey="pillars" isEditing={isEditing} onOpen={setDocumentCard} />
+                </div>
+                
+                <Card className="shadow-none border-border/50">
+                  <CardContent className="p-6">
+                    {isEditing && (
+                      <Button type="button" size="sm" variant="secondary" className="mb-6" onClick={() => pillarsFieldArray.append({ name: "", description: "", percentage: 0 })}>
+                        <Plus className="h-4 w-4 mr-2" /> Nuevo pilar
+                      </Button>
+                    )}
+                    
+                    <div className="space-y-4">
+                      {isEditing ? (
+                        pillarsFieldArray.fields.map((field, index) => (
+                          <div key={field.id} className="p-5 border border-border/50 rounded-xl bg-muted/10 grid gap-5 relative group">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium text-sm">Pilar #{index + 1}</h4>
+                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => pillarsFieldArray.remove(index)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={form.control}
+                                name={`contentThemes.${index}.name`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Nombre del Tema</FormLabel>
+                                    <FormControl><Input placeholder="Ej: Educación" {...field} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`contentThemes.${index}.percentage`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>% del Mix (0-100)</FormLabel>
+                                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`contentThemes.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem className="md:col-span-2">
+                                    <FormLabel>Descripción y Enfoque</FormLabel>
+                                    <FormControl><Textarea placeholder="Qué tipo de contenido incluye este pilar..." className="min-h-[80px] resize-none" {...field} /></FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="space-y-4">
+                          {analysisData.contentThemes && Array.isArray(analysisData.contentThemes) && analysisData.contentThemes.length > 0 ? (
+                            analysisData.contentThemes.map((theme: any, i: number) => (
+                              <div key={i} className="flex justify-between items-start p-4 border border-border/50 bg-muted/10 rounded-xl">
+                                <div>
+                                  <h4 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                                    {theme.name}
+                                    {theme.percentage && <Badge variant="secondary" className="font-normal text-xs">{theme.percentage}%</Badge>}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{theme.description}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="whitespace-pre-wrap text-sm text-muted-foreground italic">{typeof analysisData.contentThemes === 'string' ? analysisData.contentThemes : "Sin definir"}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Guía de Comunicación</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Cómo se expresa la marca verbal y textualmente.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-medium">Estilo y Tono</h4>
+                      <CardSources cardKey="communication-style" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
+                    <div className="space-y-6">
+                      {isEditing ? (
+                        <>
+                          <FormField
+                            control={form.control}
+                            name="brandTone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tono de Voz</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Seleccionar tono" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="professional">Profesional</SelectItem>
+                                    <SelectItem value="casual">Casual / Cercano</SelectItem>
+                                    <SelectItem value="funny">Humorístico / Divertido</SelectItem>
+                                    <SelectItem value="serious">Serio / Autoritativo</SelectItem>
+                                    <SelectItem value="inspirational">Inspiracional</SelectItem>
+                                    <SelectItem value="educational">Educativo</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="brandCommunicationStyle"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Estilo de Comunicación</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Ej: Usar frases cortas, evitar jerga técnica, siempre incluir emojis..." className="min-h-[120px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="keywords"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Palabras Clave (SEO y Branding)</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Separadas por comas" className="min-h-[80px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <h5 className="text-sm font-semibold mb-1">Tono de Voz</h5>
+                            <p className="text-sm capitalize">{analysisData.brandTone || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                          </div>
+                          <div>
+                            <h5 className="text-sm font-semibold mb-1">Estilo</h5>
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{analysisData.brandCommunicationStyle || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                          </div>
+                          <div>
+                            <h5 className="text-sm font-semibold mb-1">Palabras Clave</h5>
+                            <p className="text-sm leading-relaxed">{analysisData.keywords || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-medium">Políticas de Respuesta</h4>
+                      <CardSources cardKey="communication-policies" isEditing={isEditing} onOpen={setDocumentCard} />
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div className="border-l-2 border-emerald-500/50 pl-4">
+                        <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                          Positiva
+                        </h5>
+                        {isEditing ? (
+                          <FormField
+                            control={form.control}
+                            name="responsePolicyPositive"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea placeholder="Cómo responder a elogios, reviews 5 estrellas, menciones." className="min-h-[100px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{analysisData.responsePolicyPositive || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                        )}
+                      </div>
+                      
+                      <div className="border-l-2 border-amber-500/50 pl-4">
+                        <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                          Negativa / Crisis
+                        </h5>
+                        {isEditing ? (
+                          <FormField
+                            control={form.control}
+                            name="responsePolicyNegative"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Textarea placeholder="Protocolo para quejas, trolls o crisis de PR." className="min-h-[100px] resize-none" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{analysisData.responsePolicyNegative || <span className="text-muted-foreground italic">Sin definir</span>}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </TabsContent>
+
+            {/* CONTEXTO TAB */}
+            <TabsContent value="context" className="space-y-12">
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Estrategia Global</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Objetivos de negocio y directrices de marketing.</p>
+                  </div>
+                  <CardSources cardKey="strategy" isEditing={isEditing} onOpen={setDocumentCard} />
+                </div>
+                
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <h4 className="font-medium mb-4 flex items-center gap-2">Objetivos de Marketing</h4>
                     {isEditing ? (
                       <FormField
                         control={form.control}
                         name="objectives"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Objetivos de Marketing</FormLabel>
                             <FormControl>
-                              <Textarea placeholder="KPIs y metas específicas" className="min-h-[150px]" {...field} />
+                              <Textarea placeholder="KPIs y metas específicas" className="min-h-[150px] resize-none" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     ) : (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Target className="h-4 w-4" /> Objetivos</h4>
-                        <p className="whitespace-pre-wrap text-sm bg-muted/30 p-3 rounded-md">{analysisData.objectives || "No definidos"}</p>
-                      </div>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{analysisData.objectives || <span className="text-muted-foreground italic">Sin definir</span>}</p>
                     )}
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                    <h4 className="font-medium mb-4 flex items-center gap-2">Estrategias Clave</h4>
                     {isEditing ? (
                       <FormField
                         control={form.control}
                         name="marketingStrategies"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Estrategias Clave</FormLabel>
                             <FormControl>
-                              <Textarea placeholder="Estrategias content marketing, ads, email, etc." className="min-h-[150px]" {...field} />
+                              <Textarea placeholder="Estrategias content marketing, ads, email, etc." className="min-h-[150px] resize-none" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     ) : (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Estrategias</h4>
-                        <p className="whitespace-pre-wrap text-sm bg-muted/30 p-3 rounded-md">{analysisData.marketingStrategies || "No definidas"}</p>
-                      </div>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{analysisData.marketingStrategies || <span className="text-muted-foreground italic">Sin definidas</span>}</p>
                     )}
                   </div>
-                </CardContent>
-                <CardSources cardKey="strategy" isEditing={isEditing} onOpen={setDocumentCard} />
-              </Card>
+                </div>
+              </section>
 
-            </TabsContent>
-
-            {/* UVP TAB (New) */}
-            <TabsContent value="brand" id="brand-brain-uvp" className="space-y-4">
-              <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/10">
-                <CardHeader>
-                  <CardTitle className="text-amber-700 dark:text-primary/80">Propuesta de Valor Única (UVP)</CardTitle>
-                  <CardDescription>¿Qué hace a tu marca radicalmente diferente?</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isEditing ? (
-                    <FormField
-                      control={form.control}
-                      name="uniqueValueProposition"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Describe tu diferenciador clave. Aquello que la competencia no puede copiar fácilmente."
-                              className="min-h-[150px] text-lg"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                          <p className="text-xs text-muted-foreground mt-2">
-                            💡 Esta UVP se usará para crear hooks y CTAs que resalten tu ventaja competitiva.
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-                  ) : (
-                    <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap text-base font-medium">{analysisData.uniqueValueProposition || "No definida"}</p>
-                    </div>
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Análisis Competitivo</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Comparativa directa para encontrar nuestra ventaja.</p>
+                  </div>
+                  <CardSources cardKey="competitors" isEditing={isEditing} onOpen={setDocumentCard} />
+                </div>
+                
+                <div className="space-y-4">
+                  {isEditing && (
+                    <Button type="button" size="sm" variant="secondary" onClick={() => competitorsFieldArray.append({ name: "" })}>
+                      <Plus className="h-4 w-4 mr-2" /> Agregar Competidor
+                    </Button>
                   )}
-                </CardContent>
-                <CardSources cardKey="uvp" isEditing={isEditing} onOpen={setDocumentCard} />
-              </Card>
-            </TabsContent>
-
-            {/* PILLARS TAB (New) */}
-            <TabsContent value="content" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Pilares de Contenido</CardTitle>
-                      <CardDescription>Temas principales para generar autoridad</CardDescription>
-                    </div>
-                    {isEditing && (
-                      <Button type="button" size="sm" onClick={() => pillarsFieldArray.append({ name: "", description: "", percentage: 0 })}>
-                        <Plus className="h-4 w-4 mr-2" /> Nuevo Pilar
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {isEditing ? (
-                      pillarsFieldArray.fields.map((field, index) => (
-                        <div key={field.id} className="p-4 border rounded-md bg-muted/10 grid gap-4">
-                          <div className="flex justify-between">
-                            <h4 className="font-medium text-sm">Pilar #{index + 1}</h4>
-                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => pillarsFieldArray.remove(index)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid gap-4 md:grid-cols-2">
-                            <FormField
-                              control={form.control}
-                              name={`contentThemes.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Nombre del Tema</FormLabel>
-                                  <FormControl><Input placeholder="Ej: Educación" {...field} /></FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`contentThemes.${index}.percentage`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>% del Mix (0-100)</FormLabel>
-                                  <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`contentThemes.${index}.description`}
-                              render={({ field }) => (
-                                <FormItem className="md:col-span-2">
-                                  <FormLabel>Descripción y Enfoque</FormLabel>
-                                  <FormControl><Textarea placeholder="Qué tipo de contenido incluye este pilar..." className="h-[60px]" {...field} /></FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="space-y-2">
-                        {analysisData.contentThemes && Array.isArray(analysisData.contentThemes) && analysisData.contentThemes.length > 0 ? (
-                          analysisData.contentThemes.map((theme: any, i: number) => (
-                            <div key={i} className="flex justify-between items-center p-3 border rounded">
-                              <div>
-                                <h4 className="font-bold flex items-center gap-2">
-                                  {theme.name}
-                                  {theme.percentage && <Badge variant="secondary">{theme.percentage}%</Badge>}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">{theme.description}</p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          // Fallback for string legacy data
-                          <p className="whitespace-pre-wrap">{typeof analysisData.contentThemes === 'string' ? analysisData.contentThemes : "No hay pilares definidos."}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardSources cardKey="pillars" isEditing={isEditing} onOpen={setDocumentCard} />
-              </Card>
-            </TabsContent>
-
-            {/* COMMUNICATION TAB */}
-            <TabsContent value="content" id="brand-brain-content-communication" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Estilo y Tono</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {isEditing ? (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="brandTone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tono de Voz</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Seleccionar tono" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="professional">Profesional</SelectItem>
-                                  <SelectItem value="casual">Casual / Cercano</SelectItem>
-                                  <SelectItem value="funny">Humorístico / Divertido</SelectItem>
-                                  <SelectItem value="serious">Serio / Autoritativo</SelectItem>
-                                  <SelectItem value="inspirational">Inspiracional</SelectItem>
-                                  <SelectItem value="educational">Educativo</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="brandCommunicationStyle"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Estilo de Comunicación</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Detalles sobre cómo habla la marca (vocabulario, emojis, longitud...)" className="min-h-[100px]" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">Tono:</span>
-                          <Badge variant="outline" className="capitalize">{analysisData.brandTone || "No definido"}</Badge>
-                        </div>
-                        <div>
-                          <span className="font-semibold text-sm block mb-1">Estilo:</span>
-                          <p className="text-sm bg-muted/30 p-2 rounded">{analysisData.brandCommunicationStyle || "No definido"}</p>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="communication-style" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Palabras Clave y Temas</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {isEditing ? (
-                      <FormField
-                        control={form.control}
-                        name="keywords"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Keywords SEO/Marca</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Separadas por comas" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2">Keywords</h4>
-                        <div className="flex flex-wrap gap-1">
-                          {analysisData.keywords ?
-                            analysisData.keywords.split(',').map((k: string, i: number) => (
-                              <Badge key={i} variant="secondary">{k.trim()}</Badge>
-                            )) : <span className="text-sm text-muted-foreground">No definidas</span>
-                          }
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="communication-keywords" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* COMPETITORS TAB (New) */}
-            <TabsContent value="context" id="brand-brain-context-competitors" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Análisis Competitivo</CardTitle>
-                      <CardDescription>Comparativa directa para encontrar tu ventaja</CardDescription>
-                    </div>
-                    {isEditing && (
-                      <Button type="button" size="sm" onClick={() => competitorsFieldArray.append({ name: "" })}>
-                        <Plus className="h-4 w-4 mr-2" /> Agregar Competidor
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {isEditing ? (
-                      competitorsFieldArray.fields.map((field, index) => (
-                        <Card key={field.id} className="border p-4">
-                          <div className="flex justify-between mb-4">
+                  {isEditing ? (
+                    <div className="grid gap-6">
+                      {competitorsFieldArray.fields.map((field, index) => (
+                        <div key={field.id} className="p-6 border border-border/50 rounded-xl bg-muted/10 grid gap-5 relative group">
+                          <div className="flex justify-between items-center">
                             <h4 className="font-medium">Competidor #{index + 1}</h4>
-                            <Button type="button" size="icon" variant="ghost" className="text-destructive h-6 w-6" onClick={() => competitorsFieldArray.remove(index)}>
+                            <Button type="button" size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => competitorsFieldArray.remove(index)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div className="grid gap-4 md:grid-cols-2">
+                          <div className="grid gap-6 md:grid-cols-2">
                             <FormField
                               control={form.control}
                               name={`competitorAnalysis.${index}.name`}
@@ -902,7 +948,7 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                               name={`competitorAnalysis.${index}.ourAdvantage`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-primary font-bold">Nuestra Ventaja (Diferenciador)</FormLabel>
+                                  <FormLabel className="text-emerald-600 dark:text-emerald-400 font-semibold">Nuestra Ventaja (Diferenciador)</FormLabel>
                                   <FormControl><Input placeholder="En qué somos mejores" {...field} /></FormControl>
                                 </FormItem>
                               )}
@@ -913,7 +959,7 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Sus Fortalezas</FormLabel>
-                                  <FormControl><Textarea placeholder="Qué hacen bien" className="h-[80px]" {...field} /></FormControl>
+                                  <FormControl><Textarea placeholder="Qué hacen bien" className="h-[100px] resize-none" {...field} /></FormControl>
                                 </FormItem>
                               )}
                             />
@@ -923,172 +969,128 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Sus Debilidades</FormLabel>
-                                  <FormControl><Textarea placeholder="Qué hacen mal" className="h-[80px]" {...field} /></FormControl>
+                                  <FormControl><Textarea placeholder="Qué hacen mal" className="h-[100px] resize-none" {...field} /></FormControl>
                                 </FormItem>
                               )}
                             />
                           </div>
-                        </Card>
-                      ))
-                    ) : (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {analysisData.competitorAnalysis && Array.isArray(analysisData.competitorAnalysis) ? (
-                          analysisData.competitorAnalysis.map((comp: any, i: number) => (
-                            <Card key={i} className="bg-muted/10">
-                              <CardHeader className="pb-2">
-                                <CardTitle className="text-base">{comp.name}</CardTitle>
-                              </CardHeader>
-                              <CardContent className="space-y-2 text-sm">
-                                {comp.ourAdvantage && <div className="text-green-600 font-medium">✨ Ventaja: {comp.ourAdvantage}</div>}
-                                {comp.strengths && <div><span className="font-semibold">Fortalezas:</span> {comp.strengths}</div>}
-                                {comp.weaknesses && <div><span className="font-semibold">Debilidades:</span> {comp.weaknesses}</div>}
-                              </CardContent>
-                            </Card>
-                          ))
-                        ) : (
-                          // Fallback for legacy string data
-                          <p className="whitespace-pre-wrap">{typeof analysisData.competitorAnalysis === 'string' ? analysisData.competitorAnalysis : "No hay datos."}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardSources cardKey="competitors" isEditing={isEditing} onOpen={setDocumentCard} />
-              </Card>
-            </TabsContent>
-
-            {/* CALENDAR TAB (New) */}
-            <TabsContent value="context" id="brand-brain-context-calendar" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Calendario Estacional</CardTitle>
-                      <CardDescription>Fechas comerciales y eventos clave</CardDescription>
-                    </div>
-                    {isEditing && (
-                      <Button type="button" size="sm" onClick={() => calendarFieldArray.append({ date: "", eventName: "Nuevo Evento", importance: "medium" })}>
-                        <Plus className="h-4 w-4 mr-2" /> Agregar Evento
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      {calendarFieldArray.fields.map((field, index) => (
-                        <div key={field.id} className="flex gap-2 items-start p-2 border rounded-md bg-muted/20">
-                          <div className="grid gap-2 flex-1 md:grid-cols-4">
-                            <FormField
-                              control={form.control}
-                              name={`seasonalCalendar.${index}.date`}
-                              render={({ field }) => (
-                                <FormItem><FormControl><Input placeholder="Fecha/Mes" {...field} /></FormControl></FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`seasonalCalendar.${index}.eventName`}
-                              render={({ field }) => (
-                                <FormItem className="md:col-span-2"><FormControl><Input placeholder="Nombre del Evento" {...field} /></FormControl></FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`seasonalCalendar.${index}.importance`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="high">🔴 Alta</SelectItem>
-                                      <SelectItem value="medium">🟡 Media</SelectItem>
-                                      <SelectItem value="low">🟢 Baja</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <Button type="button" variant="ghost" size="icon" className="text-destructive mt-1" onClick={() => calendarFieldArray.remove(index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {analysisData.seasonalCalendar && Array.isArray(analysisData.seasonalCalendar) && analysisData.seasonalCalendar.map((event: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 p-2 rounded hover:bg-muted/50">
-                          <span className="text-xl">{event.importance === 'high' ? '🔴' : event.importance === 'medium' ? '🟡' : '🟢'}</span>
-                          <Badge variant="outline">{event.date}</Badge>
-                          <span className="font-medium">{event.eventName}</span>
-                          {event.contentIdeas && <span className="text-muted-foreground text-sm">- {event.contentIdeas}</span>}
-                        </div>
-                      ))}
-                      {(!analysisData.seasonalCalendar || analysisData.seasonalCalendar.length === 0) && <p className="text-muted-foreground">No hay eventos configurados.</p>}
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {analysisData.competitorAnalysis && Array.isArray(analysisData.competitorAnalysis) ? (
+                        analysisData.competitorAnalysis.map((comp: any, i: number) => (
+                          <div key={i} className="bg-muted/10 p-6 rounded-xl border border-border/50">
+                            <h4 className="text-lg font-semibold mb-4">{comp.name}</h4>
+                            <div className="space-y-4 text-sm">
+                              {comp.ourAdvantage && (
+                                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                                  <div className="text-emerald-700 dark:text-emerald-400 font-semibold mb-1 flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4" /> Ventaja Competitiva
+                                  </div>
+                                  <p className="text-emerald-800 dark:text-emerald-300 leading-relaxed">{comp.ourAdvantage}</p>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-2 gap-4 mt-4">
+                                <div>
+                                  <span className="font-semibold block mb-1">Fortalezas:</span>
+                                  <p className="text-muted-foreground leading-relaxed">{comp.strengths}</p>
+                                </div>
+                                <div>
+                                  <span className="font-semibold block mb-1">Debilidades:</span>
+                                  <p className="text-muted-foreground leading-relaxed">{comp.weaknesses}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="whitespace-pre-wrap text-sm text-muted-foreground italic">{typeof analysisData.competitorAnalysis === 'string' ? analysisData.competitorAnalysis : "Sin definir"}</p>
+                      )}
                     </div>
                   )}
-                </CardContent>
-                <CardSources cardKey="calendar" isEditing={isEditing} onOpen={setDocumentCard} />
-              </Card>
-            </TabsContent>
+                </div>
+              </section>
 
-            {/* POLICIES TAB */}
-            <TabsContent value="content" id="brand-brain-content-policies" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card className="border-green-200 dark:border-green-900 bg-green-50/10">
-                  <CardHeader>
-                    <CardTitle className="text-green-700 dark:text-green-400">Políticas de Respuesta Positiva</CardTitle>
-                    <CardDescription>Cómo responder a halagos y clientes felices</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+              <section>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold">Calendario Estacional</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Fechas comerciales y eventos clave.</p>
+                  </div>
+                  <CardSources cardKey="calendar" isEditing={isEditing} onOpen={setDocumentCard} />
+                </div>
+                
+                <Card className="shadow-none border-border/50 bg-muted/5">
+                  <CardContent className="p-6">
+                    {isEditing && (
+                      <Button type="button" size="sm" variant="secondary" className="mb-4" onClick={() => calendarFieldArray.append({ date: "", eventName: "Nuevo Evento", importance: "medium" })}>
+                        <Plus className="h-4 w-4 mr-2" /> Agregar Evento
+                      </Button>
+                    )}
+                    
                     {isEditing ? (
-                      <FormField
-                        control={form.control}
-                        name="responsePolicyPositive"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea placeholder="Guía de interacción positiva" className="min-h-[150px]" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="space-y-3">
+                        {calendarFieldArray.fields.map((field, index) => (
+                          <div key={field.id} className="flex gap-4 items-start p-4 border border-border/50 rounded-xl bg-background">
+                            <div className="grid gap-4 flex-1 md:grid-cols-4">
+                              <FormField
+                                control={form.control}
+                                name={`seasonalCalendar.${index}.date`}
+                                render={({ field }) => (
+                                  <FormItem><FormControl><Input placeholder="Fecha/Mes (ej: Nov)" {...field} /></FormControl></FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`seasonalCalendar.${index}.eventName`}
+                                render={({ field }) => (
+                                  <FormItem className="md:col-span-2"><FormControl><Input placeholder="Nombre (ej: Black Friday)" {...field} /></FormControl></FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`seasonalCalendar.${index}.importance`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="high">Prioridad Alta</SelectItem>
+                                        <SelectItem value="medium">Prioridad Media</SelectItem>
+                                        <SelectItem value="low">Prioridad Baja</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-10 w-10 shrink-0 mt-0" onClick={() => calendarFieldArray.remove(index)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <p className="whitespace-pre-wrap text-sm">{analysisData.responsePolicyPositive || "No definida"}</p>
+                      <div className="space-y-3">
+                        {analysisData.seasonalCalendar && Array.isArray(analysisData.seasonalCalendar) && analysisData.seasonalCalendar.map((event: any, i: number) => (
+                          <div key={i} className="flex items-center gap-4 p-3 rounded-lg border border-border/50 bg-background w-full">
+                            <div className={`flex shrink-0 items-center justify-center h-8 w-8 rounded-full ${event.importance === 'high' ? 'bg-destructive/10' : event.importance === 'medium' ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
+                              <CalendarIcon className={`h-4 w-4 ${event.importance === 'high' ? 'text-destructive' : event.importance === 'medium' ? 'text-amber-500' : 'text-emerald-500'}`} />
+                            </div>
+                            <div className="flex-1 flex flex-wrap items-center justify-between gap-2">
+                              <span className="font-medium">{event.eventName}</span>
+                              <Badge variant="secondary" className="font-normal text-xs">{event.date}</Badge>
+                            </div>
+                          </div>
+                        ))}
+                        {(!analysisData.seasonalCalendar || analysisData.seasonalCalendar.length === 0) && <p className="text-sm text-muted-foreground italic">Sin definir</p>}
+                      </div>
                     )}
                   </CardContent>
-                  <CardSources cardKey="policies-positive" isEditing={isEditing} onOpen={setDocumentCard} />
                 </Card>
-
-                <Card className="border-red-200 dark:border-red-900 bg-red-50/10">
-                  <CardHeader>
-                    <CardTitle className="text-red-700 dark:text-red-400">Políticas de Crisis / Negativos</CardTitle>
-                    <CardDescription>Protocolo para quejas y comentarios negativos</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {isEditing ? (
-                      <FormField
-                        control={form.control}
-                        name="responsePolicyNegative"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea placeholder="Guía de gestión de crisis" className="min-h-[150px]" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <p className="whitespace-pre-wrap text-sm">{analysisData.responsePolicyNegative || "No definida"}</p>
-                    )}
-                  </CardContent>
-                  <CardSources cardKey="policies-negative" isEditing={isEditing} onOpen={setDocumentCard} />
-                </Card>
-              </div>
+              </section>
             </TabsContent>
           </Tabs>
           {isEditing && (
