@@ -225,7 +225,7 @@ function StrategyContextCard({ projectId }: { projectId: string }) {
 
   if (!project) return null;
 
-  const analysis = project.analysis || {};
+  const analysis = Array.isArray(project.analysis) ? project.analysis[0] ?? {} : project.analysis ?? {};
   const hasStrategy = analysis.mission || analysis.buyerPersona || analysis.brandTone;
 
   return (

@@ -11,6 +11,7 @@ import {
   Package,
   Layout
 } from 'lucide-react';
+import ProjectIdentityAvatar from "@/components/projects/project-identity-avatar";
 
 type ProjectHeaderProps = {
   project: any;
@@ -61,7 +62,15 @@ export default function ProjectHeader({ project, activeTab = "overview" }: Proje
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">{project.name}</h1>
+        <div className="flex items-center gap-3">
+          <ProjectIdentityAvatar
+            name={project.name}
+            color={project.color}
+            imageUrl={project.imageUrl}
+            size="md"
+          />
+          <h1 className="text-3xl font-bold">{project.name}</h1>
+        </div>
       </div>
       
       <div className="border-b">

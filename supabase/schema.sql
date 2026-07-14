@@ -167,7 +167,8 @@ CREATE TABLE IF NOT EXISTS analysis_results (
   customer_vocabulary text,
   seasonal_calendar jsonb,
   created_at      timestamp NOT NULL DEFAULT now(),
-  updated_at      timestamp NOT NULL DEFAULT now()
+  updated_at      timestamp NOT NULL DEFAULT now(),
+  CONSTRAINT analysis_results_project_id_key UNIQUE (project_id)
 );
 CREATE TRIGGER analysis_results_set_updated_at BEFORE UPDATE ON analysis_results
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();

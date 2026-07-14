@@ -96,8 +96,8 @@ CREATE POLICY projects_insert ON projects
 DROP POLICY IF EXISTS projects_update ON projects;
 CREATE POLICY projects_update ON projects
   FOR UPDATE TO authenticated
-  USING (can_access_project(id))
-  WITH CHECK (can_access_project(id));
+  USING (can_approve_project_knowledge(id))
+  WITH CHECK (can_approve_project_knowledge(id));
 
 DROP POLICY IF EXISTS projects_delete ON projects;
 CREATE POLICY projects_delete ON projects
@@ -617,7 +617,7 @@ CREATE POLICY project_images_insert ON storage.objects
       SELECT 1
       FROM public.projects p
       WHERE p.id::text = (storage.foldername(storage.objects.name))[1]
-        AND public.can_access_project(p.id)
+        AND public.can_approve_project_knowledge(p.id)
     )
   );
 
@@ -630,6 +630,6 @@ CREATE POLICY project_images_delete ON storage.objects
       SELECT 1
       FROM public.projects p
       WHERE p.id::text = (storage.foldername(storage.objects.name))[1]
-        AND public.can_access_project(p.id)
+        AND public.can_approve_project_knowledge(p.id)
     )
   );

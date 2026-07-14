@@ -38,7 +38,7 @@ import { Eye, Pencil, Plus, Rocket } from "lucide-react"; // Iconos de acciones
 import NewProjectModal from "@/components/projects/new-project-modal"; // Modal para crear proyecto
 import { formatRelative } from "date-fns"; // Formateo de fechas
 import { cn } from "@/lib/utils";
-import { getProjectColor, getProjectInitial } from "@/lib/project-identity";
+import ProjectIdentityAvatar from "@/components/projects/project-identity-avatar";
 
 // ===== COMPONENTE DE BADGE DE ESTADO =====
 // Componente que muestra el estado del proyecto con colores específicos
@@ -175,20 +175,11 @@ export default function Projects() {
                   <TableRow key={project.id} className="border-border/50 hover:bg-muted transition-colors">
                     <TableCell className="font-medium text-foreground">
                       <div className="flex items-center gap-3">
-                        {project.imageUrl ? (
-                          <img
-                            src={project.imageUrl}
-                            alt={project.name}
-                            className="h-9 w-9 rounded-full object-cover shadow-sm"
-                          />
-                        ) : (
-                          <div
-                            className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
-                            style={{ backgroundColor: getProjectColor(project.color) }}
-                          >
-                            {getProjectInitial(project.name)}
-                          </div>
-                        )}
+                        <ProjectIdentityAvatar
+                          name={project.name}
+                          color={project.color}
+                          imageUrl={project.imageUrl}
+                        />
                         <div className="min-w-0">
                           <div className="truncate">{project.name}</div>
                         </div>

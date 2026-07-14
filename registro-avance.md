@@ -67,3 +67,52 @@
 - Crear un proyecto con JPEG, PNG y WebP válidos.
 - Verificar rechazo de tipo inválido y archivo mayor a 5 MiB.
 - Simular fallo de upload/actualización y confirmar reintento, compensación y ausencia de duplicados.
+
+## Fase 2 — Implementación técnica
+
+**Estado:** Implementada y desplegada; prueba manual de roles/imágenes pendiente.
+
+### Pasos ejecutados
+
+1. Reutilicé el contrato de identidad existente y centralicé la validación de JPEG/PNG/WebP, 5 MiB y extensiones.
+2. Añadí un avatar compartido con fallback ante URL rota: imagen → color → inicial neutra.
+3. Apliqué el avatar en el listado de proyectos, proyectos recientes, detalle e imagen-análisis.
+4. Extendí el diálogo existente para editar color y reemplazar o eliminar la imagen sin crear una pantalla nueva.
+5. Añadí compensación: si falla la actualización de la fila, se elimina la imagen recién subida; si falla la limpieza posterior, se registra el contexto sin revertir un cambio correcto.
+6. Restringí actualización del proyecto y escritura/borrado de imágenes a creador o admin/isPrimary mediante `can_approve_project_knowledge`.
+
+### Migración
+
+- `20260713155923_restrict_project_identity_writes.sql`: aplicada y verificada en el proyecto Supabase enlazado.
+
+### Pendiente
+
+- Resolver el error preexistente de importación duplicada en `reset-password.tsx` para recuperar el chequeo completo de tipos.
+- Probar manualmente imagen válida, imagen rota, reemplazo, eliminación, archivo inválido/mayor a 5 MiB y roles creador/admin frente a miembro/asignado.
+
+## Fase 3 — Base confiable del Brand Brain
+
+**Estado:** Implementada y desplegada; prueba manual de edición parcial pendiente.
+
+### Pasos ejecutados
+
+1. Confirmé en remoto 1 fila estratégica para 1 proyecto y cero duplicados antes de migrar.
+2. Añadí unicidad de `analysis_results.project_id` con prevalidación que detiene la migración si aparecen duplicados.
+3. Reemplacé el patrón de lectura previa por `upsert` sobre `project_id`.
+4. Limité cada guardado del Cerebro de Marca al bloque activo: Marca, Cliente, Contenido o Contexto.
+5. Normalicé las relaciones de análisis para que detalle y creador de calendario consuman una fila o estado vacío, no un arreglo.
+6. Endurecí `apply-document-analysis`: creador/admin requerido, documento del mismo proyecto, campos vacíos por defecto y lista de conflictos para reemplazo confirmado.
+
+### Despliegue y verificación
+
+- `20260713170112_enforce_analysis_results_per_project.sql`: aplicada y verificada en el proyecto Supabase enlazado.
+- Restricción remota: `UNIQUE (project_id)` presente en `analysis_results`.
+- `apply-document-analysis`: desplegada y activa.
+- `npm run build:client`: OK.
+- `npm run build:server`: OK.
+- `git diff --check`: OK.
+
+### Pendiente
+
+- Probar desde una sesión de creador/admin el primer guardado, guardados consecutivos de bloques distintos y la confirmación de conflictos de documento.
+- El chequeo completo de tipos continúa bloqueado por imports duplicados preexistentes en `reset-password.tsx`.

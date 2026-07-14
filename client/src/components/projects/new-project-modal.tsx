@@ -11,8 +11,10 @@ import { queryClient } from "@/lib/queryClient";
 import { dbQuery } from "@/lib/supabase-helpers";
 import {
   PROJECT_COLOR_OPTIONS,
+  getProjectImageExtension,
   getProjectColor,
   normalizeProjectColor,
+  validateProjectImage,
 } from "@/lib/project-identity";
 import {
   Dialog,
@@ -51,20 +53,6 @@ const defaultValues: ProjectFormValues = {
   name: "",
   color: PROJECT_COLOR_OPTIONS[0].value,
 };
-
-const IMAGE_LIMIT_BYTES = 5 * 1024 * 1024;
-const IMAGE_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-function validateProjectImage(file: File | null): string | null {
-  if (!file) return null;
-  if (!IMAGE_EXTENSIONS[file.type]) return "Usa una imagen JPEG, PNG o WebP.";
-  if (file.size > IMAGE_LIMIT_BYTES) return "La imagen no puede superar 5 MB.";
-  return null;
-}
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -125,7 +113,8 @@ export default function NewProjectModal({ isOpen, onClose }: NewProjectModalProp
       if (!projectId) throw new Error("El proyecto se creó sin un identificador válido.");
       if (!imageFile) return { projectId, pendingImage: false };
 
-      const extension = IMAGE_EXTENSIONS[imageFile.type];
+      const extension = getProjectImageExtension(imageFile);
+      if (!extension) throw new Error("Usa una imagen JPEG, PNG o WebP.");
       const path = `${projectId}/${crypto.randomUUID()}.${extension}`;
 
       try {

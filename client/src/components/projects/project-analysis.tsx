@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
-import { dbQuery, fromDbArray, fromDb } from "@/lib/supabase-helpers";
+import { toDb } from "@/lib/supabase-helpers";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -126,44 +126,56 @@ const analysisSchema = z.object({
   })).optional(),
 });
 
+type AnalysisValues = z.infer<typeof analysisSchema>;
+type AnalysisTab = "brand" | "customer" | "content" | "context";
+
+const ANALYSIS_FIELDS_BY_TAB: Record<AnalysisTab, (keyof AnalysisValues)[]> = {
+  brand: ["mission", "vision", "coreValues", "uniqueValueProposition"],
+  customer: ["buyerPersona", "targetAudience", "customerQuotes", "customerObjections", "customerVocabulary"],
+  content: ["contentThemes", "brandTone", "brandCommunicationStyle", "keywords", "responsePolicyPositive", "responsePolicyNegative"],
+  context: ["objectives", "marketingStrategies", "competitorAnalysis", "seasonalCalendar"],
+};
+
 export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("brand");
+  const [activeTab, setActiveTab] = useState<AnalysisTab>("brand");
   const [documentCard, setDocumentCard] = useState<BrandBrainCardKey | "unclassified" | null>(null);
 
   // Get analysis data from project
   const analysisData = project?.analysis || {};
 
   // Initialize form with project analysis data
-  const form = useForm<z.infer<typeof analysisSchema>>({
+  const defaultValues: AnalysisValues = {
+    mission: analysisData.mission || "",
+    vision: analysisData.vision || "",
+    coreValues: analysisData.coreValues || "",
+    buyerPersona: analysisData.buyerPersona || "",
+    targetAudience: analysisData.targetAudience || "",
+    objectives: analysisData.objectives || "",
+    marketingStrategies: analysisData.marketingStrategies || "",
+    brandTone: analysisData.brandTone || "",
+    brandCommunicationStyle: analysisData.brandCommunicationStyle || "",
+    keywords: analysisData.keywords || "",
+    responsePolicyPositive: analysisData.responsePolicyPositive || "",
+    responsePolicyNegative: analysisData.responsePolicyNegative || "",
+    uniqueValueProposition: analysisData.uniqueValueProposition || "",
+    customerObjections: analysisData.customerObjections || "",
+    customerVocabulary: analysisData.customerVocabulary || "",
+    contentThemes: Array.isArray(analysisData.contentThemes) ? analysisData.contentThemes : [],
+    competitorAnalysis: Array.isArray(analysisData.competitorAnalysis) ? analysisData.competitorAnalysis : [],
+    customerQuotes: Array.isArray(analysisData.customerQuotes) ? analysisData.customerQuotes : [],
+    seasonalCalendar: Array.isArray(analysisData.seasonalCalendar) ? analysisData.seasonalCalendar : [],
+  };
+
+  const form = useForm<AnalysisValues>({
     resolver: zodResolver(analysisSchema),
-    defaultValues: {
-      mission: analysisData.mission || "",
-      vision: analysisData.vision || "",
-      coreValues: analysisData.coreValues || "",
-      buyerPersona: analysisData.buyerPersona || "",
-      targetAudience: analysisData.targetAudience || "",
-      objectives: analysisData.objectives || "",
-      marketingStrategies: analysisData.marketingStrategies || "",
-      brandTone: analysisData.brandTone || "",
-      brandCommunicationStyle: analysisData.brandCommunicationStyle || "",
-      keywords: analysisData.keywords || "",
-      responsePolicyPositive: analysisData.responsePolicyPositive || "",
-      responsePolicyNegative: analysisData.responsePolicyNegative || "",
-
-      // New fields defaults
-      uniqueValueProposition: analysisData.uniqueValueProposition || "",
-      customerObjections: analysisData.customerObjections || "",
-      customerVocabulary: analysisData.customerVocabulary || "",
-
-      // Array fields - checking if they are arrays (from JSONB) or need default []
-      contentThemes: Array.isArray(analysisData.contentThemes) ? analysisData.contentThemes : [],
-      competitorAnalysis: Array.isArray(analysisData.competitorAnalysis) ? analysisData.competitorAnalysis : [],
-      customerQuotes: Array.isArray(analysisData.customerQuotes) ? analysisData.customerQuotes : [],
-      seasonalCalendar: Array.isArray(analysisData.seasonalCalendar) ? analysisData.seasonalCalendar : [],
-    }
+    defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [analysisData.updatedAt, project.id]);
 
   // Field Arrays for dynamic lists
   const quotesFieldArray = useFieldArray({
@@ -188,18 +200,16 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
 
   // Update analysis mutation
   const updateAnalysisMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof analysisSchema>) => {
-      const payload = { ...values, projectId: project.id };
-      // Check if analysis exists, then update or insert
-      const { data: existing } = await supabase
+    mutationFn: async (values: AnalysisValues) => {
+      const payload = Object.fromEntries(
+        ANALYSIS_FIELDS_BY_TAB[activeTab].map((field) => [field, values[field]]),
+      );
+      const { error } = await supabase
         .from("analysis_results")
-        .select("id")
-        .eq("project_id", project.id)
-        .maybeSingle();
-      if (existing) {
-        return dbQuery("analysis_results").updateSingle(payload, { projectId: project.id });
-      }
-      return dbQuery("analysis_results").insertSingle(payload);
+        .upsert(toDb("analysis_results", { ...payload, projectId: project.id }), {
+          onConflict: "project_id",
+        });
+      if (error) throw error;
     },
     onSuccess: () => {
       toast({
@@ -220,7 +230,7 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
   });
 
   // Handle form submission
-  const onSubmit = (values: z.infer<typeof analysisSchema>) => {
+  const onSubmit = (values: AnalysisValues) => {
     updateAnalysisMutation.mutate(values);
   };
 
@@ -269,7 +279,7 @@ export default function ProjectAnalysis({ project, canEdit }: ProjectAnalysisPro
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           {/* ponytail: group the existing cards without changing their data contract. */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AnalysisTab)} className="space-y-4">
             <TabsList className="grid grid-cols-2 sm:grid-cols-4 h-auto bg-muted/20 p-1 mb-4">
               <TabsTrigger value="brand" className="flex flex-col py-2 gap-1 h-auto data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <Shield className="h-4 w-4" />

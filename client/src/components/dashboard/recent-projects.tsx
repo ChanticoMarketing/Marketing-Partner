@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { FolderOpen, ArrowRight, Calendar } from "lucide-react";
+import ProjectIdentityAvatar from "@/components/projects/project-identity-avatar";
 
 interface Project {
   id: number;
@@ -14,6 +15,8 @@ interface Project {
   client: string;
   status: string;
   createdAt: string;
+  color?: string | null;
+  imageUrl?: string | null;
 }
 
 export default function RecentProjects() {
@@ -92,7 +95,13 @@ export default function RecentProjects() {
                 className="group flex items-center justify-between p-4 border-b last:border-0 hover:bg-secondary/30 transition-colors cursor-pointer"
                 onClick={() => setLocation(`/projects/${project.id}`)}
               >
-                <div className="flex-1">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <ProjectIdentityAvatar
+                    name={project.name}
+                    color={project.color}
+                    imageUrl={project.imageUrl}
+                  />
+                  <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <h4 className="font-medium text-sm text-foreground">{project.name}</h4>
                     <Badge variant="outline" className="font-medium uppercase text-[10px]">
@@ -106,6 +115,7 @@ export default function RecentProjects() {
                       <Calendar className="h-3 w-3" />
                       {formatDate(project.createdAt)}
                     </span>
+                  </div>
                   </div>
                 </div>
                 <Button
