@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Trash2, Plus, Pencil, Tag, ImagePlus, Package } from 'lucide-react';
+import { Trash2, Plus, Pencil, Tag, Package, Image as ImageIcon, Box } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,6 +48,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Esquema de validación para el formulario de producto
 const productFormSchema = z.object({
@@ -101,7 +102,6 @@ export default function ProductList({ projectId }: ProductListProps) {
       const imageFile = data.get('image') as File | null;
       let imageUrl: string | null = null;
 
-      // Subir imagen a Storage si existe
       if (imageFile) {
         const filePath = `${projectId}/${Date.now()}-${imageFile.name}`;
         const { error: uploadError } = await supabase.storage
@@ -117,7 +117,6 @@ export default function ProductList({ projectId }: ProductListProps) {
         imageUrl = urlData.publicUrl;
       }
 
-      // Crear producto en la base de datos
       const productData: Record<string, any> = {
         name: data.get('name'),
         project_id: projectId,
@@ -134,25 +133,18 @@ export default function ProductList({ projectId }: ProductListProps) {
         .select()
         .single();
 
-      if (error) throw new Error('Error al crear el producto: ' + error.message);
+      if (error) throw new Error('Error al crear: ' + error.message);
       return product;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
-      toast({
-        title: 'Producto creado',
-        description: 'El producto se ha creado correctamente',
-      });
+      toast({ title: 'Oferta creada' });
       setIsAddDialogOpen(false);
       form.reset();
       setSelectedFile(null);
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Error al crear el producto',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error al crear', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -162,7 +154,6 @@ export default function ProductList({ projectId }: ProductListProps) {
       const imageFile = data.get('image') as File | null;
       let imageUrl: string | null = null;
 
-      // Subir nueva imagen a Storage si existe
       if (imageFile) {
         const filePath = `${projectId}/${Date.now()}-${imageFile.name}`;
         const { error: uploadError } = await supabase.storage
@@ -178,7 +169,6 @@ export default function ProductList({ projectId }: ProductListProps) {
         imageUrl = urlData.publicUrl;
       }
 
-      // Actualizar producto en la base de datos
       const productData: Record<string, any> = {
         name: data.get('name'),
       };
@@ -195,25 +185,18 @@ export default function ProductList({ projectId }: ProductListProps) {
         .select()
         .single();
 
-      if (error) throw new Error('Error al actualizar el producto: ' + error.message);
+      if (error) throw new Error('Error al actualizar: ' + error.message);
       return product;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
-      toast({
-        title: 'Producto actualizado',
-        description: 'El producto se ha actualizado correctamente',
-      });
+      toast({ title: 'Oferta actualizada' });
       setEditingProduct(null);
       form.reset();
       setSelectedFile(null);
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Error al actualizar el producto',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error al actualizar', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -224,17 +207,10 @@ export default function ProductList({ projectId }: ProductListProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'products'] });
-      toast({
-        title: 'Producto eliminado',
-        description: 'El producto se ha eliminado correctamente',
-      });
+      toast({ title: 'Oferta eliminada' });
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Error al eliminar el producto',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error al eliminar', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -242,22 +218,10 @@ export default function ProductList({ projectId }: ProductListProps) {
   const onSubmit = (values: ProductFormValues) => {
     const formData = new FormData();
     formData.append('name', values.name);
-    
-    if (values.description) {
-      formData.append('description', values.description);
-    }
-    
-    if (values.sku) {
-      formData.append('sku', values.sku);
-    }
-    
-    if (values.price) {
-      formData.append('price', values.price);
-    }
-    
-    if (selectedFile) {
-      formData.append('image', selectedFile);
-    }
+    if (values.description) formData.append('description', values.description);
+    if (values.sku) formData.append('sku', values.sku);
+    if (values.price) formData.append('price', values.price);
+    if (selectedFile) formData.append('image', selectedFile);
 
     if (editingProduct) {
       updateProductMutation.mutate({ id: editingProduct.id, data: formData });
@@ -266,14 +230,12 @@ export default function ProductList({ projectId }: ProductListProps) {
     }
   };
 
-  // Manejar carga de archivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  // Abrir diálogo de edición
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     form.reset({
@@ -284,7 +246,6 @@ export default function ProductList({ projectId }: ProductListProps) {
     });
   };
 
-  // Cerrar diálogo y resetear formulario
   const handleCloseDialog = () => {
     setIsAddDialogOpen(false);
     setEditingProduct(null);
@@ -292,91 +253,104 @@ export default function ProductList({ projectId }: ProductListProps) {
     setSelectedFile(null);
   };
 
-  if (isLoading) {
-    return <div className="flex justify-center py-8">Cargando productos...</div>;
-  }
+  const formatPrice = (price: any) => {
+    if (price === null || price === undefined || price === '') return null;
+    const num = parseFloat(price);
+    if (isNaN(num)) return null;
+    const formatter = new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    });
+    const formatted = formatter.format(num);
+    return `${formatted.replace(/\s*[A-Z]{3}$/, '')} MXN`;
+  };
 
-  if (error) {
-    return (
-      <Alert variant="destructive" className="my-4">
-        <AlertDescription>Error al cargar los productos</AlertDescription>
-      </Alert>
-    );
-  }
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3].map((i) => (
+        <Card key={i} className="overflow-hidden border-border/50 shadow-sm">
+          <Skeleton className="h-48 w-full rounded-none" />
+          <CardContent className="p-5 space-y-4">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <div className="flex justify-between items-center pt-4">
+              <Skeleton className="h-5 w-1/3" />
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Productos</h2>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="space-y-1.5 max-w-2xl">
+          <h2 className="text-2xl font-heading font-bold tracking-tight text-foreground">Oferta y catálogo</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Organiza los productos y servicios que Chantia utilizará como referencia para contenidos y decisiones estratégicas.
+          </p>
+          {!isLoading && !error && (
+            <div className="text-sm font-medium text-muted-foreground/80 pt-1">
+              {products.length === 0 ? "Sin ofertas" : products.length === 1 ? "1 oferta" : `${products.length} ofertas`}
+            </div>
+          )}
+        </div>
+        
         <Dialog open={isAddDialogOpen || editingProduct !== null} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Agregar Producto
+            <Button onClick={() => setIsAddDialogOpen(true)} className="rounded-full shrink-0 shadow-sm">
+              <Plus className="mr-2 h-4 w-4" /> Agregar oferta
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingProduct ? 'Editar Producto' : 'Agregar Producto'}</DialogTitle>
-              <DialogDescription>
-                Completa la información para {editingProduct ? 'actualizar' : 'crear'} el producto.
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm:rounded-2xl p-0 gap-0">
+            <DialogHeader className="p-6 md:p-8 border-b border-border/50 bg-muted/5 sticky top-0 z-10 backdrop-blur-sm">
+              <DialogTitle className="text-2xl font-heading">
+                {editingProduct ? 'Editar oferta' : 'Nueva oferta'}
+              </DialogTitle>
+              <DialogDescription className="text-base text-muted-foreground mt-1.5">
+                {editingProduct 
+                  ? 'Actualiza los detalles del producto o servicio.' 
+                  : 'Agrega un nuevo producto o servicio al catálogo de la marca.'}
               </DialogDescription>
             </DialogHeader>
+
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre del producto*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ingrese nombre del producto" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descripción</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Descripción del producto" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-10">
+                
+                {/* Bloque 1: Información principal */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información principal</h3>
+                  </div>
                   <FormField
                     control={form.control}
-                    name="sku"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>SKU</FormLabel>
+                        <FormLabel className="text-sm font-medium">Nombre del producto o servicio*</FormLabel>
                         <FormControl>
-                          <Input placeholder="SKU del producto" {...field} />
+                          <Input placeholder="Ej. Consultoría estratégica, Suscripción mensual..." className="bg-muted/30" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
-                    name="price"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Precio</FormLabel>
+                        <FormLabel className="text-sm font-medium">Descripción</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            step="0.01" 
-                            placeholder="Precio" 
+                          <Textarea 
+                            placeholder="Describe qué incluye, para quién es y su propuesta de valor..." 
+                            className="resize-none min-h-[120px] bg-muted/30 leading-relaxed" 
                             {...field} 
                           />
                         </FormControl>
@@ -386,43 +360,90 @@ export default function ProductList({ projectId }: ProductListProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <FormLabel htmlFor="product-image">Imagen del producto</FormLabel>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      id="product-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="flex-1"
+                {/* Bloque 2: Información comercial */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información comercial</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="sku"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Referencia interna</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ej. SKU-1234, B2B-PLAN" className="bg-muted/30" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Precio en MXN</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                              <Input 
+                                type="number" 
+                                step="0.01" 
+                                placeholder="0.00" 
+                                className="pl-7 bg-muted/30" 
+                                {...field} 
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Bloque 3: Imagen */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Imagen opcional</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="product-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="flex-1 cursor-pointer file:cursor-pointer file:bg-primary/10 file:text-primary file:border-0 file:rounded-md file:px-4 file:py-1 hover:file:bg-primary/20 file:transition-colors file:mr-4 file:font-medium"
+                      />
+                    </div>
                     {selectedFile && (
-                      <p className="text-sm text-muted-foreground">
-                        {selectedFile.name}
+                      <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                        <Package className="h-4 w-4" /> {selectedFile.name} (Lista para subir)
+                      </p>
+                    )}
+                    {editingProduct?.imageUrl && !selectedFile && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4" /> Tiene una imagen asignada actualmente.
                       </p>
                     )}
                   </div>
-                  {editingProduct?.imageUrl && !selectedFile && (
-                    <div className="text-sm text-muted-foreground">
-                      Imagen actual: {editingProduct.imageUrl}
-                    </div>
-                  )}
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" type="button" onClick={handleCloseDialog}>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-border/50">
+                  <Button variant="ghost" type="button" onClick={handleCloseDialog} className="rounded-full px-6">
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={
-                      createProductMutation.isPending || 
-                      updateProductMutation.isPending
-                    }
+                    className="rounded-full px-8 shadow-sm"
+                    disabled={createProductMutation.isPending || updateProductMutation.isPending}
                   >
                     {(createProductMutation.isPending || updateProductMutation.isPending) 
                       ? 'Guardando...' 
-                      : (editingProduct ? 'Actualizar' : 'Crear')}
+                      : (editingProduct ? 'Guardar cambios' : 'Crear oferta')}
                   </Button>
                 </div>
               </form>
@@ -431,76 +452,98 @@ export default function ProductList({ projectId }: ProductListProps) {
         </Dialog>
       </div>
 
-      {products.length === 0 ? (
-        <div className="text-center py-8 border rounded-lg bg-muted/30">
-          <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-medium">No hay productos</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Agrega productos para este proyecto haciendo clic en "Agregar Producto".
+      {isLoading ? (
+        renderSkeletons()
+      ) : error ? (
+        <Alert variant="destructive" className="border-destructive/20 bg-destructive/5 rounded-xl">
+          <AlertDescription className="text-base py-2">
+            <div className="font-heading font-bold mb-1">No pudimos cargar tu catálogo.</div>
+            Vuelve a intentarlo para consultar los productos y servicios de este proyecto.
+          </AlertDescription>
+        </Alert>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center border rounded-2xl bg-card border-border/50 shadow-sm animate-in fade-in duration-500">
+          <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mb-6">
+            <Box className="h-10 w-10 text-muted-foreground/40" />
+          </div>
+          <h3 className="text-xl font-heading font-bold text-foreground mb-2">Tu catálogo todavía está vacío.</h3>
+          <p className="text-muted-foreground max-w-md leading-relaxed mb-8">
+            Agrega los productos o servicios principales para que Chantia comprenda mejor lo que ofrece este proyecto.
           </p>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="rounded-full px-8 shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Agregar primera oferta
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product: Product) => (
-            <Card key={product.id}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{product.name}</CardTitle>
-                {product.sku && (
-                  <CardDescription className="flex items-center">
-                    <Tag className="mr-1 h-3 w-3" /> {product.sku}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {product.imageUrl && (
-                  <div className="relative h-40 w-full overflow-hidden rounded-md">
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
+            <Card key={product.id} className="overflow-hidden border-border/50 shadow-sm hover:border-border/80 transition-all duration-200 group flex flex-col bg-card">
+              <div className="relative h-48 w-full bg-muted/20 border-b border-border/30 overflow-hidden shrink-0 flex items-center justify-center">
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/10">
+                    <Box className="h-12 w-12 mb-2 opacity-50" />
+                    <span className="text-xs font-medium uppercase tracking-wider opacity-60">Sin imagen</span>
                   </div>
                 )}
-                {!product.imageUrl && (
-                  <div className="flex h-40 items-center justify-center rounded-md bg-muted/30">
-                    <ImagePlus className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
+              </div>
+              <CardContent className="p-5 flex-1 flex flex-col gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-foreground line-clamp-2 leading-tight">{product.name}</h3>
+                  {product.sku && (
+                    <div className="inline-flex items-center text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md mt-2">
+                      <Tag className="mr-1.5 h-3 w-3" /> Referencia interna: {product.sku}
+                    </div>
+                  )}
+                </div>
                 {product.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-3">
+                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mt-1">
                     {product.description}
                   </p>
                 )}
                 {product.price && (
-                  <div className="font-medium">
-                    Precio: ${parseFloat(product.price.toString()).toFixed(2)}
+                  <div className="mt-auto pt-4 text-emerald-700 dark:text-emerald-400 font-bold tracking-tight">
+                    {formatPrice(product.price)}
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
+              <CardFooter className="p-4 pt-0 border-t border-border/20 bg-muted/5 flex items-center justify-between gap-2">
+                <Button 
+                  variant="ghost" 
+                  className="flex-1 text-muted-foreground hover:text-foreground hover:bg-background rounded-lg"
+                  onClick={() => handleEditProduct(product)}
+                >
                   <Pencil className="mr-2 h-4 w-4" /> Editar
                 </Button>
+                <div className="w-px h-6 bg-border/50 shrink-0" />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive">
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg"
+                    >
                       <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="sm:rounded-2xl">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este producto?
+                      <AlertDialogTitle className="font-heading">¿Eliminar esta oferta?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-base text-muted-foreground">
+                        Esta acción eliminará el producto o servicio del catálogo y no se puede deshacer.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogFooter className="mt-6 gap-3 sm:gap-2">
+                      <AlertDialogCancel className="rounded-full sm:mt-0">Cancelar</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => deleteProductMutation.mutate(product.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm"
                       >
-                        {deleteProductMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                        {deleteProductMutation.isPending ? 'Eliminando...' : 'Eliminar oferta'}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
