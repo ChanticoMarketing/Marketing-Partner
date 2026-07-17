@@ -28,11 +28,11 @@ Este documento es la fuente de verdad estable sobre la identidad visual, estéti
 
 La identidad de Chantia se apoya en los siguientes colores fundamentales:
 
-- **Obsidian:** Base profunda, utilizada para fondos y contrastes máximos en modo oscuro, y para tipografía principal en modo claro.
-- **Parchment:** Tono neutro y cálido para fondos de áreas de lectura o tarjetas en modo claro.
-- **Ember:** Color de acción principal. Representa la "chispa". Úsalo para botones primarios, estados activos y confirmaciones críticas.
-- **Warm Gold:** Acento controlado. Útil para destacar elementos secundarios o estados de atención sin generar alarma.
-- **Graphite (varias intensidades):** Grises funcionales para bordes, textos secundarios, divisores y fondos inactivos.
+- **Obsidian (#151312):** Base profunda, utilizada para fondos y contrastes máximos en modo oscuro, y para tipografía principal en modo claro.
+- **Parchment (#F7F2E9):** Tono neutro y cálido para fondos de áreas de lectura o tarjetas en modo claro.
+- **Ember (#B7432A):** Color de acción principal. Representa la "chispa". Úsalo para botones primarios, estados activos y confirmaciones críticas.
+- **Warm Gold (#F6B94C):** Acento controlado. Útil para destacar elementos secundarios o estados de atención sin generar alarma.
+- **Graphite (200: #D5D3CF, 400: #7A7A7A, 700: #2A2A2A):** Grises funcionales para bordes, textos secundarios, divisores y fondos inactivos.
 
 **Reglas de uso:**
 - **Comportamiento claro/oscuro:** Respeta el contraste funcional; Obsidian es texto en claro y fondo en oscuro.
@@ -124,7 +124,7 @@ La identidad de Chantia se apoya en los siguientes colores fundamentales:
 
 Utiliza estos nombres exactos para las superficies del sistema:
 
-- Centro de marca
+- Centro de marca (Utiliza cuatro agrupaciones visuales que consolidan los dominios conceptuales del Plan Maestro)
 - Fuentes de apoyo
 - Oferta y catálogo
 - Productos y servicios
@@ -145,7 +145,7 @@ Utiliza estos nombres exactos para las superficies del sistema:
 - **Cartera de proyectos:** Implementada.
 - **Alta rápida (identidad):** Implementada.
 - **Espacio individual:** Implementada.
-- **Centro de marca:** En revisión (implementado localmente).
-- **Oferta y catálogo:** En revisión (implementado localmente, pendiente de fusión completa).
-- **Fuentes de apoyo:** Implementada / En revisión.
-- **Sistema visual global:** Aprobada e implementada como base (Carbon & Quartz / Midnight Cobalt).
+- **Centro de marca:** Fusionada.
+- **Oferta y catálogo:** En revisión.
+- **Fuentes de apoyo:** Fusionada.
+- **Sistema visual global:** Aprobada e implementada como base.

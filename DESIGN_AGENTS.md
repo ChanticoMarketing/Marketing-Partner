@@ -15,9 +15,9 @@ Cuando exista duda o contradicción sobre una decisión, aplica este orden estri
 
 1. Instrucciones actuales del usuario.
 2. Plan Maestro vigente (`PLAN-MAESTRO-REDISENO-PROYECTOS-v1.md`).
-3. Contexto visual aprobado (`CONTEXTO-VISUAL-CHANTIA.md`).
+3. Contexto visual aprobado (`DESIGN_CONTEXT.md`).
 4. Implementación actual en el repositorio (código y componentes).
-5. Registro histórico de diseño (`BITACORA-REBRANDING.md`).
+5. Registro histórico de diseño (`DESIGN_LOG.md`).
 6. Propuestas futuras no aprobadas o suposiciones de diseño.
 
 *Nota:* Si dos fuentes se contradicen claramente, notifica al usuario y detén la ejecución hasta que se resuelva la ambigüedad, priorizando siempre la implementación vigente frente a documentos históricos desactualizados.
