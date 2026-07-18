@@ -420,7 +420,7 @@ export default function ProductList({ projectId }: ProductListProps) {
                       />
                     </div>
                     {selectedFile && (
-                      <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Package className="h-4 w-4" /> {selectedFile.name} (Lista para subir)
                       </p>
                     )}
@@ -479,18 +479,23 @@ export default function ProductList({ projectId }: ProductListProps) {
           {products.map((product: Product) => (
             <Card key={product.id} className="overflow-hidden border-border/50 shadow-sm hover:border-border/80 transition-all duration-200 group flex flex-col bg-card">
               <div className="relative h-48 w-full bg-muted/20 border-b border-border/30 overflow-hidden shrink-0 flex items-center justify-center">
-                {product.imageUrl ? (
+                {product.imageUrl && (
                   <img
                     src={product.imageUrl}
                     alt={product.name}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      if (e.currentTarget.nextElementSibling) {
+                        e.currentTarget.nextElementSibling.classList.remove('hidden');
+                      }
+                    }}
                   />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/10">
-                    <Box className="h-12 w-12 mb-2 opacity-50" />
-                    <span className="text-xs font-medium uppercase tracking-wider opacity-60">Sin imagen</span>
-                  </div>
                 )}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/10 ${product.imageUrl ? 'hidden' : ''}`}>
+                  <Box className="h-12 w-12 mb-2 opacity-50" />
+                  <span className="text-xs font-medium uppercase tracking-wider opacity-60">Sin imagen</span>
+                </div>
               </div>
               <CardContent className="p-5 flex-1 flex flex-col gap-3">
                 <div>
@@ -506,8 +511,8 @@ export default function ProductList({ projectId }: ProductListProps) {
                     {product.description}
                   </p>
                 )}
-                {product.price && (
-                  <div className="mt-auto pt-4 text-emerald-700 dark:text-emerald-400 font-bold tracking-tight">
+                {product.price != null && (
+                  <div className="mt-auto pt-4 text-foreground font-bold tracking-tight">
                     {formatPrice(product.price)}
                   </div>
                 )}
